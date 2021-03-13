@@ -78,7 +78,7 @@ local myname 			= imgui.ImBuffer(configuration.main_settings.myname, 256)
 local myaccent 			= imgui.ImBuffer(configuration.main_settings.myaccent, 256)
 
 local ComboBox_select 	= imgui.ImInt(0)
-local ComboBox_arr 		= {u8"РђРІС‚Рѕ",u8"РњРѕС‚Рѕ",u8"Р С‹Р±РѕР»РѕРІСЃС‚РІРѕ",u8"РџР»Р°РІР°РЅРёРµ",u8"РћСЂСѓР¶РёРµ",u8"РћС…РѕС‚Р°",u8"Р Р°СЃРєРѕРїРєРё"}
+local ComboBox_arr 		= {u8"Авто",u8"Мото",u8"Рыболовство",u8"Плавание",u8"Оружие",u8"Охота",u8"Раскопки"}
 local avtoprice 		= imgui.ImBuffer(tostring(configuration.main_settings.avtoprice), 7)
 local motoprice 		= imgui.ImBuffer(tostring(configuration.main_settings.motoprice), 7)
 local ribaprice 		= imgui.ImBuffer(tostring(configuration.main_settings.ribaprice), 7)
@@ -110,13 +110,13 @@ local mcvalue = true
 local passvalue = true
 
 local Ranks_select 		= imgui.ImInt(0)
-local Ranks_arr 		= {u8"[1] РЎС‚Р°Р¶С‘СЂ",u8"[2] РљРѕРЅСЃСѓР»СЊС‚Р°РЅС‚",u8"[3] Р›РёС†РµРЅР·С‘СЂ",u8"[4] РњР». РРЅСЃС‚СЂСѓРєС‚РѕСЂ",u8"[5] РРЅСЃС‚СЂСѓРєС‚РѕСЂ",u8"[6] РњРµРЅРµРґР¶РµСЂ",u8"[7] РЎС‚. РњРµРЅРµРґР¶РµСЂ",u8"[8] РџРѕРјРѕС‰РЅРёРє РґРёСЂРµРєС‚РѕСЂР°",u8"[9] Р”РёСЂРµРєС‚РѕСЂ"}
+local Ranks_arr 		= {u8"[1] Стажёр",u8"[2] Консультант",u8"[3] Лицензёр",u8"[4] Мл. Инструктор",u8"[5] Инструктор",u8"[6] Менеджер",u8"[7] Ст. Менеджер",u8"[8] Помощник директора",u8"[9] Директор"}
 
 local gender 			= imgui.ImInt(configuration.main_settings.gender)
-local gender_arr 		= {u8"РњСѓР¶СЃРєРѕР№",u8"Р–РµРЅСЃРєРёР№"}
+local gender_arr 		= {u8"Мужской",u8"Женский"}
 
 local sobesdecline_select = imgui.ImInt(0)
-local sobesdecline_arr 	= {u8"РџР»РѕС…РѕРµ Р Рџ",u8"РќРµ Р±С‹Р»Рѕ Р Рџ",u8"РџР»РѕС…Р°СЏ РіСЂР°РјРјР°С‚РёРєР°",u8"РќРёС‡РµРіРѕ РЅРµ РїРѕРєР°Р·Р°Р»",u8"Р”СЂСѓРіРѕРµ"}
+local sobesdecline_arr 	= {u8"Плохое РП",u8"Не было РП",u8"Плохая грамматика",u8"Ничего не показал",u8"Другое"}
 
 local fa_glyph_ranges = imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 function imgui.BeforeDrawFrame()
@@ -127,7 +127,7 @@ function imgui.BeforeDrawFrame()
 	end
 end
 
---РўРµРјР° РѕС‚ madrasso: https://www.blast.hk/threads/25442/#post-310168
+--Тема от madrasso: https://www.blast.hk/threads/25442/#post-310168
 imgui.SwitchContext()
 local style = imgui.GetStyle()
 local colors = style.Colors
@@ -206,11 +206,11 @@ function main()
 	end
 	if not doesFileExist('moonloader/config/AS Helper.ini') then
         if inicfg.save(configuration, 'AS Helper.ini') then
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}РЎРѕР·РґР°РЅ С„Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё.', 0xff6633)
+			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Создан файл конфигурации.', 0xff6633)
 		end
     end
-	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}AutoSchool Helper СѓСЃРїРµС€РЅРѕ Р·Р°РіСЂСѓР¶РµРЅ. РђРІС‚РѕСЂ: JustMini.", 0xff6633)
-	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ /"..cmdhelp.." С‡С‚РѕР±С‹ РЅР°СЃС‚СЂРѕРёС‚СЊ РµРіРѕ.", 0xff6633)
+	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}AutoSchool Helper успешно загружен. Автор: JustMini.", 0xff6633)
+	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите /"..cmdhelp.." чтобы настроить его.", 0xff6633)
 	imgui.Process = false
 	sampRegisterChatCommand(cmdhelp, fastmenuopen)
 	sampRegisterChatCommand(cmdbind, binder)
@@ -234,10 +234,10 @@ function main()
 				skiporcancel = true
 				cansell = true
 				inprocess = false
-				sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’С‹ РїСЂРѕРїСѓСЃС‚РёР»Рё РѕР¶РёРґР°РЅРёРµ РјРµРґ.РєР°СЂС‚С‹', 0xff6633)
-				selllic(tempid..' РѕСЂСѓР¶РёРµ')
+				sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы пропустили ожидание мед.карты', 0xff6633)
+				selllic(tempid..' оружие')
 			else
-				sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’Р°Рј РЅРµС‡РµРіРѕ РїСЂРѕРїСѓСЃРєР°С‚СЊ!', 0xff6633)
+				sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вам нечего пропускать!', 0xff6633)
 			end
 		end)
 	end)
@@ -246,9 +246,9 @@ function main()
 			skiporcancel = true
 			cansell = false
 			inprocess = false
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’С‹ РѕС‚РјРµРЅРёР»Рё РѕР¶РёРґР°РЅРёРµ РјРµРґ.РєР°СЂС‚С‹', 0xff6633)
+			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы отменили ожидание мед.карты', 0xff6633)
 		else
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’Р°Рј РЅРµС‡РµРіРѕ РѕС‚РјРµРЅСЏС‚СЊ!', 0xff6633)
+			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вам нечего отменять!', 0xff6633)
 		end
 	end)
 end
@@ -308,7 +308,7 @@ lua_thread.create(function()
 					result, targettingid = sampGetPlayerIdByCharHandle(targettingped)
 					if targettingid ~= -1 then
 						if not imgui_fm.v then
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’С‹ РёСЃРїРѕР»СЊР·РѕРІР°Р»Рё РјРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР° РЅР°: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]",0xff6633)
+							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]",0xff6633)
 							imgui_fm.v = true
 						end
 					end
@@ -336,7 +336,7 @@ lua_thread.create(function()
 									inprocess = false
 								end
 							else
-								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 							end
 						end
 					elseif configuration.BindsKeys[key]:match("(.+)") then
@@ -350,7 +350,7 @@ lua_thread.create(function()
 									inprocess = false
 								end
 							else
-								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 							end
 						end
 					end
@@ -364,13 +364,13 @@ function imgui.OnDrawFrame()
 	if imgui_settings.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"                  РќР°СЃС‚СЂРѕР№РєРё ASHelper", imgui_settings, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar)
+		imgui.Begin(u8"                  Настройки ASHelper", imgui_settings, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar)
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_COG..u8' РќР°СЃС‚СЂРѕР№РєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя', imgui.ImVec2(285,30)) then
 			userset = not userset
 		end
 		if userset then
-			if imgui.Checkbox(u8"РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РјРѕР№ РЅРёРє РёР· С‚Р°Р±Р°",useservername) then
+			if imgui.Checkbox(u8"Использовать мой ник из таба",useservername) then
 				if configuration.main_settings.myname == '' then
 					result,myid = sampGetPlayerIdByCharHandle(playerPed)
 					myname.v = sampGetPlayerNickname(myid)
@@ -387,7 +387,7 @@ function imgui.OnDrawFrame()
 					end
 				end
 			end
-			if imgui.Checkbox(u8"РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р°РєС†РµРЅС‚",useaccent) then
+			if imgui.Checkbox(u8"Использовать акцент",useaccent) then
 				configuration.main_settings.useaccent = useaccent.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -408,7 +408,7 @@ function imgui.OnDrawFrame()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"[").x) / 1.65)
 				imgui.Text("]")
 			end
-			if imgui.Checkbox(u8"РЎРѕР·РґР°РІР°С‚СЊ РјР°СЂРєРµСЂ РїСЂРё РІС‹РґРµР»РµРЅРёРё",createmarker) then
+			if imgui.Checkbox(u8"Создавать маркер при выделении",createmarker) then
 				if marker ~= nil then
 					removeBlip(marker)
 				end
@@ -418,14 +418,14 @@ function imgui.OnDrawFrame()
 				if inicfg.save(configuration,"AS Helper") then
 				end
 			end
-			if imgui.Button(u8'РћР±РЅРѕРІРёС‚СЊ', imgui.ImVec2(65,25)) then
+			if imgui.Button(u8'Обновить', imgui.ImVec2(65,25)) then
 				getmyrank = true
 				sampSendChat("/stats")
 			end
 			imgui.SameLine()
-			imgui.Text(u8"Р’Р°С€ СЂР°РЅРі: "..u8(configuration.main_settings.myrank).." ("..u8(configuration.main_settings.myrankint)..")")
+			imgui.Text(u8"Ваш ранг: "..u8(configuration.main_settings.myrank).." ("..u8(configuration.main_settings.myrankint)..")")
 			imgui.PushItemWidth(85)
-			if imgui.Combo(u8"Р’Р°С€ РїРѕР»",gender, gender_arr, #gender_arr) then
+			if imgui.Combo(u8"Ваш пол",gender, gender_arr, #gender_arr) then
 				configuration.main_settings.gender = gender.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -433,13 +433,13 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FILE_ALT..u8' РќР°СЃС‚СЂРѕР№РєРё Р»РёС†РµРЅР·РёР№', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий', imgui.ImVec2(285,30)) then
 			licset = not licset
 		end
 		if licset then
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"РђРІС‚Рѕ", avtoprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Авто", avtoprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.avtoprice = avtoprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -448,7 +448,7 @@ function imgui.OnDrawFrame()
 			imgui.SameLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() + 29) / 2)
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"РњРѕС‚Рѕ", motoprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Мото", motoprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.motoprice = motoprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -456,7 +456,7 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Р С‹Р±Р°Р»РєР°", ribaprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Рыбалка", ribaprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.ribaprice = ribaprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -464,7 +464,7 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 			imgui.SameLine()
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"РџР»Р°РІР°РЅРёРµ", lodkaprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Плавание", lodkaprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.lodkaprice = lodkaprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -472,7 +472,7 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"РћСЂСѓР¶РёРµ", gunaprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Оружие", gunaprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.gunaprice = gunaprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -481,7 +481,7 @@ function imgui.OnDrawFrame()
 			imgui.SameLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() + 31) / 2)
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"РћС…РѕС‚Р°", huntprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Охота", huntprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.huntprice = huntprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -489,7 +489,7 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Р Р°СЃРєРѕРїРєРё", kladprice, imgui.InputTextFlags.CharsDecimal) then
+			if imgui.InputText(u8"Раскопки", kladprice, imgui.InputTextFlags.CharsDecimal) then
 				configuration.main_settings.kladprice = kladprice.v
 				if inicfg.save(configuration,"AS Helper") then
 				end
@@ -497,11 +497,11 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_KEYBOARD..u8' РќР°СЃС‚СЂРѕР№РєРё РіРѕСЂСЏС‡РёС… РєР»Р°РІРёС€', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш', imgui.ImVec2(285,30)) then
 			keysset = not keysset
 		end
 		if keysset then
-			if imgui.Button(u8'РР·РјРµРЅРёС‚СЊ', imgui.ImVec2(65,25)) then
+			if imgui.Button(u8'Изменить', imgui.ImVec2(65,25)) then
 				table.remove(log)
 				getbindkey = true
 				getbindkeys()
@@ -510,33 +510,33 @@ function imgui.OnDrawFrame()
 				end
 			end
 			imgui.SameLine()
-			imgui.Text(u8"РљРЅРѕРїРєСѓ Р±С‹СЃС‚СЂРѕРіРѕ РјРµРЅСЋ: РџРљРњ + "..configuration.main_settings.usefastmenu.."",imgui.ImVec2(80,25))
-			if imgui.Button(u8'Р‘РёРЅРґРµСЂ', imgui.ImVec2(65,25)) then
+			imgui.Text(u8"Кнопку быстрого меню: ПКМ + "..configuration.main_settings.usefastmenu.."",imgui.ImVec2(80,25))
+			if imgui.Button(u8'Биндер', imgui.ImVec2(65,25)) then
 				binder()
 			end
 			imgui.SameLine()
-			imgui.Text(u8"РћС‚РєСЂС‹С‚СЊ РЅР°СЃС‚СЂРѕР№РєРё Р±РёРЅРґРµСЂР°",imgui.ImVec2(80,25))
+			imgui.Text(u8"Открыть настройки биндера",imgui.ImVec2(80,25))
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' РћСЃС‚Р°Р»СЊРЅРѕРµ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное', imgui.ImVec2(285,30)) then
 			otherset = not otherset
 		end
 		if otherset then
-			if imgui.Button(u8'РЈР·РЅР°С‚СЊ', imgui.ImVec2(65,25)) then
+			if imgui.Button(u8'Узнать', imgui.ImVec2(65,25)) then
 				imgui_cmds.v = not imgui_cmds.v
 			end
 			imgui.SameLine()
-			imgui.Text(u8"Р’СЃРµ РєРѕРјР°РЅРґС‹ Р±РёРЅРґРµСЂР°",imgui.ImVec2(80,25))
+			imgui.Text(u8"Все команды биндера",imgui.ImVec2(80,25))
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃРєСЂРёРїС‚Рµ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте', imgui.ImVec2(285,30)) then
 			scriptinfo = not scriptinfo
 		end
 		if scriptinfo then
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'РЎРѕР·РґР°С‚РµР»СЊ: JustMini').x) / 2)
-			imgui.Text(u8'РЎРѕР·РґР°С‚РµР»СЊ: JustMini',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'РћС‚РґРµР»СЊРЅРѕРµ СЃРїР°СЃРёР±Рѕ:').x) / 2)
-			imgui.Text(u8'РћС‚РґРµР»СЊРЅРѕРµ СЃРїР°СЃРёР±Рѕ:',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Создатель: JustMini').x) / 2)
+			imgui.Text(u8'Создатель: JustMini',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Отдельное спасибо:').x) / 2)
+			imgui.Text(u8'Отдельное спасибо:',imgui.ImVec2(70,20))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Zody').x) / 2)
 			imgui.Text(u8'Zody',imgui.ImVec2(70,20))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'madrasso').x) / 2)
@@ -548,184 +548,184 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Cosmo').x) / 2)
 			imgui.Text(u8'Cosmo',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Р’РµСЂСЃРёСЏ 1.0').x) / 2)
-			imgui.Text(u8'Р’РµСЂСЃРёСЏ 1.0',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.0').x) / 2)
+			imgui.Text(u8'Версия 1.0',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'РСЃРїСЂР°РІР»РµРЅ Р±Р°Рі СЃ Р°РєС†РµРЅС‚РѕРј').x) / 2)
-			imgui.Text(u8'РСЃРїСЂР°РІР»РµРЅ Р±Р°Рі СЃ Р°РєС†РµРЅС‚РѕРј',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с акцентом').x) / 2)
+			imgui.Text(u8'Исправлен баг с акцентом',imgui.ImVec2(70,20))
 		end
 		imgui.End()
 	elseif imgui_fm.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РІС‹Р±СЂР°Р»Рё ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Р’С‹ РІС‹Р±СЂР°Р»Рё РР”: "..targettingid, imgui.ImVec2(75,30))
+		imgui.Begin(u8"               Меню быстрого доступа", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выбрали ID: "..targettingid).x) / 2)
+		imgui.Text(u8"Вы выбрали ИД: "..targettingid, imgui.ImVec2(75,30))
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' РџРѕРїСЂРёРІРµС‚СЃС‚РІРѕРІР°С‚СЊ РёРіСЂРѕРєР°', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 1 then
 					disableallimgui()
 					hello()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 1-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 1-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FILE_ALT..u8' РћР·РІСѓС‡РёС‚СЊ РїСЂР°Р№СЃ Р»РёСЃС‚', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Озвучить прайс лист', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 1  then
 					disableallimgui()
 					pricelist()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 1-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 1-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FILE_SIGNATURE..u8' РџСЂРѕРґР°С‚СЊ Р»РёС†РµРЅР·РёСЋ РёРіСЂРѕРєСѓ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_FILE_SIGNATURE..u8' Продать лицензию игроку', imgui.ImVec2(285,30)) then
 			if configuration.main_settings.myrankint >= 3 then
 				imgui_license.v = true
 				imgui_fm.v = false
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 3-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 3-го ранга.", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_REPLY..u8' Р’С‹РіРЅР°С‚СЊ РёР· Р°РІС‚РѕС€РєРѕР»С‹', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
 			if configuration.main_settings.myrankint >= 5 then
 				imgui_expel.v = true
 				imgui_fm.v = false
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 5-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 5-го ранга.", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_PLUS..u8' РџСЂРёРЅСЏС‚СЊ РІ РѕСЂРіР°РЅРёР·Р°С†РёСЋ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					disableallimgui()
 					tosend = tostring(targettingid)
 					invite(tosend)
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_MINUS..u8' РЈРІРѕР»РёС‚СЊ РёР· РѕСЂРіР°РЅРёР·Р°С†РёРё', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_USER_MINUS..u8' Уволить из организации', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fm.v = false
 					imgui_uninvite.v = true
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_EXCHANGE_ALT..u8' РР·РјРµРЅРёС‚СЊ РґРѕР»Р¶РЅРѕСЃС‚СЊ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_EXCHANGE_ALT..u8' Изменить должность', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fm.v = false
 					imgui_giverank.v = true
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_SLASH..u8' Р—Р°РЅРµСЃС‚Рё РІ С‡С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_USER_SLASH..u8' Занести в чёрный список', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fm.v = false
 					imgui_blacklist.v = true
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER..u8' РЈР±СЂР°С‚СЊ РёР· С‡С‘СЂРЅРѕРіРѕ СЃРїРёСЃРєР°', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_USER..u8' Убрать из чёрного списка', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					unblacklist(tostring(targettingid))
 					disableallimgui()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FROWN..u8' Р’С‹РґР°С‚СЊ РІС‹РіРѕРІРѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєСѓ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_FROWN..u8' Выдать выговор сотруднику', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fwarn.v = true
 					imgui_fm.v = false
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_SMILE..u8' РЎРЅСЏС‚СЊ РІС‹РіРѕРІРѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєСѓ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_SMILE..u8' Снять выговор сотруднику', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					unfwarn(tostring(targettingid))
 					disableallimgui()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 			end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_VOLUME_MUTE..u8' Р’С‹РґР°С‚СЊ РјСѓС‚ СЃРѕС‚СЂСѓРґРЅРёРєСѓ', imgui.ImVec2(285,30)) then
+		if imgui.Button(fa.ICON_FA_VOLUME_MUTE..u8' Выдать мут сотруднику', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fmute.v = true
 					imgui_fm.v = false
 					else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' РЎРЅСЏС‚СЊ РјСѓС‚ СЃРѕС‚СЂСѓРґРЅРёРєСѓ', imgui.ImVec2(285,30)) then
+			if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' Снять мут сотруднику', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 9 then
 					funmute(tostring(targettingid))
 					disableallimgui()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 			end
 		imgui.Separator()
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'РЎРѕР±РµСЃРµРґРѕРІР°РЅРёРµ '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
+		if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
 			if not inprocess then
 				if configuration.main_settings.myrankint >= 5 then
 					passvalue = false
@@ -736,64 +736,64 @@ function imgui.OnDrawFrame()
 					imgui_sobes.v = true
 					imgui_fm.v = false
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅРѕРµ РґРµР№СЃС‚РІРёРµ РґРѕСЃС‚СѓРїРЅРѕ СЃ 5-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данное действие доступно с 5-го ранга.", 0xff6633)
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.End()
 	elseif imgui_license.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_license, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РїСЂРѕРґР°С‘С‚Рµ Р»РёС†РµРЅР·РёСЋ С‡РµР»РѕРІРµРєСѓ РїРѕРґ ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Р’С‹ РїСЂРѕРґР°С‘С‚Рµ Р»РёС†РµРЅР·РёСЋ С‡РµР»РѕРІРµРєСѓ РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+		imgui.Begin(u8"               Меню быстрого доступа", imgui_license, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы продаёте лицензию человеку под ID: "..targettingid).x) / 2)
+		imgui.Text(u8"Вы продаёте лицензию человеку под ID: "..targettingid, imgui.ImVec2(75,30))
 		imgui.NewLine()
-		imgui.Text(u8"Р›РёС†РµРЅР·РёСЏ: ", imgui.ImVec2(75,30))
+		imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
 		imgui.SameLine()
 		imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
 		imgui.NewLine()
 		if ComboBox_select.v == 0 then
-			givelic = "Р°РІС‚Рѕ"
+			givelic = "авто"
 		elseif ComboBox_select.v == 1 then
-			givelic = "РјРѕС‚Рѕ"
+			givelic = "мото"
 		elseif ComboBox_select.v == 2 then
-			givelic = "СЂС‹Р±РѕР»РѕРІСЃС‚РІРѕ"
+			givelic = "рыболовство"
 		elseif ComboBox_select.v == 3 then
-			givelic = "РїР»Р°РІР°РЅРёРµ"
+			givelic = "плавание"
 		elseif ComboBox_select.v == 4 then
-			givelic = "РѕСЂСѓР¶РёРµ"
+			givelic = "оружие"
 		elseif ComboBox_select.v == 5 then
-			givelic = "РѕС…РѕС‚Сѓ"
+			givelic = "охоту"
 		elseif ComboBox_select.v == 6 then
-			givelic = "СЂР°СЃРєРѕРїРєРё"
+			givelic = "раскопки"
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'РџСЂРѕРґР°С‚СЊ Р»РёС†РµРЅР·РёСЋ РЅР° '..u8(givelic), imgui.ImVec2(285,30)) then
+		if imgui.Button(u8'Продать лицензию на '..u8(givelic), imgui.ImVec2(285,30)) then
 			if not inprocess then
 				ComboBox_select.v = 0
 				selltowhostr = tostring(targettingid).." "..tostring(givelic)
 				selllic(selltowhostr)
 				disableallimgui()
 				else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'Р›РёС†РµРЅР·РёСЏ РЅР° РїРѕР»С‘С‚С‹', imgui.ImVec2(285,30)) then
+		if imgui.Button(u8'Лицензия на полёты', imgui.ImVec2(285,30)) then
 			if not inprocess then
 				ComboBox_select.v = 0
-				selltowhostr = tostring(targettingid).." РїРѕР»С‘С‚С‹"
+				selltowhostr = tostring(targettingid).." полёты"
 				selllic(selltowhostr)
 				disableallimgui()
 				else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 		imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-		if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+		if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 			imgui_fm.v = true
 			imgui_license.v = false
 		end
@@ -801,18 +801,18 @@ function imgui.OnDrawFrame()
 	elseif imgui_expel.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_expel, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РІС‹РіРѕРЅСЏРµС‚Рµ С‡РµР»РѕРІРµРєР° РїРѕРґ ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Р’С‹ РІС‹РіРѕРЅСЏРµС‚Рµ С‡РµР»РѕРІРµРєР° РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+		imgui.Begin(u8"               Меню быстрого доступа", imgui_expel, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выгоняете человека под ID: "..targettingid).x) / 2)
+		imgui.Text(u8"Вы выгоняете человека под ID: "..targettingid, imgui.ImVec2(75,30))
 		imgui.NewLine()
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџСЂРёС‡РёРЅР° expel:").x) / 2)
-		imgui.Text(u8"РџСЂРёС‡РёРЅР° expel:", imgui.ImVec2(75,30))
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
+		imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
 		imgui.InputText(u8"",expelbuff)
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
-		if imgui.Button(u8'Р’С‹РіРЅР°С‚СЊ '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(200,30)) then
+		if imgui.Button(u8'Выгнать '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(200,30)) then
 			if expelbuff.v == nil or expelbuff.v == "" then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РїСЂРёС‡РёРЅСѓ expel!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину expel!", 0xff6633)
 			else
 				expel(tostring(targettingid.." "..u8:decode(expelbuff.v)))
 				disableallimgui()
@@ -820,7 +820,7 @@ function imgui.OnDrawFrame()
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 		imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-		if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+		if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 			imgui_fm.v = true
 			imgui_expel.v = false
 		end
@@ -829,29 +829,29 @@ function imgui.OnDrawFrame()
 		if not inprocess then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_uninvite, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ СѓРІРѕР»СЊРЅСЏРµС‚Рµ СЃРѕС‚СЂСѓРґРЅРёРєР° РїРѕРґ ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Р’С‹ СѓРІРѕР»СЊРЅСЏРµС‚Рµ СЃРѕС‚СЂСѓРґРЅРёРєР° РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.Begin(u8"               Меню быстрого доступа", imgui_uninvite, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы увольняете сотрудника под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы увольняете сотрудника под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџСЂРёС‡РёРЅР° СѓРІРѕР»СЊРЅРµРЅРёСЏ:").x) / 2)
-			imgui.Text(u8"РџСЂРёС‡РёРЅР° СѓРІРѕР»СЊРЅРµРЅРёСЏ:", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина увольнения:").x) / 2)
+			imgui.Text(u8"Причина увольнения:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
 			imgui.InputText(u8"", uninvitebuf)
 			if uninvitebox.v then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџСЂРёС‡РёРЅР° Р§РЎ:").x) / 2)
-				imgui.Text(u8"РџСЂРёС‡РёРЅР° Р§РЎ:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина ЧС:").x) / 2)
+				imgui.Text(u8"Причина ЧС:", imgui.ImVec2(75,30))
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
 				imgui.InputText(u8" ", blacklistbuf)
 			end
-			imgui.Checkbox(u8"РЈРІРѕР»РёС‚СЊ СЃ Р§РЎ", uninvitebox)
+			imgui.Checkbox(u8"Уволить с ЧС", uninvitebox)
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РЈРІРѕР»РёС‚СЊ '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Уволить '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(285,30)) then
 				if uninvitebuf.v == nil or uninvitebuf.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РїСЂРёС‡РёРЅСѓ СѓРІРѕР»СЊРЅРµРЅРёСЏ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину увольнения!", 0xff6633)
 				else
 					if uninvitebox.v then
 						if blacklistbuf.v == nil or blacklistbuf.v == '' then
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РїСЂРёС‡РёРЅСѓ Р·Р°РЅРµСЃРµРЅРёСЏ РІ Р§РЎ!", 0xff6633)
+							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину занесения в ЧС!", 0xff6633)
 						else
 							uninvite(targettingid.." 1")
 							disableallimgui()
@@ -864,7 +864,7 @@ function imgui.OnDrawFrame()
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 				imgui_fm.v = true
 				imgui_uninvite.v = false
 			end
@@ -874,21 +874,21 @@ function imgui.OnDrawFrame()
 		if not inprocess then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_giverank, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РјРµРЅСЏРµС‚Рµ СЂР°РЅРі СЃРѕС‚СЂСѓРґРЅРёРєСѓ РїРѕРґ ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Р’С‹ РјРµРЅСЏРµС‚Рµ СЂР°РЅРі СЃРѕС‚СЂСѓРґРЅРёРєСѓ РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.Begin(u8"               Меню быстрого доступа", imgui_giverank, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы меняете ранг сотруднику под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы меняете ранг сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.PushItemWidth(270)
 			imgui.Combo(' ', Ranks_select, Ranks_arr, #Ranks_arr)
 			imgui.PopItemWidth()
 			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 270) / 2)
-			if imgui.Button(u8'РР·РјРµРЅРёС‚СЊ СЂР°РЅРі СЌС‚РѕРјСѓ СЃРѕС‚СЂСѓРґРЅРёРєСѓ', imgui.ImVec2(270,40)) then
+			if imgui.Button(u8'Изменить ранг этому сотруднику', imgui.ImVec2(270,40)) then
 				giverank(targettingid.." "..(Ranks_select.v+1))
 				disableallimgui()
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 				imgui_fm.v = true
 				imgui_giverank.v = false
 			end
@@ -898,18 +898,18 @@ function imgui.OnDrawFrame()
 		if not inprocess then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_blacklist, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ Р·Р°РЅРѕСЃРёС‚Рµ РІ Р§РЎ С‡РµР»РѕРІРµРєР° РїРѕРґ ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Р’С‹ Р·Р°РЅРѕСЃРёС‚Рµ РІ Р§РЎ С‡РµР»РѕРІРµРєР° РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.Begin(u8"               Меню быстрого доступа", imgui_blacklist, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы заносите в ЧС человека под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы заносите в ЧС человека под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџСЂРёС‡РёРЅР° Р·Р°РЅРµСЃРµРЅРёСЏ РІ Р§РЎ:").x) / 2)
-			imgui.Text(u8"РџСЂРёС‡РёРЅР° Р·Р°РЅРµСЃРµРЅРёСЏ РІ Р§РЎ:", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина занесения в ЧС:").x) / 2)
+			imgui.Text(u8"Причина занесения в ЧС:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
 			imgui.InputText(u8"", blacklistbuff)
 			imgui.NewLine()
-			if imgui.Button(u8'Р—Р°РЅРµСЃС‚Рё РІ Р§РЎ '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
+			if imgui.Button(u8'Занести в ЧС '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
 				if blacklistbuff.v == nil or blacklistbuff.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РїСЂРёС‡РёРЅСѓ Р·Р°РЅРµСЃРµРЅРёСЏ РІ Р§РЎ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину занесения в ЧС!", 0xff6633)
 				else
 					blacklist(targettingid.." "..u8:decode(blacklistbuff.v))
 					disableallimgui()
@@ -917,7 +917,7 @@ function imgui.OnDrawFrame()
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 				imgui_fm.v = true
 				imgui_blacklist.v = false
 			end
@@ -927,18 +927,18 @@ function imgui.OnDrawFrame()
 		if not inprocess then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_fwarn, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РІС‹РґР°С‘С‚Рµ РІС‹РіРѕРІРѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєСѓ РїРѕРґ ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Р’С‹ РІС‹РґР°С‘С‚Рµ РІС‹РіРѕРІРѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєСѓ РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.Begin(u8"               Меню быстрого доступа", imgui_fwarn, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выдаёте выговор сотруднику под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы выдаёте выговор сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџСЂРёС‡РёРЅР° РІС‹РіРѕРІРѕСЂР°:").x) / 2)
-			imgui.Text(u8"РџСЂРёС‡РёРЅР° РІС‹РіРѕРІРѕСЂР°:", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина выговора:").x) / 2)
+			imgui.Text(u8"Причина выговора:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
 			imgui.InputText(u8"", fwarnbuff)
 			imgui.NewLine()
-			if imgui.Button(u8'Р’С‹РґР°С‚СЊ РІС‹РіРѕРІРѕСЂ '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
+			if imgui.Button(u8'Выдать выговор '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
 				if fwarnbuff.v == nil or fwarnbuff.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РїСЂРёС‡РёРЅСѓ РІС‹РґР°С‡Рё РІС‹РіРѕРІРѕСЂР°!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину выдачи выговора!", 0xff6633)
 				else
 					fwarn(targettingid.." "..u8:decode(fwarnbuff.v))
 					disableallimgui()
@@ -946,7 +946,7 @@ function imgui.OnDrawFrame()
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 				imgui_fm.v = true
 				imgui_fwarn.v = false
 			end
@@ -956,25 +956,25 @@ function imgui.OnDrawFrame()
 		if not inprocess then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_fmute, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РІС‹РґР°С‘С‚Рµ РјСѓС‚ СЃРѕС‚СЂСѓРґРЅРёРєСѓ РїРѕРґ ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Р’С‹ РІС‹РґР°С‘С‚Рµ РјСѓС‚ СЃРѕС‚СЂСѓРґРЅРёРєСѓ РїРѕРґ ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.Begin(u8"               Меню быстрого доступа", imgui_fmute, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выдаёте мут сотруднику под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы выдаёте мут сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџСЂРёС‡РёРЅР° РјСѓС‚Р°:").x) / 2)
-			imgui.Text(u8"РџСЂРёС‡РёРЅР° РјСѓС‚Р°:", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина мута:").x) / 2)
+			imgui.Text(u8"Причина мута:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
 			imgui.InputText(u8"", fmutebuff)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’СЂРµРјСЏ РјСѓС‚Р°:").x) / 2)
-			imgui.Text(u8"Р’СЂРµРјСЏ РјСѓС‚Р°:", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Время мута:").x) / 2)
+			imgui.Text(u8"Время мута:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
 			imgui.InputInt(u8" ", fmuteint)
 			imgui.NewLine()
-			if imgui.Button(u8'Р’С‹РґР°С‚СЊ РјСѓС‚ '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
+			if imgui.Button(u8'Выдать мут '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
 				if fmutebuff.v == nil or fmutebuff.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РїСЂРёС‡РёРЅСѓ РІС‹РґР°С‡Рё РјСѓС‚Р°!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину выдачи мута!", 0xff6633)
 					else
 					if fmuteint.v == nil or fmuteint.v == '' or fmuteint.v == 0 then
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ РІСЂРµРјСЏ РјСѓС‚Р°!", 0xff6633)
+						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите время мута!", 0xff6633)
 					else
 						fmute(targettingid.." "..u8:decode(fmuteint.v).." "..u8:decode(fmutebuff.v))
 						disableallimgui()
@@ -983,7 +983,7 @@ function imgui.OnDrawFrame()
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 				imgui_fm.v = true
 				imgui_fmute.v = false
 			end
@@ -992,91 +992,91 @@ function imgui.OnDrawFrame()
 	elseif imgui_sobes.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               РњРµРЅСЋ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕСЃС‚СѓРїР°", imgui_sobes, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Р’С‹ РїСЂРѕРІРѕРґРёС‚Рµ СЃРѕР±РµСЃРµРґРѕРІР°РЅРёРµ ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Р’С‹ РїСЂРѕРІРѕРґРёС‚Рµ СЃРѕР±РµСЃРµРґРѕРІР°РЅРёРµ ID: "..targettingid, imgui.ImVec2(75,30))
+		imgui.Begin(u8"               Меню быстрого доступа", imgui_sobes, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы проводите собеседование ID: "..targettingid).x) / 2)
+		imgui.Text(u8"Вы проводите собеседование ID: "..targettingid, imgui.ImVec2(75,30))
 		imgui.NewLine()
 		if sobesetap == 0 then
 			lastsobesetap = sobesetap
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџРѕРїСЂРёРІРµС‚СЃС‚РІРѕРІР°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 					sobes1()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЌС‚Р°Рї', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 1 then
 			lastsobesetap = sobesetap
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџРѕРїСЂРѕСЃРёС‚СЊ РґРѕРєСѓРјРµРЅС‚С‹', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Попросить документы', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 					sobes2()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЌС‚Р°Рї', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 2 then
 			lastsobesetap = sobesetap
 			if mcvalue == false then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РњРµРґ.РєР°СЂС‚Р° - РЅРµ РїРѕРєР°Р·Р°РЅР°").x) / 2)
-				imgui.Text(u8"РњРµРґ.РєР°СЂС‚Р° - РЅРµ РїРѕРєР°Р·Р°РЅР°", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - не показана").x) / 2)
+				imgui.Text(u8"Мед.карта - не показана", imgui.ImVec2(75,30))
 			else
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РњРµРґ.РєР°СЂС‚Р° - РїРѕРєР°Р·Р°РЅР° ("..mcverdict..")").x) / 2)
-				imgui.Text(u8"РњРµРґ.РєР°СЂС‚Р° - РїРѕРєР°Р·Р°РЅР° ("..mcverdict..")", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - показана ("..mcverdict..")").x) / 2)
+				imgui.Text(u8"Мед.карта - показана ("..mcverdict..")", imgui.ImVec2(75,30))
 			end
 			if passvalue == false then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџР°СЃРїРѕСЂС‚ - РЅРµ РїРѕРєР°Р·Р°РЅ").x) / 2)
-				imgui.Text(u8"РџР°СЃРїРѕСЂС‚ - РЅРµ РїРѕРєР°Р·Р°РЅ", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - не показан").x) / 2)
+				imgui.Text(u8"Паспорт - не показан", imgui.ImVec2(75,30))
 			else
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"РџР°СЃРїРѕСЂС‚ - РїРѕРєР°Р·Р°РЅ ("..passverdict..")").x) / 2)
-				imgui.Text(u8"РџР°СЃРїРѕСЂС‚ - РїРѕРєР°Р·Р°РЅ ("..passverdict..")", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - показан ("..passverdict..")").x) / 2)
+				imgui.Text(u8"Паспорт - показан ("..passverdict..")", imgui.ImVec2(75,30))
 			end
-			if mcvalue == true and mcverdict == (u8"РІ РїРѕСЂСЏРґРєРµ") and passvalue == true and passverdict == (u8"РІ РїРѕСЂСЏРґРєРµ") then
+			if mcvalue == true and mcverdict == (u8"в порядке") and passvalue == true and passverdict == (u8"в порядке") then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'РџСЂРѕРґРѕР»Р¶РёС‚СЊ', imgui.ImVec2(285,30)) then
+				if imgui.Button(u8'Продолжить', imgui.ImVec2(285,30)) then
 					sobesetap = sobesetap + 1
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћС‚РєР°Р·Р°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					if mcvalue == true or passvalue == true then
-						if mcverdict == (u8"РЅР°СЂРєРѕР·Р°РІРёСЃРёРјРѕСЃС‚СЊ") then
-							sobesdecline("РЅР°СЂРєРѕР·Р°РІРёСЃРёРјРѕСЃС‚СЊ")
+						if mcverdict == (u8"наркозависимость") then
+							sobesdecline("наркозависимость")
 							disableallimgui()
-						elseif mcverdict == (u8"РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№") then
-							sobesdecline("РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№")
+						elseif mcverdict == (u8"не полностью здоровый") then
+							sobesdecline("не полностью здоровый")
 							disableallimgui()
-						elseif passverdict == (u8"РјРµРЅСЊС€Рµ 3 Р»РµС‚ РІ С€С‚Р°С‚Рµ") then
-							sobesdecline("РјРµРЅСЊС€Рµ 3 Р»РµС‚ РІ С€С‚Р°С‚Рµ")
+						elseif passverdict == (u8"меньше 3 лет в штате") then
+							sobesdecline("меньше 3 лет в штате")
 							disableallimgui()
-						elseif passverdict == (u8"РЅРµ Р·Р°РєРѕРЅРѕРїРѕСЃР»СѓС€РЅС‹Р№") then
-							sobesdecline("РЅРµ Р·Р°РєРѕРЅРѕРїРѕСЃР»СѓС€РЅС‹Р№")
+						elseif passverdict == (u8"не законопослушный") then
+							sobesdecline("не законопослушный")
 							disableallimgui()
-						elseif passverdict == (u8"РёРіСЂРѕРє РІ РѕСЂРіР°РЅРёР·Р°С†РёРё") then
-							sobesdecline("РёРіСЂРѕРє РІ РѕСЂРіР°РЅРёР·Р°С†РёРё")
+						elseif passverdict == (u8"игрок в организации") then
+							sobesdecline("игрок в организации")
 							disableallimgui()
-						elseif passverdict == (u8"Р±С‹Р» РІ РґРµРјРѕСЂРіР°РЅРµ") then
-							sobesdecline("Р±С‹Р» РІ РґРµРјРѕСЂРіР°РЅРµ")
+						elseif passverdict == (u8"был в деморгане") then
+							sobesdecline("был в деморгане")
 							disableallimgui()
 						else
 							lastsobesetap = sobesetap
@@ -1087,120 +1087,120 @@ function imgui.OnDrawFrame()
 						sobesetap = 7
 					end
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЌС‚Р°Рї', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 3 then
 			lastsobesetap = sobesetap
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Р Р°СЃСЃРєР°Р¶РёС‚Рµ РЅРµРјРЅРѕРіРѕ Рѕ СЃРµР±Рµ.', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Расскажите немного о себе.', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobes3()
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћС‚РєР°Р·Р°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					lastsobesetap = sobesetap
 					sobesetap = 7
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЌС‚Р°Рї', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 4 then
 			lastsobesetap = sobesetap
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџРѕС‡РµРјСѓ РІС‹Р±СЂР°Р»Рё РёРјРµРЅРЅРѕ РЅР°СЃ?', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Почему выбрали именно нас?', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobes4()
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћС‚РєР°Р·Р°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					lastsobesetap = sobesetap
 					sobesetap = 7
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЌС‚Р°Рї', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 5 then
 			lastsobesetap = sobesetap
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8"Р Р°Р±РѕС‚Р°Р»Рё РІС‹ СѓР¶Рµ РІ РѕСЂРіР°РЅРёР·Р°С†РёСЏС… Р¦Рђ?", imgui.ImVec2(285,30)) then
+			if imgui.Button(u8"Работали вы уже в организациях ЦА?", imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobes5()
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћС‚РєР°Р·Р°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					lastsobesetap = sobesetap
 					sobesetap = 7
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЌС‚Р°Рї', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = sobesetap + 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 6 then
 			lastsobesetap = sobesetap
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћРґРѕР±СЂРёС‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Одобрить', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesaccept2()
 					sobesetap = nil
 					disableallimgui()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћС‚РєР°Р·Р°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					lastsobesetap = sobesetap
 					sobesetap = 7
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		elseif sobesetap == 7 then
@@ -1208,29 +1208,29 @@ function imgui.OnDrawFrame()
 			imgui.Combo(" ",sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
 			imgui.PopItemWidth()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'РћС‚РєР°Р·Р°С‚СЊ', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
 				if not inprocess then
 					sobesetap = nil
 					if sobesdecline_select.v == 0 then
-						sobesdecline("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ2")
+						sobesdecline("проф. непригодность2")
 					elseif sobesdecline_select.v == 1 then
-						sobesdecline("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ3")
+						sobesdecline("проф. непригодность3")
 					elseif sobesdecline_select.v == 2 then
-						sobesdecline("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ4")
+						sobesdecline("проф. непригодность4")
 					elseif sobesdecline_select.v == 3 then
-						sobesdecline("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ1")
+						sobesdecline("проф. непригодность1")
 					elseif sobesdecline_select.v == 4 then
-						sobesdecline("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ5")
+						sobesdecline("проф. непригодность5")
 					end
 					disableallimgui()
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
 			end
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 		imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-		if imgui.Button(u8'РќР°Р·Р°Рґ', imgui.ImVec2(142.5,30)) then
+		if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 			if sobesetap == 7 then
 				sobesetap = lastsobesetap
 			elseif sobesetap ~= 0 then
@@ -1245,7 +1245,7 @@ function imgui.OnDrawFrame()
 	if imgui_binder.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(650, 360), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"                                                                   РќР°СЃС‚СЂРѕР№РєРё Р±РёРЅРґРµСЂР°", imgui_binder, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar)
+		imgui.Begin(u8"                                                                   Настройки биндера", imgui_binder, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar)
 			imgui.BeginChild("ChildWindow",imgui.ImVec2(175,270),false,imgui.WindowFlags.NoScrollbar)
 				imgui.SetCursorPosY((imgui.GetWindowWidth() - 160) / 2)
 				for key, value in pairs(configuration.BindsName) do
@@ -1270,9 +1270,9 @@ function imgui.OnDrawFrame()
 				imgui.BeginChild("ChildWindow2",imgui.ImVec2(435,200),false)
 				imgui.InputTextMultiline(u8"",binderbuff, imgui.ImVec2(435,200))
 				imgui.EndChild()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'РќР°Р·РІР°РЅРёРµ Р±РёРЅРґР°:').x - 145) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'РќР°Р·РІР°РЅРёРµ Р±РёРЅРґР°:').y - 135) / 2)
-				imgui.Text(u8'РќР°Р·РІР°РЅРёРµ Р±РёРЅРґР°:'); imgui.SameLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').y - 135) / 2)
+				imgui.Text(u8'Название бинда:'); imgui.SameLine()
 				imgui.PushItemWidth(150)
 				if choosedslot ~= 50 then
 					imgui.InputText("##bindername", bindername,imgui.InputTextFlags.ReadOnly)
@@ -1282,11 +1282,11 @@ function imgui.OnDrawFrame()
 				imgui.PopItemWidth()
 				imgui.SameLine()
 				imgui.PushItemWidth(162)
-				imgui.Combo(" ",bindertype, u8"РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєРѕРјР°РЅРґСѓ\0РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєР»Р°РІРёС€Рё\0\0", 2)
+				imgui.Combo(" ",bindertype, u8"Использовать команду\0Использовать клавиши\0\0", 2)
 				imgui.PopItemWidth()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'РќР°Р·РІР°РЅРёРµ Р±РёРЅРґР°:').x - 145) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Р—Р°РґРµСЂР¶РєР° РјРµР¶РґСѓ СЃС‚СЂРѕРєР°РјРё (ms):').y - 70) / 2)
-				imgui.Text(u8'Р—Р°РґРµСЂР¶РєР° РјРµР¶РґСѓ СЃС‚СЂРѕРєР°РјРё (ms):'); imgui.SameLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Задержка между строками (ms):').y - 70) / 2)
+				imgui.Text(u8'Задержка между строками (ms):'); imgui.SameLine()
 				imgui.PushItemWidth(58)
 				imgui.InputText("##binderdelay", binderdelay, imgui.InputTextFlags.CharsDecimal)
 				imgui.PopItemWidth()
@@ -1299,17 +1299,17 @@ function imgui.OnDrawFrame()
 					imgui.PopItemWidth()
 				elseif bindertype.v == 1 then
 					if binderkeystatus == nil or binderkeystatus == "" then
-						binderkeystatus = u8"РќР°Р¶РјРёС‚Рµ С‡С‚РѕР±С‹ РїРѕРјРµРЅСЏС‚СЊ"
+						binderkeystatus = u8"Нажмите чтобы поменять"
 					end
 					if imgui.Button(binderkeystatus) then
-						if binderkeystatus == u8"РќР°Р¶РјРёС‚Рµ С‡С‚РѕР±С‹ РїРѕРјРµРЅСЏС‚СЊ" then
+						if binderkeystatus == u8"Нажмите чтобы поменять" then
 							table.remove(emptykey1)
 							table.remove(emptykey2)
 							setbinderkey = true
 							getbindkeys()
-						elseif string.find(binderkeystatus, u8"РџСЂРёРјРµРЅРёС‚СЊ") then
+						elseif string.find(binderkeystatus, u8"Применить") then
 							setbinderkey = false
-							binderkeystatus = string.match(binderkeystatus,u8"РџСЂРёРјРµРЅРёС‚СЊ (.+)")
+							binderkeystatus = string.match(binderkeystatus,u8"Применить (.+)")
 						else
 							table.remove(emptykey1)
 							table.remove(emptykey2)
@@ -1325,7 +1325,7 @@ function imgui.OnDrawFrame()
 				imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
 				local kei
 				doreplace = false
-				if imgui.Button(u8"РЎРѕС…СЂР°РЅРёС‚СЊ",imgui.ImVec2(100,30)) then
+				if imgui.Button(u8"Сохранить",imgui.ImVec2(100,30)) then
 					if not inprocess then
 						if binderbuff.v ~= "" and bindername.v ~= "" and binderdelay.v ~= "" and bindertype.v ~= nil then
 							if bindertype.v == 0 then
@@ -1346,7 +1346,7 @@ function imgui.OnDrawFrame()
 										configuration.BindsCmd[kei] = u8:decode(bindercmd.v)
 										configuration.BindsKeys[kei] = ""
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р‘РёРЅРґ СѓСЃРїРµС€РЅРѕ СЃРѕС…СЂР°РЅС‘РЅ!", 0xff6633)
+											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно сохранён!", 0xff6633)
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1370,7 +1370,7 @@ function imgui.OnDrawFrame()
 										table.insert(configuration.BindsCmd, u8:decode(bindercmd.v))
 										table.insert(configuration.BindsKeys, "")
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р‘РёРЅРґ СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ!", 0xff6633)
+											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно создан!", 0xff6633)
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1387,10 +1387,10 @@ function imgui.OnDrawFrame()
 										end
 									end
 								else
-									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РљР°РєРѕР№-С‚Рѕ РёР· РїР°СЂР°РјРµС‚СЂРѕРІ РЅРµ РІРІРµРґС‘РЅ, РїРµСЂРµРїСЂРѕРІРµСЂСЊС‚Рµ РІСЃС‘!", 0xff6633)
+									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Какой-то из параметров не введён, перепроверьте всё!", 0xff6633)
 								end
 							elseif bindertype.v == 1 then
-								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "РќР°Р¶РјРёС‚Рµ С‡С‚РѕР±С‹ РїРѕРјРµРЅСЏС‚СЊ" and not string.find((u8:decode(binderkeystatus)), "РџСЂРёРјРµРЅРёС‚СЊ ") then
+								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "Нажмите чтобы поменять" and not string.find((u8:decode(binderkeystatus)), "Применить ") then
 									for key, value in pairs(configuration.BindsName) do
 										if u8:decode(bindername.v) == configuration.BindsName[key] then
 											doreplace = true
@@ -1406,7 +1406,7 @@ function imgui.OnDrawFrame()
 										configuration.BindsCmd[kei] = ""
 										configuration.BindsKeys[kei] = u8(binderkeystatus)
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р‘РёРЅРґ СѓСЃРїРµС€РЅРѕ СЃРѕС…СЂР°РЅС‘РЅ!", 0xff6633)
+											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно сохранён!", 0xff6633)
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1430,7 +1430,7 @@ function imgui.OnDrawFrame()
 										table.insert(configuration.BindsKeys, u8(binderkeystatus))
 										table.insert(configuration.BindsCmd, "")
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р‘РёРЅРґ СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ!", 0xff6633)
+											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно создан!", 0xff6633)
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1447,20 +1447,20 @@ function imgui.OnDrawFrame()
 										end
 									end
 								else
-									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµРїСЂР°РІРёР»СЊРЅРѕ СѓРєР°Р·Р°Р»Рё РєР»Р°РІРёС€Сѓ Р±РёРЅРґР°!", 0xff6633)
+									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы неправильно указали клавишу бинда!", 0xff6633)
 								end
 							end
 						else
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РљР°РєРѕР№-С‚Рѕ РёР· РїР°СЂР°РјРµС‚СЂРѕРІ РЅРµ РІРІРµРґС‘РЅ, РїРµСЂРµРїСЂРѕРІРµСЂСЊС‚Рµ РІСЃС‘!", 0xff6633)
+							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Какой-то из параметров не введён, перепроверьте всё!", 0xff6633)
 						end
 						updatechatcommands()
 					else
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ СѓРґР°Р»СЏС‚СЊ Р±РёРЅРґ РІРѕ РІСЂРµРјСЏ Р»СЋР±РѕР№ РѕС‚С‹РіСЂРѕРІРєРё!", 0xff6633)
+						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы не можете удалять бинд во время любой отыгровки!", 0xff6633)
 					end	
 				end
 				imgui.SameLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 247) / 2)
-				if imgui.Button(u8"РћС‚РјРµРЅРёС‚СЊ",imgui.ImVec2(100,30)) then
+				if imgui.Button(u8"Отменить",imgui.ImVec2(100,30)) then
 					setbinderkey = false
 					keyname = nil
 					keyname2 = nil
@@ -1480,7 +1480,7 @@ function imgui.OnDrawFrame()
 			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 621) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
-			if imgui.Button(u8"Р”РѕР±Р°РІРёС‚СЊ",imgui.ImVec2(82,30)) then
+			if imgui.Button(u8"Добавить",imgui.ImVec2(82,30)) then
 				choosedslot = 50
 				binderbuff.v = ''
 				bindername.v = ''
@@ -1492,7 +1492,7 @@ function imgui.OnDrawFrame()
 			end
 			imgui.SameLine()
 			if choosedslot ~= nil and choosedslot ~= 50 then
-				if imgui.Button(u8"РЈРґР°Р»РёС‚СЊ",imgui.ImVec2(82,30)) then
+				if imgui.Button(u8"Удалить",imgui.ImVec2(82,30)) then
 					if not inprocess then
 						for key, value in pairs(configuration.BindsName) do
 							value = tostring(value)
@@ -1517,13 +1517,13 @@ function imgui.OnDrawFrame()
 									bindercmd.v = ""
 									binderkeystatus = nil
 									choosedslot = nil
-									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р‘РёРЅРґ СѓСЃРїРµС€РЅРѕ СѓРґР°Р»С‘РЅ!", 0xff6633)
+									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно удалён!", 0xff6633)
 								end
 							end
 						end
 					updatechatcommands()
 					else
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ СѓРґР°Р»СЏС‚СЊ Р±РёРЅРґ РІРѕ РІСЂРµРјСЏ Р»СЋР±РѕР№ РѕС‚С‹РіСЂРѕРІРєРё!", 0xff6633)
+						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы не можете удалять бинд во время любой отыгровки!", 0xff6633)
 					end
 				end
 			else
@@ -1532,7 +1532,7 @@ function imgui.OnDrawFrame()
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(r, g, b, a/2))
 				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(r, g, b, a/2))
 				imgui.PushStyleColor(imgui.Col.Text, imgui.GetStyle().Colors[imgui.Col.TextDisabled])
-					imgui.Button(u8"РЈРґР°Р»РёС‚СЊ",imgui.ImVec2(82,30))
+					imgui.Button(u8"Удалить",imgui.ImVec2(82,30))
 				imgui.PopStyleColor()
 				imgui.PopStyleColor()
 				imgui.PopStyleColor()
@@ -1543,11 +1543,11 @@ function imgui.OnDrawFrame()
 	if imgui_cmds.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(310, 130), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(1.5, 0.5))
-		imgui.Begin(u8"                     РљРѕРјР°РЅРґС‹ С…РµР»РїРµСЂР°", imgui_cmds, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoMove)
-		imgui.Text("/"..cmdhelp..u8" - РѕС‚РєСЂС‹С‚СЊ РјРµРЅСЋ РЅР°СЃС‚СЂРѕРµРє С…РµР»РїРµСЂР°")
-		imgui.Text("/"..cmdbind..u8" - РѕС‚РєСЂС‹С‚СЊ РјРµРЅСЋ РЅР°СЃС‚СЂРѕРµРє Р±РёРЅРґРµСЂР°")
-		imgui.Text("/"..cmdcmds..u8" - РѕС‚РєСЂС‹С‚СЊ РјРµРЅСЋ РєРѕРјР°РЅРґ С…РµР»РїРµСЂР°")
-		imgui.Text("/"..cmdupdate..u8" - РєРѕРјР°РЅРґР° РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёРµ СЂР°РЅРіР°")
+		imgui.Begin(u8"                     Команды хелпера", imgui_cmds, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoMove)
+		imgui.Text("/"..cmdhelp..u8" - открыть меню настроек хелпера")
+		imgui.Text("/"..cmdbind..u8" - открыть меню настроек биндера")
+		imgui.Text("/"..cmdcmds..u8" - открыть меню команд хелпера")
+		imgui.Text("/"..cmdupdate..u8" - команда для обновление ранга")
 		imgui.End()
 	end
 end
@@ -1565,7 +1565,7 @@ function hello()
 			else
 				name = u8:decode(myname.v)
 				if name == '' or name == nil then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ СЃРІРѕС‘ РёРјСЏ РІ /'..cmdhelp..' ', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Введите своё имя в /'..cmdhelp..' ', 0xff6633)
 					result,myid = sampGetPlayerIdByCharHandle(playerPed)
 					name = sampGetPlayerNickname(myid)
 				end
@@ -1573,25 +1573,25 @@ function hello()
 			rang = configuration.main_settings.myrank
 			inprocess = true
 			if hour > 4 and hour < 12 then
-				sampSendChat("Р”РѕР±СЂРѕРµ СѓС‚СЂРѕ, СЏ {gender:СЃРѕС‚СЂСѓРґРЅРёРє|СЃРѕС‚СЂСѓРґРЅРёС†Р°} РђРІС‚РѕС€РєРѕР»С‹ Рі. РЎР°РЅ-Р¤РёРµСЂСЂРѕ, С‡РµРј РјРѕРіСѓ РІР°Рј РїРѕРјРѕС‡СЊ?")
+				sampSendChat("Доброе утро, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
 				wait(cd)
-				sampSendChat('/do РќР° РіСЂСѓРґРё РІРёСЃРёС‚ Р±РµР№РґР¶РёРє СЃ РЅР°РґРїРёСЃСЊСЋ '..rang..' '..name)
+				sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
 			elseif hour > 11 and hour < 17 then
-				sampSendChat("Р”РѕР±СЂС‹Р№ РґРµРЅСЊ, СЏ {gender:СЃРѕС‚СЂСѓРґРЅРёРє|СЃРѕС‚СЂСѓРґРЅРёС†Р°} РђРІС‚РѕС€РєРѕР»С‹ Рі. РЎР°РЅ-Р¤РёРµСЂСЂРѕ, С‡РµРј РјРѕРіСѓ РІР°Рј РїРѕРјРѕС‡СЊ?")
+				sampSendChat("Добрый день, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
 				wait(cd)
-				sampSendChat('/do РќР° РіСЂСѓРґРё РІРёСЃРёС‚ Р±РµР№РґР¶РёРє СЃ РЅР°РґРїРёСЃСЊСЋ '..rang..' '..name)
+				sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
 			elseif hour > 16 and hour < 24 then
-				sampSendChat("Р”РѕР±СЂС‹Р№ РІРµС‡РµСЂ, СЏ {gender:СЃРѕС‚СЂСѓРґРЅРёРє|СЃРѕС‚СЂСѓРґРЅРёС†Р°} РђРІС‚РѕС€РєРѕР»С‹ Рі. РЎР°РЅ-Р¤РёРµСЂСЂРѕ, С‡РµРј РјРѕРіСѓ РІР°Рј РїРѕРјРѕС‡СЊ?")
+				sampSendChat("Добрый вечер, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
 				wait(cd)
-				sampSendChat('/do РќР° РіСЂСѓРґРё РІРёСЃРёС‚ Р±РµР№РґР¶РёРє СЃ РЅР°РґРїРёСЃСЊСЋ '..rang..' '..name)
+				sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
 			elseif hour < 5 then
-				sampSendChat("Р”РѕР±СЂРѕР№ РЅРѕС‡Рё, СЏ {gender:СЃРѕС‚СЂСѓРґРЅРёРє|СЃРѕС‚СЂСѓРґРЅРёС†Р°} РђРІС‚РѕС€РєРѕР»С‹ Рі. РЎР°РЅ-Р¤РёРµСЂСЂРѕ, С‡РµРј РјРѕРіСѓ РІР°Рј РїРѕРјРѕС‡СЊ?")
+				sampSendChat("Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
 				wait(cd)
-				sampSendChat('/do РќР° РіСЂСѓРґРё РІРёСЃРёС‚ Р±РµР№РґР¶РёРє СЃ РЅР°РґРїРёСЃСЊСЋ '..rang..' '..name)
+				sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
 			end
 			inprocess = false
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		end
 	end)
 end
@@ -1600,28 +1600,28 @@ function pricelist()
 	lua_thread.create(function()
 		if inprocess ~= true then
 			inprocess = true
-			sampSendChat('/do Р’ РєР°СЂРјР°РЅРµ Р±СЂСЋРє Р»РµР¶РёС‚ РїСЂР°Р№СЃ Р»РёСЃС‚ РЅР° Р»РёС†РµРЅР·РёРё.')
+			sampSendChat('/do В кармане брюк лежит прайс лист на лицензии.')
 			wait(cd)
-			sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РїСЂР°Р№СЃ Р»РёСЃС‚ РёР· РєР°СЂРјР°РЅР° Р±СЂСЋРє Рё РїРµСЂРµРґР°Р» РµРіРѕ РєР»РёРµРЅС‚Сѓ')
+			sampSendChat('/me {gender:достал|достала} прайс лист из кармана брюк и передал его клиенту')
 			wait(cd)
-			sampSendChat('/do Р’ РїСЂР°Р№СЃ Р»РёСЃС‚Рµ РЅР°РїРёСЃР°РЅРѕ:')
+			sampSendChat('/do В прайс листе написано:')
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° РІРѕР¶РґРµРЅРёРµ Р°РІС‚РѕРјРѕР±РёР»РµР№ - '..separator(tostring(configuration.main_settings.avtoprice)..'$.'))
+			sampSendChat('/do Лицензия на вождение автомобилей - '..separator(tostring(configuration.main_settings.avtoprice)..'$.'))
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° РІРѕР¶РґРµРЅРёРµ РјРѕС‚РѕС†РёРєР»РѕРІ - '..separator(tostring(configuration.main_settings.motoprice)..'$.'))
+			sampSendChat('/do Лицензия на вождение мотоциклов - '..separator(tostring(configuration.main_settings.motoprice)..'$.'))
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° СЂС‹Р±РѕР»РѕРІСЃС‚РІРѕ - '..separator(tostring(configuration.main_settings.ribaprice)..'$.'))
+			sampSendChat('/do Лицензия на рыболовство - '..separator(tostring(configuration.main_settings.ribaprice)..'$.'))
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° РІРѕРґРЅС‹Р№ С‚СЂР°РЅСЃРїРѕСЂС‚ - '..separator(tostring(configuration.main_settings.lodkaprice)..'$.'))
+			sampSendChat('/do Лицензия на водный транспорт - '..separator(tostring(configuration.main_settings.lodkaprice)..'$.'))
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° РѕСЂСѓР¶РёРµ - '..separator(tostring(configuration.main_settings.gunaprice)..'$.'))
+			sampSendChat('/do Лицензия на оружие - '..separator(tostring(configuration.main_settings.gunaprice)..'$.'))
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° РѕС…РѕС‚Сѓ - '..separator(tostring(configuration.main_settings.huntprice)..'$.'))
+			sampSendChat('/do Лицензия на охоту - '..separator(tostring(configuration.main_settings.huntprice)..'$.'))
 			wait(cd)
-			sampSendChat('/do Р›РёС†РµРЅР·РёСЏ РЅР° СЂР°СЃРєРѕРїРєРё - '..separator(tostring(configuration.main_settings.kladprice)..'$.'))
+			sampSendChat('/do Лицензия на раскопки - '..separator(tostring(configuration.main_settings.kladprice)..'$.'))
 			inprocess = false
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		end
 	end)
 end
@@ -1634,50 +1634,50 @@ function selllic(param)
 		if lictype ~= nil and sellto ~= nil then
 			if inprocess ~= true then
 				inprocess = true
-					if lictype == 'РїРѕР»РµС‚С‹' or lictype == 'РїРѕР»С‘С‚С‹' then
-						sampSendChat('РџРѕР»СѓС‡РёС‚СЊ Р»РёС†РµРЅР·РёСЋ РЅР° '..lictype..' РІС‹ РјРѕР¶РµС‚Рµ РІ Р°РІРёР°С€РєРѕР»Рµ Рі. Р›Р°СЃ-Р’РµРЅС‚СѓСЂР°СЃ')
-						sampSendChat('/n /gps -> Р’Р°Р¶РЅС‹Рµ РјРµСЃС‚Р° -> РЎР»РµРґСѓСЋС‰Р°СЏ СЃС‚СЂР°РЅРёС†Р° -> [LV] РђРІРёР°С€РєРѕР»Р° (9)')
-					elseif lictype == 'РѕСЂСѓР¶РёРµ' then
+					if lictype == 'полеты' or lictype == 'полёты' then
+						sampSendChat('Получить лицензию на '..lictype..' вы можете в авиашколе г. Лас-Вентурас')
+						sampSendChat('/n /gps -> Важные места -> Следующая страница -> [LV] Авиашкола (9)')
+					elseif lictype == 'оружие' then
 						if cansell == false then
 							idd = tostring(sellto)
 							result, myid = sampGetPlayerIdByCharHandle(playerPed)
 							if sampIsPlayerConnected(sellto) or sellto == myid then
-								sampSendChat('РҐРѕСЂРѕС€Рѕ, РґР»СЏ РїРѕРєСѓРїРєРё Р»РёС†РµРЅР·РёРё РЅР° РѕСЂСѓР¶РёРµ РїРѕРєР°Р¶РёС‚Рµ РјРЅРµ СЃРІРѕСЋ РјРµРґ.РєР°СЂС‚Сѓ')
+								sampSendChat('Хорошо, для покупки лицензии на оружие покажите мне свою мед.карту')
 								sampSendChat('/n /showmc '..myid)
-								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}РќР°С‡Р°Р»РѕСЃСЊ РѕР¶РёРґР°РЅРёРµ РїРѕРєР°Р·Р° РјРµРґ.РєР°СЂС‚С‹, С‡С‚РѕР±С‹ РѕС‚РјРµРЅРёС‚СЊ РµРіРѕ РІРІРµРґРёС‚Рµ /cancelmc, С‡С‚РѕР±С‹ РїСЂРѕРїСѓСЃС‚РёС‚СЊ РІРІРµРґРёС‚Рµ /skip', 0xff6633)
+								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Началось ожидание показа мед.карты, чтобы отменить его введите /cancelmc, чтобы пропустить введите /skip', 0xff6633)
 								skiporcancel = false
 								choosedname = sampGetPlayerNickname(targettingid)
 								tempid = targettingid
 							else
-								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}РўР°РєРѕРіРѕ РёРіСЂРѕРєР° РЅРµС‚ РЅР° СЃРµСЂРІРµСЂРµ', 0xff6633)
+								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Такого игрока нет на сервере', 0xff6633)
 							end
 						else
 							inprocess = true
-							sampSendChat('/me {gender:РІР·СЏР»|РІР·СЏР»Р°} СЃРѕ СЃС‚РѕР»Р° Р±Р»Р°РЅРє Рё Р·Р°РїРѕР»РЅРёР» СЂСѓС‡РєРѕР№ Р±Р»Р°РЅРє РЅР° РїРѕР»СѓС‡РµРЅРёРµ Р»РёС†РµРЅР·РёРё РЅР° '..lictype)
+							sampSendChat('/me {gender:взял|взяла} со стола бланк и заполнил ручкой бланк на получение лицензии на '..lictype)
 							wait(cd)
-							sampSendChat('/do РЎРїСѓСЃС‚СЏ РЅРµРєРѕС‚РѕСЂРѕРµ РІСЂРµРјСЏ Р±Р»Р°РЅРє РЅР° РїРѕР»СѓС‡РµРЅРёРµ Р»РёС†РµРЅР·РёРё Р±С‹Р» Р·Р°РїРѕР»РЅРµРЅ.')
+							sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 							wait(cd)
-							sampSendChat('/me {gender:СЂР°СЃРїРµС‡Р°С‚Р°Р»|СЂРµСЃРїРµС‡Р°С‚Р°Р»Р°} Р»РёС†РµРЅР·РёСЋ РЅР° '..lictype)
+							sampSendChat('/me {gender:распечатал|респечатала} лицензию на '..lictype)
 							wait(cd)
-							sampSendChat('/me {gender:РїРµСЂРµРґР°Р»|РїРµСЂРµРґР°Р»Р°} Р»РёС†РµРЅР·РёСЋ С‡РµР»РѕРІРµРєСѓ РЅР°РїСЂРѕС‚РёРІ')
+							sampSendChat('/me {gender:передал|передала} лицензию человеку напротив')
 							sampSendChat('/givelicense '..sellto)
 							givelic = true
 							cansell = false
 						end
 					else
-						sampSendChat('/me {gender:РІР·СЏР»|РІР·СЏР»Р°} СЃРѕ СЃС‚РѕР»Р° Р±Р»Р°РЅРє Рё Р·Р°РїРѕР»РЅРёР» СЂСѓС‡РєРѕР№ Р±Р»Р°РЅРє РЅР° РїРѕР»СѓС‡РµРЅРёРµ Р»РёС†РµРЅР·РёРё РЅР° '..lictype)
+						sampSendChat('/me {gender:взял|взяла} со стола бланк и заполнил ручкой бланк на получение лицензии на '..lictype)
 						wait(cd)
-						sampSendChat('/do РЎРїСѓСЃС‚СЏ РЅРµРєРѕС‚РѕСЂРѕРµ РІСЂРµРјСЏ Р±Р»Р°РЅРє РЅР° РїРѕР»СѓС‡РµРЅРёРµ Р»РёС†РµРЅР·РёРё Р±С‹Р» Р·Р°РїРѕР»РЅРµРЅ.')
+						sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 						wait(cd)
-						sampSendChat('/me {gender:СЂР°СЃРїРµС‡Р°С‚Р°Р»|СЂРµСЃРїРµС‡Р°С‚Р°Р»Р°} Р»РёС†РµРЅР·РёСЋ РЅР° '..lictype)
+						sampSendChat('/me {gender:распечатал|респечатала} лицензию на '..lictype)
 						wait(cd)
-						sampSendChat('/me {gender:РїРµСЂРµРґР°Р»|РїРµСЂРµРґР°Р»Р°} Р»РёС†РµРЅР·РёСЋ С‡РµР»РѕРІРµРєСѓ РЅР°РїСЂРѕС‚РёРІ')
+						sampSendChat('/me {gender:передал|передала} лицензию человеку напротив')
 						sampSendChat('/givelicense '..sellto)
 						givelic = true
 					end
 				inprocess = false
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
 	end)
@@ -1689,32 +1689,32 @@ function invite(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 				if id == nil then
 					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/invite [id]', 0xff6633)
 				else
 					result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					if id == myid then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РїСЂРёРіР»Р°С€Р°С‚СЊ РІ РѕСЂРіР°РЅРёР·Р°С†РёСЋ СЃР°РјРѕРіРѕ СЃРµР±СЏ.', 0xff6633)
+						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не можете приглашать в организацию самого себя.', 0xff6633)
 					else
 						inprocess = true
-						sampSendChat('/do РљР»СЋС‡Рё РѕС‚ С€РєР°С„С‡РёРєР° РІ РєР°СЂРјР°РЅРµ.')
+						sampSendChat('/do Ключи от шкафчика в кармане.')
 						wait(cd)
-						sampSendChat('/me РІСЃСѓРЅСѓРІ СЂСѓРєСѓ РІ РєР°СЂРјР°РЅ Р±СЂСЋРє, {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РѕС‚С‚СѓРґР° РєР»СЋС‡ РѕС‚ С€РєР°С„С‡РёРєР°')
+						sampSendChat('/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика')
 						wait(cd)
-						sampSendChat('/me {gender:РїРµСЂРµРґР°Р»|РїРµСЂРµРґР°Р»Р°} РєР»СЋС‡ С‡РµР»РѕРІРµРєСѓ РЅР°РїСЂРѕС‚РёРІ')
+						sampSendChat('/me {gender:передал|передала} ключ человеку напротив')
 						wait(cd)
-						sampSendChat('Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ! Р Р°Р·РґРµРІР°Р»РєР° Р·Р° РґРІРµСЂСЊСЋ.')
+						sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 						wait(cd)
-						sampSendChat('РЎРѕ РІСЃРµР№ РёРЅС„РѕСЂРјР°С†РёРµР№ Р’С‹ РјРѕР¶РµС‚Рµ РѕР·РЅР°РєРѕРјРёС‚СЊСЃСЏ РЅР° РѕС„. РїРѕСЂС‚Р°Р»Рµ.')
+						sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
 						sampSendChat("/invite "..id)
 						inprocess = false
 					end
 				end
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1726,31 +1726,31 @@ function uninvite(param)
 	lua_thread.create(function()
 		inprocess = true
 		if withbl == 0 then
-			sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°')
+			sampSendChat('/me {gender:достал|достала} КПК из кармана')
 			wait(cd)
-			sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРІРѕР»СЊРЅРµРЅРёРµ"')
+			sampSendChat('/me {gender:перешёл|перешла} в раздел "Увольнение"')
 			wait(cd)
-			sampSendChat('/do Р Р°Р·РґРµР» РѕС‚РєСЂС‹С‚.')
+			sampSendChat('/do Раздел открыт.')
 			wait(cd)
-			sampSendChat('/me {gender:РІРЅС‘СЃ|РІРЅРµСЃР»Р°} С‡РµР»РѕРІРµРєР° РІ СЂР°Р·РґРµР» "РЈРІРѕР»СЊРЅРµРЅРёРµ"')
+			sampSendChat('/me {gender:внёс|внесла} человека в раздел "Увольнение"')
 			wait(cd)
-			sampSendChat('/me {gender:РїРѕРґС‚РІРµРґСЂРґРёР»|РїРѕРґС‚РІРµСЂРґРёР»Р°} РёР·РјРµРЅРµРЅРёСЏ, Р·Р°С‚РµРј {gender:РІС‹РєР»СЋС‡РёР»|РІС‹РєР»СЋС‡РёР»Р°} РљРџРљ Рё {gender:РїРѕР»РѕР¶РёР»|РїРѕР»РѕР¶РёР»Р°} РµРіРѕ РѕР±СЂР°С‚РЅРѕ РІ РєР°СЂРјР°РЅ')
+			sampSendChat('/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман')
 			wait(cd)
 			sampSendChat("/uninvite "..id..' '..u8:decode(uninvitebuf.v))
 		elseif withbl == 1 then
-			sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°')
+			sampSendChat('/me {gender:достал|достала} КПК из кармана')
 			wait(cd)
-			sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРІРѕР»СЊРЅРµРЅРёРµ"')
+			sampSendChat('/me {gender:перешёл|перешла} в раздел "Увольнение"')
 			wait(cd)
-			sampSendChat('/do Р Р°Р·РґРµР» РѕС‚РєСЂС‹С‚.')
+			sampSendChat('/do Раздел открыт.')
 			wait(cd)
-			sampSendChat('/me {gender:РІРЅС‘СЃ|РІРЅРµСЃР»Р°} С‡РµР»РѕРІРµРєР° РІ СЂР°Р·РґРµР» "РЈРІРѕР»СЊРЅРµРЅРёРµ"')
+			sampSendChat('/me {gender:внёс|внесла} человека в раздел "Увольнение"')
 			wait(cd)
-			sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "Р§С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє"')
+			sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
 			wait(cd)
-			sampSendChat('/me {gender:Р·Р°РЅС‘СЃ|Р·Р°РЅРµСЃР»Р°} СЃРѕС‚СЂСѓРґРЅРёРєР° РІ СЂР°Р·РґРµР», РїРѕСЃР»Рµ С‡РµРіРѕ {gender:РїРѕРґС‚РІРµСЂРґРёР»|РїРѕРґС‚РІРµСЂРґРёР»Р°} РёР·РјРµРЅРµРЅРёСЏ')
+			sampSendChat('/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения')
 			wait(cd)
-			sampSendChat('/do РР·РјРµРЅРµРЅРёСЏ Р±С‹Р»Рё СЃРѕС…СЂР°РЅРµРЅС‹.')
+			sampSendChat('/do Изменения были сохранены.')
 			wait(cd)
 			sampSendChat("/uninvite "..id..' '..u8:decode(uninvitebuf.v))
 			wait(100)
@@ -1766,32 +1766,32 @@ function uninvitewithcmd(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 				inprocess = true
 				if uvalid == nil or uvalid == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/uninvite [id] [РїСЂРёС‡РёРЅР°]', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/uninvite [id] [причина]', 0xff6633)
 				else
 					result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					if uvalid == myid then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ СѓРІРѕР»СЊРЅСЏС‚СЊ РёР· РѕСЂРіР°РЅРёР·Р°С†РёРё СЃР°РјРѕРіРѕ СЃРµР±СЏ.', 0xff6633)
+						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не можете увольнять из организации самого себя.', 0xff6633)
 					else
-						sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°')
+						sampSendChat('/me {gender:достал|достала} КПК из кармана')
 						wait(cd)
-						sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРІРѕР»СЊРЅРµРЅРёРµ"')
+						sampSendChat('/me {gender:перешёл|перешла} в раздел "Увольнение"')
 						wait(cd)
-						sampSendChat('/do Р Р°Р·РґРµР» РѕС‚РєСЂС‹С‚.')
+						sampSendChat('/do Раздел открыт.')
 						wait(cd)
-						sampSendChat('/me {gender:РІРЅС‘СЃ|РІРЅРµСЃР»Р°} С‡РµР»РѕРІРµРєР° РІ СЂР°Р·РґРµР» "РЈРІРѕР»СЊРЅРµРЅРёРµ"')
+						sampSendChat('/me {gender:внёс|внесла} человека в раздел "Увольнение"')
 						wait(cd)
-						sampSendChat('/me {gender:РїРѕРґС‚РІРµРґСЂРґРёР»|РїРѕРґС‚РІРµСЂРґРёР»Р°} РёР·РјРµРЅРµРЅРёСЏ, Р·Р°С‚РµРј {gender:РІС‹РєР»СЋС‡РёР»|РІС‹РєР»СЋС‡РёР»Р°} РљРџРљ Рё {gender:РїРѕР»РѕР¶РёР»|РїРѕР»РѕР¶РёР»Р°} РµРіРѕ РѕР±СЂР°С‚РЅРѕ РІ РєР°СЂРјР°РЅ')
+						sampSendChat('/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман')
 						sampSendChat("/uninvite "..uvalid..' '..reason)
 					end
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1803,34 +1803,34 @@ function giverank(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 				inprocess = true
 				if id == nil or id == '' or rank == nil or rank == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/giverank [id] [СЂР°РЅРі]', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/giverank [id] [ранг]', 0xff6633)
 				else
 					result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					if id == myid then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РјРµРЅСЏС‚СЊ СЂР°РЅРі СЃР°РјРѕРјСѓ СЃРµР±Рµ.', 0xff6633)
+						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не можете менять ранг самому себе.', 0xff6633)
 					else
-						sampSendChat('/me {gender:РІРєР»СЋС‡РёР»|РІРєР»СЋС‡РёР»Р°} РљРџРљ')
+						sampSendChat('/me {gender:включил|включила} КПК')
 						wait(cd)
-						sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРїСЂР°РІР»РµРЅРёРµ СЃРѕС‚СЂСѓРґРЅРёРєР°РјРё"')
+						sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
 						wait(cd)
-						sampSendChat('/me {gender:РІС‹Р±СЂР°Р»|РІС‹Р±СЂР°Р»Р°} РІ СЂР°Р·РґРµР»Рµ РЅСѓР¶РЅРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°')
+						sampSendChat('/me {gender:выбрал|выбрала} в разделе нужного сотрудника')
 						wait(cd)
-						sampSendChat('/me {gender:РёР·РјРµРЅРёР»|РёР·РјРµРЅРёР»Р°} РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РґРѕР»Р¶РЅРѕСЃС‚Рё СЃРѕС‚СЂСѓРґРЅРёРєР°, РїРѕСЃР»Рµ С‡РµРіРѕ {gender:РїРѕРґС‚РІРµРґСЂРґРёР»|РїРѕРґС‚РІРµСЂРґРёР»Р°} РёР·РјРµРЅРµРЅРёСЏ')
+						sampSendChat('/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения')
 						wait(cd)
-						sampSendChat('/do РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃРѕС‚СЂСѓРґРЅРёРєРµ Р±С‹Р»Р° РёР·РјРµРЅРµРЅР°.')
+						sampSendChat('/do Информация о сотруднике была изменена.')
 						wait(cd)
-						sampSendChat('РџРѕР·РґСЂР°РІР»СЏСЋ СЃ РїРѕРІС‹С€РµРЅРёРµРј. РќРѕРІС‹Р№ Р±РµР№РґР¶РёРє Р’С‹ РјРѕР¶РµС‚Рµ РІР·СЏС‚СЊ РІ СЂР°Р·РґРµРІР°Р»РєРµ.')
+						sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
 						sampSendChat("/giverank "..id.." "..rank)
 					end
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1841,29 +1841,29 @@ function blacklist(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 				inprocess = true
 				if id == nil or id == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/blacklist [id] [РїСЂРёС‡РёРЅР°]', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/blacklist [id] [причина]', 0xff6633)
 				else
-					sampSendChat("/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°")
+					sampSendChat("/me {gender:достал|достала} КПК из кармана")
 					wait(cd)
-					sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "Р§С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє"')
+					sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
 					wait(cd)
-					sampSendChat("/me {gender:РІРІС‘Р»|РІРІРµР»Р°} РёРјСЏ РЅР°СЂСѓС€РёС‚РµР»СЏ")
+					sampSendChat("/me {gender:ввёл|ввела} имя нарушителя")
 					wait(cd)
-					sampSendChat('/me {gender:РІРЅС‘СЃ|РІРЅРµСЃР»Р°} РЅР°СЂСѓС€РёС‚РµР»СЏ РІ СЂР°Р·РґРµР» "Р§С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє"')
+					sampSendChat('/me {gender:внёс|внесла} нарушителя в раздел "Чёрный список"')
 					wait(cd)
-					sampSendChat("/me {gender:РїРѕРґС‚РІРµРґСЂРґРёР»|РїРѕРґС‚РІРµСЂРґРёР»Р°} РёР·РјРµРЅРµРЅРёСЏ")
+					sampSendChat("/me {gender:подтведрдил|подтвердила} изменения")
 					wait(cd)
-					sampSendChat("/do РР·РјРµРЅРµРЅРёСЏ Р±С‹Р»Рё СЃРѕС…СЂР°РЅРµРЅС‹.")
+					sampSendChat("/do Изменения были сохранены.")
 					sampSendChat("/blacklist "..id.." "..reason)
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1874,29 +1874,29 @@ function unblacklist(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 			inprocess = true
 				if id == nil or id == '' then
 					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/unblacklist [id]', 0xff6633)
 				else
-					sampSendChat("/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°")
+					sampSendChat("/me {gender:достал|достала} КПК из кармана")
 					wait(cd)
-					sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "Р§С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє"')
+					sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
 					wait(cd)
-					sampSendChat("/me {gender:РІРІС‘Р»|РІРІРµР»Р°} РёРјСЏ РіСЂР°Р¶РґР°РЅРёРЅР° РІ РїРѕРёСЃРє")
+					sampSendChat("/me {gender:ввёл|ввела} имя гражданина в поиск")
 					wait(cd)
-					sampSendChat('/me {gender:СѓР±СЂР°Р»|СѓР±СЂР°Р»Р°} РіСЂР°Р¶РґР°РЅРёРЅР° РёР· СЂР°Р·РґРµР»Р° "Р§С‘СЂРЅС‹Р№ СЃРїРёСЃРѕРє"')
+					sampSendChat('/me {gender:убрал|убрала} гражданина из раздела "Чёрный список"')
 					wait(cd)
-					sampSendChat("/me {gender:РїРѕРґС‚РІРµРґСЂРґРёР»|РїРѕРґС‚РІРµСЂРґРёР»Р°} РёР·РјРµРЅРµРЅРёСЏ")
+					sampSendChat("/me {gender:подтведрдил|подтвердила} изменения")
 					wait(cd)
-					sampSendChat("/do РР·РјРµРЅРµРЅРёСЏ Р±С‹Р»Рё СЃРѕС…СЂР°РЅРµРЅС‹.")
+					sampSendChat("/do Изменения были сохранены.")
 					sampSendChat("/unblacklist "..id)
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1907,28 +1907,28 @@ function fwarn(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 			inprocess = true
 				if id == nil or id == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/fwarn [id] [РїСЂРёС‡РёРЅР°]', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/fwarn [id] [причина]', 0xff6633)
 				else
-					sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°')
+					sampSendChat('/me {gender:достал|достала} КПК из кармана')
 					wait(cd)
-					sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРїСЂР°РІР»РµРЅРёРµ СЃРѕС‚СЂСѓРґРЅРёРєР°РјРё"')
+					sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
 					wait(cd)
-					sampSendChat('/me {gender:Р·Р°С€С‘Р»|Р·Р°С€Р»Р°} РІ СЂР°Р·РґРµР» "Р’С‹РіРѕРІРѕСЂС‹"')
+					sampSendChat('/me {gender:зашёл|зашла} в раздел "Выговоры"')
 					wait(cd)
-					sampSendChat('/me РЅР°Р№РґСЏ РІ СЂР°Р·РґРµР»Рµ РЅСѓР¶РЅРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°, {gender:РґРѕР±Р°РІРёР»|РґРѕР±Р°РІРёР»Р°} РІ РµРіРѕ Р»РёС‡РЅРѕРµ РґРµР»Рѕ РІС‹РіРѕРІРѕСЂ')
+					sampSendChat('/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор')
 					wait(cd)
-					sampSendChat('/do Р’С‹РіРѕРІРѕСЂ Р±С‹Р» РґРѕР±Р°РІР»РµРЅ РІ Р»РёС‡РЅРѕРµ РґРµР»Рѕ СЃРѕС‚СЂСѓРґРЅРёРєР°.')
+					sampSendChat('/do Выговор был добавлен в личное дело сотрудника.')
 					wait(cd)
 					sampSendChat("/fwarn "..id.." "..reason)
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1939,27 +1939,27 @@ function unfwarn(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 				inprocess = true
 				if id == nil or id == '' then
 					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/unfwarn [id]', 0xff6633)
 				else
-					sampSendChat("/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°")
+					sampSendChat("/me {gender:достал|достала} КПК из кармана")
 					wait(cd)
-					sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРїСЂР°РІР»РµРЅРёРµ СЃРѕС‚СЂСѓРґРЅРёРєР°РјРё"')
+					sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
 					wait(cd)
-					sampSendChat('/me {gender:Р·Р°С€С‘Р»|Р·Р°С€Р»Р°} РІ СЂР°Р·РґРµР» "Р’С‹РіРѕРІРѕСЂС‹"')
+					sampSendChat('/me {gender:зашёл|зашла} в раздел "Выговоры"')
 					wait(cd)
-					sampSendChat("/me РЅР°Р№РґСЏ РІ СЂР°Р·РґРµР»Рµ РЅСѓР¶РЅРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°, {gender:СѓР±СЂР°Р»|СѓР±СЂР°Р»Р°} РёР· РµРіРѕ Р»РёС‡РЅРѕРіРѕ РґРµР»Р° РѕРґРёРЅ РІС‹РіРѕРІРѕСЂ")
+					sampSendChat("/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор")
 					wait(cd)
-					sampSendChat('/do Р’С‹РіРѕРІРѕСЂ Р±С‹Р» СѓР±СЂР°РЅ РёР· Р»РёС‡РЅРѕРіРѕ РґРµР»Р° СЃРѕС‚СЂСѓРґРЅРёРєР°.')
+					sampSendChat('/do Выговор был убран из личного дела сотрудника.')
 					sampSendChat("/unfwarn "..id)
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -1971,29 +1971,29 @@ function fmute(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 			inprocess = true
 				if id == nil or id == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/fmute [id] [РІСЂРµРјСЏ] [РїСЂРёС‡РёРЅР°]', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/fmute [id] [время] [причина]', 0xff6633)
 				else
-					sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°')
+					sampSendChat('/me {gender:достал|достала} КПК из кармана')
 					wait(cd)
-					sampSendChat('/me {gender:РІРєР»СЋС‡РёР»|РІРєР»СЋС‡РёР»Р°} РљРџРљ')
+					sampSendChat('/me {gender:включил|включила} КПК')
 					wait(cd)
-					sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРїСЂР°РІР»РµРЅРёРµ СЃРѕС‚СЂСѓРґРЅРёРєР°РјРё РђРІС‚РѕС€РєРѕР»С‹"')
+					sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками Автошколы"')
 					wait(cd)
-					sampSendChat('/me {gender:РІС‹Р±СЂР°Р»|РІС‹Р±СЂР°Р»Р°} РЅСѓР¶РЅРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°')
+					sampSendChat('/me {gender:выбрал|выбрала} нужного сотрудника')
 					wait(cd)
-					sampSendChat('/me {gender:РІС‹Р±СЂР°Р»|РІС‹Р±СЂР°Р»Р°} РїСѓРЅРєС‚ "РћС‚РєР»СЋС‡РёС‚СЊ СЂР°С†РёСЋ СЃРѕС‚СЂСѓРґРЅРёРєР°"')
+					sampSendChat('/me {gender:выбрал|выбрала} пункт "Отключить рацию сотрудника"')
 					wait(cd)
-					sampSendChat('/me {gender:РЅР°Р¶Р°Р»|РЅР°Р¶Р°Р»Р°} РЅР° РєРЅРѕРїРєСѓ "РЎРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ"')
+					sampSendChat('/me {gender:нажал|нажала} на кнопку "Сохранить изменения"')
 					sampSendChat("/fmute "..id.." "..mutetime.." "..reason)
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -2004,29 +2004,29 @@ function funmute(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			else
 				inprocess = true
 				if id == nil or id == '' then
 					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/funmute [id]', 0xff6633)
 				else
-					sampSendChat('/me {gender:РґРѕСЃС‚Р°Р»|РґРѕСЃС‚Р°Р»Р°} РљРџРљ РёР· РєР°СЂРјР°РЅР°')
+					sampSendChat('/me {gender:достал|достала} КПК из кармана')
 					wait(cd)
-					sampSendChat('/me {gender:РІРєР»СЋС‡РёР»|РІРєР»СЋС‡РёР»Р°} РљРџРљ')
+					sampSendChat('/me {gender:включил|включила} КПК')
 					wait(cd)
-					sampSendChat('/me {gender:РїРµСЂРµС€С‘Р»|РїРµСЂРµС€Р»Р°} РІ СЂР°Р·РґРµР» "РЈРїСЂР°РІР»РµРЅРёРµ СЃРѕС‚СЂСѓРґРЅРёРєР°РјРё РђРІС‚РѕС€РєРѕР»С‹"')
+					sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками Автошколы"')
 					wait(cd)
-					sampSendChat('/me {gender:РІС‹Р±СЂР°Р»|РІС‹Р±СЂР°Р»Р°} РЅСѓР¶РЅРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°')
+					sampSendChat('/me {gender:выбрал|выбрала} нужного сотрудника')
 					wait(cd)
-					sampSendChat('/me {gender:РІС‹Р±СЂР°Р»|РІС‹Р±СЂР°Р»Р°} РїСѓРЅРєС‚ "Р’РєР»СЋС‡РёС‚СЊ СЂР°С†РёСЋ СЃРѕС‚СЂСѓРґРЅРёРєР°"')
+					sampSendChat('/me {gender:выбрал|выбрала} пункт "Включить рацию сотрудника"')
 					wait(cd)
-					sampSendChat('/me {gender:РЅР°Р¶Р°Р»|РЅР°Р¶Р°Р»Р°} РЅР° РєРЅРѕРїРєСѓ "РЎРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ"')
+					sampSendChat('/me {gender:нажал|нажала} на кнопку "Сохранить изменения"')
 					sampSendChat("/funmute "..id)
 				end
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 9-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 		end
 	end)
 end
@@ -2037,23 +2037,23 @@ function expel(param)
 		lua_thread.create(function()
 			if configuration.main_settings.myrankint >= 5 then
 				if inprocess == true then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				else
 					inprocess = true
 					if id == nil or id == '' or reason == nil or reason == '' then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/expel [id] [РїСЂРёС‡РёРЅР°]', 0xff6633)
+						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/expel [id] [причина]', 0xff6633)
 					else
-						sampSendChat('/do Р Р°С†РёСЏ СЃРІРёСЃР°РµС‚ РЅР° РїРѕСЏСЃРµ.')
+						sampSendChat('/do Рация свисает на поясе.')
 						wait(cd)
-						sampSendChat('/me СЃРЅСЏРІ СЂР°С†РёСЋ СЃ РїРѕСЏСЃР°, {gender:РІС‹Р·РІР°Р»|РІС‹Р·РІР°Р»Р°} РѕС…СЂР°РЅСѓ РїРѕ РЅРµР№')
+						sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 						wait(cd)
-						sampSendChat('/do РћС…СЂР°РЅР° РІС‹РІРѕРґРёС‚ РЅР°СЂСѓС€РёС‚РµР»СЏ РёР· С…РѕР»Р»Р°.')
+						sampSendChat('/do Охрана выводит нарушителя из холла.')
 						sampSendChat("/expel "..id.." "..reason)
 					end
 				inprocess = false
 				end
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р”Р°РЅРЅР°СЏ РєРѕРјР°РЅРґР° РґРѕСЃС‚СѓРїРЅР° СЃ 5-РіРѕ СЂР°РЅРіР°.", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 5-го ранга.", 0xff6633)
 			end
 		end)
 end
@@ -2061,7 +2061,7 @@ end
 function sobes1()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 			inprocess = true
 			if configuration.main_settings.useservername then
@@ -2071,15 +2071,15 @@ function sobes1()
 			else
 				name = u8:decode(configuration.main_settings.myname)
 				if name == '' or name == nil then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’РІРµРґРёС‚Рµ СЃРІРѕС‘ РёРјСЏ РІ /'..cmdhelp..' ', 0xff6633)
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Введите своё имя в /'..cmdhelp..' ', 0xff6633)
 					result,myid = sampGetPlayerIdByCharHandle(playerPed)
 					name = sampGetPlayerNickname(myid)
 				end
 				rang = configuration.main_settings.myrank
 			end
-			sampSendChat("Р—РґСЂР°РІСЃС‚РІСѓР№С‚Рµ, РІС‹ РЅР° СЃРѕР±РµСЃРµРґРѕРІР°РЅРёРµ?")
+			sampSendChat("Здравствуйте, вы на собеседование?")
 			wait(cd)
-			sampSendChat('/do РќР° РіСЂСѓРґРё РІРёСЃРёС‚ Р±РµР№РґР¶РёРє СЃ РЅР°РґРїРёСЃСЊСЋ '..rang..' '..name)
+			sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
 			inprocess = false
 		end
 	end)
@@ -2088,11 +2088,11 @@ end
 function sobes2()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 			inprocess = true
-			sampSendChat("РҐРѕСЂРѕС€Рѕ, РґР»СЏ СЌС‚РѕРіРѕ РїРѕРєР°Р¶РёС‚Рµ РјРЅРµ РІР°С€Рё РґРѕРєСѓРјРµРЅС‚С‹, Р° РёРјРµРЅРЅРѕ: РїР°СЃРїРѕСЂС‚ Рё РјРµРґ.РєР°СЂС‚Сѓ")
-			sampSendChat("/n РћР‘РЇР—РђРўР•Р›Р¬РќРћ РїРѕ СЂРї!")
+			sampSendChat("Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту")
+			sampSendChat("/n ОБЯЗАТЕЛЬНО по рп!")
 			inprocess = false
 		end
 	end)
@@ -2101,10 +2101,10 @@ end
 function sobes3()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 			inprocess = true
-			sampSendChat("Р Р°СЃСЃРєР°Р¶РёС‚Рµ РЅРµРјРЅРѕРіРѕ Рѕ СЃРµР±Рµ.")
+			sampSendChat("Расскажите немного о себе.")
 			inprocess = false
 		end
 	end)
@@ -2113,10 +2113,10 @@ end
 function sobes4()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 			inprocess = true
-			sampSendChat("РџРѕС‡РµРјСѓ РІС‹ РІС‹Р±СЂР°Р»Рё РёРјРµРЅРЅРѕ РЅР°СЃ?")
+			sampSendChat("Почему вы выбрали именно нас?")
 			inprocess = false
 		end
 	end)
@@ -2125,10 +2125,10 @@ end
 function sobes5()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 			inprocess = true
-			sampSendChat("Р Р°Р±РѕС‚Р°Р»Рё РІС‹ СѓР¶Рµ РІ РѕСЂРіР°РЅРёР·Р°С†РёСЏС… Р¦Рђ? Р•СЃР»Рё РґР°, С‚Рѕ СЂР°СЃСЃРєР°Р¶РёС‚Рµ РїРѕРґСЂРѕР±РЅРµРµ")
+			sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
 			inprocess = false
 		end
 	end)
@@ -2137,14 +2137,14 @@ end
 function sobesaccept1()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 		inprocess = true
-		sampSendChat("/me РІР·СЏРІ РґРѕРєСѓРјРµРЅС‚С‹ РёР· СЂСѓРє С‡РµР»РѕРІРµРєР° РЅР°РїСЂРѕС‚РёРІ {gender:РЅР°С‡Р°Р»|РЅР°С‡Р°Р»Р°} РёС… РїСЂРѕРІРµСЂСЏС‚СЊ")
+		sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
 		wait(cd)
-		sampSendChat("/todo РҐРѕСЂРѕС€Рѕ...* РѕС‚РґР°РІР°СЏ РґРѕРєСѓРјРµРЅС‚С‹ РѕР±СЂР°С‚РЅРѕ")
+		sampSendChat("/todo Хорошо...* отдавая документы обратно")
 		wait(cd)
-		sampSendChat("РЎРµР№С‡Р°СЃ СЏ Р·Р°РґР°Рј РІР°Рј РЅРµСЃРєРѕР»СЊРєРѕ РІРѕРїСЂРѕСЃРѕРІ, РІС‹ РіРѕС‚РѕРІС‹ РЅР° РЅРёС… РѕС‚РІРµС‡Р°С‚СЊ?")
+		sampSendChat("Сейчас я задам вам несколько вопросов, вы готовы на них отвечать?")
 		inprocess = false
 		end
 	end)
@@ -2154,18 +2154,18 @@ function sobesaccept2()
 	lua_thread.create(function()
 		rangint = configuration.main_settings.myrankint
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 		inprocess = true
 		if rangint >= 9 then
-			sampSendChat("РћС‚Р»РёС‡РЅРѕ, СЏ РґСѓРјР°СЋ РІС‹ РЅР°Рј РїРѕРґС…РѕРґРёС‚Рµ!")
+			sampSendChat("Отлично, я думаю вы нам подходите!")
 			wait(cd)
 			inprocess = false
 			invite(tostring(targettingid))
 		else
-			sampSendChat("РћС‚Р»РёС‡РЅРѕ, СЏ РґСѓРјР°СЋ РІС‹ РЅР°Рј РїРѕРґС…РѕРґРёС‚Рµ!")
+			sampSendChat("Отлично, я думаю вы нам подходите!")
 			wait(cd)
-			sampSendChat("/r "..sampGetPlayerNickname(targettingid).." СѓСЃРїРµС€РЅРѕ РїСЂРѕС€С‘Р» СЃРѕР±РµСЃРµРґРѕРІР°РЅРёРµ! РћРЅ Р¶РґС‘С‚ СЃС‚Р°СЂС€РёС… РѕРєРѕР»Рѕ СЃС‚РѕР№РєРё С‡С‚РѕР±С‹ РІС‹ РµРіРѕ РїСЂРёРЅСЏР»Рё.")
+			sampSendChat("/r "..sampGetPlayerNickname(targettingid).." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
 			wait(cd)
 			sampSendChat("/rb ("..targettingid..") id")
 		end
@@ -2178,41 +2178,41 @@ function sobesdecline(param)
 	local reason = param:match("(.+)")
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 		else
 			inprocess = true
-			if reason ~= "РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ1" and reason ~= "РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ3" then
-				sampSendChat("/me РІР·СЏРІ РґРѕРєСѓРјРµРЅС‚С‹ РёР· СЂСѓРє С‡РµР»РѕРІРµРєР° РЅР°РїСЂРѕС‚РёРІ {gender:РЅР°С‡Р°Р»|РЅР°С‡Р°Р»Р°} РёС… РїСЂРѕРІРµСЂСЏС‚СЊ")
+			if reason ~= "проф. непригодность1" and reason ~= "проф. непригодность3" then
+				sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
 				wait(cd)
-				sampSendChat("/todo РћС‡РµРЅСЊ РіСЂСѓСЃС‚РЅРѕ...* РѕС‚РґР°РІР°СЏ РґРѕРєСѓРјРµРЅС‚С‹ РѕР±СЂР°С‚РЅРѕ")
+				sampSendChat("/todo Очень грустно...* отдавая документы обратно")
 				wait(cd)
 			end
-			if reason == ("РЅР°СЂРєРѕР·Р°РІРёСЃРёРјРѕСЃС‚СЊ") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІ РјРµРґ. РєР°СЂС‚Рµ СЃРєР°Р·Р°РЅРѕ, С‡С‚Рѕ РІС‹ РЅР°СЂРєРѕР·Р°РІРёСЃРёРјС‹Р№.")
-			elseif reason == ("РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІ РјРµРґ. РєР°СЂС‚Рµ СЃРєР°Р·Р°РЅРѕ, С‡С‚Рѕ РІС‹ РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№.")
-			elseif reason == ("РЅРµ Р·Р°РєРѕРЅРѕРїРѕСЃР»СѓС€РЅС‹Р№") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ СЃР»РёС€РєРѕРј РЅРµР·Р°РєРѕРЅРѕРїРѕСЃР»СѓС€РЅС‹Р№.")
-			elseif reason == ("РјРµРЅСЊС€Рµ 3 Р»РµС‚ РІ С€С‚Р°С‚Рµ") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ РЅРµ РїСЂРѕР¶РёРІР°РµС‚Рµ РІ С€С‚Р°С‚Рµ 3 РіРѕРґР°.")
-			elseif reason == ("РёРіСЂРѕРє РІ РѕСЂРіР°РЅРёР·Р°С†РёРё") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ СѓР¶Рµ СЂР°Р±РѕС‚Р°РµС‚Рµ РІ РґСЂСѓРіРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё.")
-			elseif reason == ("Р±С‹Р» РІ РґРµРјРѕСЂРіР°РЅРµ") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ Р»РµС‡РёР»РёСЃСЊ РІ РїСЃРёС… Р±РѕР»СЊРЅРёС†Рµ, РїРѕРјРµРЅСЏР№С‚Рµ РјРµРґ.РєР°СЂС‚Сѓ.")
-			elseif reason == ("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ1") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅС‹.")
-				sampSendChat("/b РќРёС‡РµРіРѕ РЅРµ РїРѕРєР°Р·Р°Р»")
-			elseif reason == ("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ2") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅС‹.")
-				sampSendChat("/b РЈР¶Р°СЃРЅРѕРµ Р Рџ")
-			elseif reason == ("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ3") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅС‹.")
-				sampSendChat("/b РќРµ Р±С‹Р»Рѕ Р Рџ")
-			elseif reason == ("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ4") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅС‹.")
-				sampSendChat("/b РџР»РѕС…Р°СЏ РіСЂР°РјРјР°С‚РёРєР°")
-			elseif reason == ("РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅРѕСЃС‚СЊ5") then
-				sampSendChat("Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ СЏ РЅРµ РјРѕРіСѓ РїСЂРёРЅСЏС‚СЊ РІР°СЃ РёР·-Р·Р° С‚РѕРіРѕ, С‡С‚Рѕ РІС‹ РїСЂРѕС„. РЅРµРїСЂРёРіРѕРґРЅС‹.")
+			if reason == ("наркозависимость") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что в мед. карте сказано, что вы наркозависимый.")
+			elseif reason == ("не полностью здоровый") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что в мед. карте сказано, что вы не полностью здоровый.")
+			elseif reason == ("не законопослушный") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы слишком незаконопослушный.")
+			elseif reason == ("меньше 3 лет в штате") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы не проживаете в штате 3 года.")
+			elseif reason == ("игрок в организации") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы уже работаете в другой организации.")
+			elseif reason == ("был в деморгане") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы лечились в псих больнице, поменяйте мед.карту.")
+			elseif reason == ("проф. непригодность1") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
+				sampSendChat("/b Ничего не показал")
+			elseif reason == ("проф. непригодность2") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
+				sampSendChat("/b Ужасное РП")
+			elseif reason == ("проф. непригодность3") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
+				sampSendChat("/b Не было РП")
+			elseif reason == ("проф. непригодность4") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
+				sampSendChat("/b Плохая грамматика")
+			elseif reason == ("проф. непригодность5") then
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
 			end
 			inprocess = false
 		end
@@ -2234,7 +2234,7 @@ function updatechatcommands()
 								inprocess = false
 							end
 						else
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќРµ С‚РѕСЂРѕРїРёС‚РµСЃСЊ, РІС‹ СѓР¶Рµ РѕС‚С‹РіСЂС‹РІР°РµС‚Рµ С‡С‚Рѕ-С‚Рѕ!", 0xff6633)
+							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 						end
 					end)
 				end)
@@ -2245,17 +2245,17 @@ end
 
 function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 	if dialogId == 235 and getmyrank then
-		if text:find('РРЅСЃС‚СЂСѓРєС‚РѕСЂС‹') then
+		if text:find('Инструкторы') then
 			for DialogLine in text:gmatch('[^\r\n]+') do
-				local nameRankStats, getStatsRank = DialogLine:match('Р”РѕР»Р¶РЅРѕСЃС‚СЊ: {B83434}(.+)%p(%d+)%p')
+				local nameRankStats, getStatsRank = DialogLine:match('Должность: {B83434}(.+)%p(%d+)%p')
 				if tonumber(getStatsRank) then
 					rangint = tonumber(getStatsRank)
 					rang = nameRankStats
 					configuration.main_settings.myrank = rang
 					configuration.main_settings.myrankint = rangint
-					if nameRankStats:find('РЈРїСЂР°Р»СЏСЋС‰РёР№') or devmaxrankp then
+					if nameRankStats:find('Упраляющий') or devmaxrankp then
 						getStatsRank = 10
-						configuration.main_settings.myrank = "РЈРїСЂР°Р»СЏСЋС‰РёР№"
+						configuration.main_settings.myrank = "Упраляющий"
 						configuration.main_settings.myrankint = 10
 					end
 					if inicfg.save(configuration,"AS Helper") then
@@ -2263,135 +2263,135 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 				end
 			end
 		else
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’С‹ РЅРµ СЂР°Р±РѕС‚Р°РµС‚Рµ РІ Р°РІС‚РѕС€РєРѕР»Рµ, СЃРєСЂРёРїС‚ РІС‹РіСЂСѓР¶РµРЅ!', 0xff6633)
+			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не работаете в автошколе, скрипт выгружен!', 0xff6633)
 			disableallimgui()
 			thisScript():unload()
 		end
 		getmyrank = false
 		return false
 	elseif dialogId == 6 and givelic then
-		if lictype == "Р°РІС‚Рѕ" then
+		if lictype == "авто" then
 			sampSendDialogResponse(6, 1, 0, nil)
-		elseif lictype == "РјРѕС‚Рѕ" then
+		elseif lictype == "мото" then
 			sampSendDialogResponse(6, 1, 1, nil)
-		elseif lictype == "СЂС‹Р±РѕР»РѕРІСЃС‚РІРѕ" then
+		elseif lictype == "рыболовство" then
 			sampSendDialogResponse(6, 1, 3, nil)
-		elseif lictype == "РїР»Р°РІР°РЅРёРµ" then
+		elseif lictype == "плавание" then
 			sampSendDialogResponse(6, 1, 4, nil)
-		elseif lictype == "РѕСЂСѓР¶РёРµ" then
+		elseif lictype == "оружие" then
 			sampSendDialogResponse(6, 1, 5, nil)
-		elseif lictype == "РѕС…РѕС‚Сѓ" then
+		elseif lictype == "охоту" then
 			sampSendDialogResponse(6, 1, 6, nil)
-		elseif lictype == "СЂР°СЃРєРѕРїРєРё" then
+		elseif lictype == "раскопки" then
 			sampSendDialogResponse(6, 1, 7, nil)
 		end
 		givelic = false
 		return false
 	elseif dialogId == 1234 then
-		if text:find('РЎСЂРѕРє РґРµР№СЃС‚РІРёСЏ') then
+		if text:find('Срок действия') then
 			if mcvalue == false then
-				if text:find("РРјСЏ: "..sampGetPlayerNickname(targettingid)) then
+				if text:find("Имя: "..sampGetPlayerNickname(targettingid)) then
 					for DialogLine in text:gmatch('[^\r\n]+') do
-						if text:find("РџРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№") then
-						local statusint = DialogLine:match('{CEAD2A}РќР°СЂРєРѕР·Р°РІРёСЃРёРјРѕСЃС‚СЊ: (%d+)')
+						if text:find("Полностью здоровый") then
+						local statusint = DialogLine:match('{CEAD2A}Наркозависимость: (%d+)')
 							if tonumber(statusint) then
 								statusint = tonumber(statusint)
 								if statusint <= 5 then
 									mcvalue = true
-									mcverdict = (u8"РІ РїРѕСЂСЏРґРєРµ")
+									mcverdict = (u8"в порядке")
 								else
 									mcvalue = true
-									mcverdict = (u8"РЅР°СЂРєРѕР·Р°РІРёСЃРёРјРѕСЃС‚СЊ")
+									mcverdict = (u8"наркозависимость")
 								end
 							end
 						else
 							mcvalue = true
-							mcverdict = (u8"РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№")
+							mcverdict = (u8"не полностью здоровый")
 						end
 					end
 				return false
 				end
 			elseif skiporcancel == false then
-				if text:find("РРјСЏ: "..choosedname) then
-						if text:find("РџРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№") then
+				if text:find("Имя: "..choosedname) then
+						if text:find("Полностью здоровый") then
 							lua_thread.create(function()
 								while inprocess do
 									wait(0)
 								end
 								inprocess = true
-								sampSendChat("/me РІР·СЏРІ РјРµРґ.РєР°СЂС‚Сѓ РІ СЂСѓРєРё РЅР°С‡Р°Р» РµС‘ РїСЂРѕРІРµСЂСЏС‚СЊ")
+								sampSendChat("/me взяв мед.карту в руки начал её проверять")
 								wait(cd)
-								sampSendChat("/do РњРµРґ.РєР°СЂС‚Р° РІ РЅРѕСЂРјРµ.")
+								sampSendChat("/do Мед.карта в норме.")
 								wait(cd)
-								sampSendChat("/todo Р’СЃС‘ РІ РїРѕСЂСЏРґРєРµ* РѕС‚РґР°РІР°СЏ РјРµРґ.РєР°СЂС‚Сѓ РѕР±СЂР°С‚РЅРѕ")
+								sampSendChat("/todo Всё в порядке* отдавая мед.карту обратно")
 								wait(cd)
 								skiporcancel = true
 								cansell = true
 								inprocess = false
-								selllic(tempid..' РѕСЂСѓР¶РёРµ')
+								selllic(tempid..' оружие')
 							end)
 						else
 							lua_thread.create(function()
 								inprocess = true
-								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р§РµР»РѕРІРµРє РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Р№, С‚СЂРµР±СѓРµС‚СЃСЏ РїРѕРјРµРЅСЏС‚СЊ РјРµРґ.РєР°СЂС‚Сѓ!', 0xff6633)
-								sampSendChat("/me РІР·СЏРІ РјРµРґ.РєР°СЂС‚Сѓ РІ СЂСѓРєРё РЅР°С‡Р°Р» РµС‘ РїСЂРѕРІРµСЂСЏС‚СЊ")
+								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Человек не полностью здоровый, требуется поменять мед.карту!', 0xff6633)
+								sampSendChat("/me взяв мед.карту в руки начал её проверять")
 								wait(cd)
-								sampSendChat("/do РњРµРґ.РєР°СЂС‚Р° РЅРµ РІ РЅРѕСЂРјРµ.")
+								sampSendChat("/do Мед.карта не в норме.")
 								wait(cd)
-								sampSendChat("/todo Рљ СЃРѕР¶Р°Р»РµРЅРёСЋ, РІ РјРµРґ.РєР°СЂС‚Рµ РЅР°РїРёСЃР°РЅРѕ, С‡С‚Рѕ Сѓ РІР°СЃ РµСЃС‚СЊ СЏРІРЅС‹Рµ РѕС‚РєР»РѕРЅРµРЅРёСЏ. РћР±РЅРѕРІРёС‚Рµ РµС‘ РІ Р±РѕР»СЊРЅРёС†Рµ Рё РїСЂРёС…РѕРґРёС‚Рµ СЃРЅРѕРІР°* РѕС‚РґР°РІР°СЏ РјРµРґ.РєР°СЂС‚Сѓ РѕР±СЂР°С‚РЅРѕ")
+								sampSendChat("/todo К сожалению, в мед.карте написано, что у вас есть явные отклонения. Обновите её в больнице и приходите снова* отдавая мед.карту обратно")
 								inprocess = false
 								skiporcancel = true
 								cansell = false
 							end)
 						end
 				else
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Р’Р°Рј РїРѕРґРєРёРЅСѓР»Рё РјРµРґ.РєР°СЂС‚Сѓ, РѕР¶РёРґР°РЅРёРµ РЅР°С‡Р°Р»РѕСЃСЊ Р·Р°РЅРѕРІРѕ!', 0xff6633)
-					sampSendChat('РЇ РїСЂРѕСЃРёР» РЅРµ РІР°С€Сѓ РјРµРґ.РєР°СЂС‚Сѓ. Р—Р°Р±РµСЂРёС‚Рµ РµС‘!')
+					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вам подкинули мед.карту, ожидание началось заново!', 0xff6633)
+					sampSendChat('Я просил не вашу мед.карту. Заберите её!')
 				end
 			end
-		elseif text:find('РЎРµСЂРёСЏ') then
+		elseif text:find('Серия') then
 			if passvalue == false then
 				for DialogLine in text:gmatch('[^\r\n]+') do
-					if text:find("РРјСЏ: {FFD700}"..sampGetPlayerNickname(targettingid)) then
-						local job = text:find('{FFFFFF}РћСЂРіР°РЅРёР·Р°С†РёСЏ:')
+					if text:find("Имя: {FFD700}"..sampGetPlayerNickname(targettingid)) then
+						local job = text:find('{FFFFFF}Организация:')
 						if not job then
 							for DialogLine in text:gmatch('[^\r\n]+') do
-								local passstatusint = DialogLine:match('{FFFFFF}Р›РµС‚ РІ С€С‚Р°С‚Рµ: {FFD700}(%d+)')
+								local passstatusint = DialogLine:match('{FFFFFF}Лет в штате: {FFD700}(%d+)')
 								if tonumber(passstatusint) then
 									if tonumber(passstatusint) >= 3 then
 										for DialogLine in text:gmatch('[^\r\n]+') do
-											local zakonstatusint = DialogLine:match('{FFFFFF}Р—Р°РєРѕРЅРѕРїРѕСЃР»СѓС€РЅРѕСЃС‚СЊ: {FFD700}(%d+)')
+											local zakonstatusint = DialogLine:match('{FFFFFF}Законопослушность: {FFD700}(%d+)')
 											if tonumber(zakonstatusint) then
 												if tonumber(zakonstatusint) >= 35 then
-													local demorgan = text:find('Р›РµС‡РёР»СЃСЏ РІ РџСЃРёС…РёР°С‚СЂРёС‡РµСЃРєРѕР№ Р±РѕР»СЊРЅРёС†Рµ')
+													local demorgan = text:find('Лечился в Психиатрической больнице')
 													if not demorgan then
-														local chss = text:find('РЎРѕСЃС‚РѕРёС‚ РІ Р§РЎ{FF6200} РРЅСЃС‚СЂСѓРєС‚РѕСЂС‹')
+														local chss = text:find('Состоит в ЧС{FF6200} Инструкторы')
 														if not chss then
 															passvalue = true
-															passverdict = (u8"РІ РїРѕСЂСЏРґРєРµ")
+															passverdict = (u8"в порядке")
 														else
 															passvalue = true
-															passverdict = (u8"РІ С‡СЃ Р°РІС‚РѕС€РєРѕР»С‹")
+															passverdict = (u8"в чс автошколы")
 														end
 													else
 														passvalue = true
-														passverdict = (u8"Р±С‹Р» РІ РґРµРјРѕСЂРіР°РЅРµ")
+														passverdict = (u8"был в деморгане")
 													end
 												else
 													passvalue = true
-													passverdict = (u8"РЅРµ Р·Р°РєРѕРЅРѕРїРѕСЃР»СѓС€РЅС‹Р№")
+													passverdict = (u8"не законопослушный")
 												end
 											end
 										end
 									else
 										passvalue = true
-										passverdict = (u8"РјРµРЅСЊС€Рµ 3 Р»РµС‚ РІ С€С‚Р°С‚Рµ")
+										passverdict = (u8"меньше 3 лет в штате")
 									end
 								end
 							end
 						else
 							passvalue = true
-							passverdict = (u8"РёРіСЂРѕРє РІ РѕСЂРіР°РЅРёР·Р°С†РёРё")
+							passverdict = (u8"игрок в организации")
 						end
 					return false
 					end
@@ -2414,15 +2414,15 @@ function sampev.onSendChat(message)
         	return false
         end
     end
-	--РЎРєСЂРёРїС‚ Р°РєС†РµРЅС‚Р° Raymond: https://www.blast.hk/threads/43610/
+	--Скрипт акцента Raymond: https://www.blast.hk/threads/43610/
     if configuration.main_settings.useaccent and configuration.main_settings.myaccent ~= '' and configuration.main_settings.myaccent ~= ' ' then
 		if message == ')' or message == '(' or message ==  '))' or message == '((' or message == 'xD' or message == ':D' or message == "q" then
 			return{message}
 		end
-		if string.find(u8:decode(configuration.main_settings.myaccent), "Р°РєС†РµРЅС‚") or string.find(u8:decode(configuration.main_settings.myaccent), "РђРєС†РµРЅС‚") then
+		if string.find(u8:decode(configuration.main_settings.myaccent), "акцент") or string.find(u8:decode(configuration.main_settings.myaccent), "Акцент") then
 			return{'['..u8:decode(configuration.main_settings.myaccent)..']: '..message}
 		else
-			return{'['..u8:decode(configuration.main_settings.myaccent)..' Р°РєС†РµРЅС‚]: '..message}
+			return{'['..u8:decode(configuration.main_settings.myaccent)..' акцент]: '..message}
 		end
     end
 end
@@ -2446,7 +2446,7 @@ function devmaxrank()
 	result,myid = sampGetPlayerIdByCharHandle(playerPed)
 	if sampGetPlayerNickname(myid) == "Carolos_McCandy" then
 		devmaxrankp = not devmaxrankp
-		sampAddChatMessage("{ff6633}[Р РµР¶РёРј СЂР°Р·СЂР°Р±РѕС‚С‡РёРєР°] {FFFFFF}РРјРёС‚РёСЂРѕРІР°С‚СЊ РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№ СЂР°РЅРі: " ..(devmaxrankp and "{00FF00}Р’РєР»СЋС‡РµРЅРѕ" or "{FF0000}Р’С‹РєР»СЋС‡РµРЅРѕ"), 0xff6633)
+		sampAddChatMessage("{ff6633}[Режим разработчика] {FFFFFF}Имитировать максимальный ранг: " ..(devmaxrankp and "{00FF00}Включено" or "{FF0000}Выключено"), 0xff6633)
 		if devmaxrankp then
 			getmyrank = true
 			sampSendChat("/stats")
@@ -2457,7 +2457,7 @@ function devmaxrank()
 	end
 end
 
---Р Р°Р·РґРµР»РµРЅРёРµ РґРµРЅРµР¶РЅС‹С… СЃСѓРјРј РЅР° С‚РѕС‡РєРё РѕС‚ Royan_Millans: https://www.blast.hk/threads/39380/
+--Разделение денежных сумм на точки от Royan_Millans: https://www.blast.hk/threads/39380/
 function comma_value(n)
 	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
 	return left..(num:reverse():gsub('(%d%d%d)','%1.'):reverse())..right
@@ -2478,7 +2478,7 @@ function separator(text)
 	return text
 end
 
---Р›РѕРіРёРєР° Р·Р°РїРёСЃРё РєР»Р°РІРёС€ РѕС‚ Cosmo: https://www.blast.hk/threads/71224/
+--Логика записи клавиш от Cosmo: https://www.blast.hk/threads/71224/
 function getbindkeys()
 	lua_thread.create(function()
 		while true do
@@ -2496,7 +2496,7 @@ function getbindkeys()
 				wait(0)
 				if emptykey1[1] ~= nil and keyname == nil then
 					keyname = vkeys.id_to_name(emptykey1[1])
-					binderkeystatus = u8"РџСЂРёРјРµРЅРёС‚СЊ "..keyname
+					binderkeystatus = u8"Применить "..keyname
 				elseif emptykey2[1] ~= nil and keyname2 == nil then
 					keyname2 = vkeys.id_to_name(emptykey2[1])
 					if keyname2 == "Shift" or keyname2 == "Alt" or keyname2 == "Ctrl" or keyname2 == "Space" then
@@ -2516,7 +2516,7 @@ end
 
 function checkbibl()
 	if not facheck then
-		sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ Р±РёР±Р»РёРѕС‚РµРєР° fAwesome5. РџС‹С‚Р°СЋСЃСЊ РµС‘ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ.", 0xff6633)
+		sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Отсутствует библиотека fAwesome5. Пытаюсь её установить.", 0xff6633)
 		if doesFileExist('moonloader/lib/fAwesome5.lua') then
 			os.remove('moonloader/lib/fAwesome5.lua')
 		end
@@ -2525,11 +2525,11 @@ function checkbibl()
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/fAwesome5.lua', 'moonloader/lib/fAwesome5.lua', function(id, status)
 			if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 				if doesFileExist('moonloader/lib/fAwesome5.lua') then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р‘РёР±Р»РёРѕС‚РµРєР° fAwesome5 Р±С‹Р»Р° СѓСЃРїРµС€РЅРѕ СѓСЃС‚Р°РЅРѕРІР»РµРЅР°.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Библиотека fAwesome5 была успешно установлена.", 0xff6633)
 					fa = require"fAwesome5"
 					fa_glyph_ranges = imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РІРѕ РІСЂРµРјСЏ СѓСЃС‚Р°РЅРѕРІРєРё, РѕР±СЂР°С‚РёС‚РµСЃСЊ Рє СЂР°Р·СЂР°Р±РѕС‚С‡РёРєСѓ Р·Р° РїРѕРјРѕС‰СЊСЋ. JustMini#6291", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Произошла ошибка во время установки, обратитесь к разработчику за помощью. JustMini#6291", 0xff6633)
 					thisScript():unload()
 				end
 			end
@@ -2537,14 +2537,14 @@ function checkbibl()
 		wait(300)
 	end
 	if not doesFileExist('moonloader/resource/fonts/fa-solid-900.ttf') then
-		sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ С„Р°Р№Р» С€СЂРёС„С‚Р°. РџС‹С‚Р°СЋСЃСЊ РµРіРѕ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ.", 0xff6633)
+		sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Отсутствует файл шрифта. Пытаюсь его установить.", 0xff6633)
 		createDirectory('moonloader/resource/fonts')
 		downloadUrlToFile('https://github.com/Just-Mini/biblioteki/raw/main/fa-solid-900.ttf', 'moonloader/resource/fonts/fa-solid-900.ttf', function(id, status)
 			if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 				if doesFileExist('moonloader/resource/fonts/fa-solid-900.ttf') then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Р¤Р°Р№Р» С€СЂРёС„С‚Р° Р±С‹Р» СѓСЃРїРµС€РЅРѕ СѓСЃС‚Р°РЅРѕРІР»РµРЅ.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Файл шрифта был успешно установлен.", 0xff6633)
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РІРѕ РІСЂРµРјСЏ СѓСЃС‚Р°РЅРѕРІРєРё, РѕР±СЂР°С‚РёС‚РµСЃСЊ Рє СЂР°Р·СЂР°Р±РѕС‚С‡РёРєСѓ Р·Р° РїРѕРјРѕС‰СЊСЋ. JustMini#6291", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Произошла ошибка во время установки, обратитесь к разработчику за помощью. JustMini#6291", 0xff6633)
 					thisScript():unload()
 				end
 			end
@@ -2567,12 +2567,12 @@ function checkbibl()
 				end
 				io.close(updates)
 				if tonumber(data[1]) > scriptvernumb then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РќР°Р№РґРµРЅРѕ РѕР±РЅРѕРІР»РµРЅРёРµ. РџС‹С‚Р°СЋСЃСЊ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РµРіРѕ.", 0xff6633)
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Найдено обновление. Пытаюсь установить его.", 0xff6633)
 					doupdate = true
 				end
 				os.remove('moonloader/config/updateashelper.ini')
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РІРѕ РІСЂРµРјСЏ РїСЂРѕРІРµСЂРєРё РѕР±РЅРѕРІР»РµРЅРёР№, РѕР±СЂР°С‚РёС‚РµСЃСЊ Рє СЂР°Р·СЂР°Р±РѕС‚С‡РёРєСѓ Р·Р° РїРѕРјРѕС‰СЊСЋ. JustMini#6291", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Произошла ошибка во время проверки обновлений, обратитесь к разработчику за помощью. JustMini#6291", 0xff6633)
 				thisScript():unload()
 			end
 		end
@@ -2581,7 +2581,7 @@ function checkbibl()
 	if doupdate then
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua', thisScript().path,function(id3, status1)
 			if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}РћР±РЅРѕРІР»РµРЅРёРµ СѓСЃРїРµС€РЅРѕ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ.", 0xff6633)
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Обновление успешно установлено.", 0xff6633)
 			end
 		end)
 		wait(300)
