@@ -2569,6 +2569,8 @@ function checkbibl()
 				if tonumber(data[1]) > scriptvernumb then
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Найдено обновление. Пытаюсь установить его.", 0xff6633)
 					doupdate = true
+				else
+					doupdate = false
 				end
 				os.remove('moonloader/config/updateashelper.ini')
 			else
@@ -2577,7 +2579,9 @@ function checkbibl()
 			end
 		end
 	end)
-	wait(300)
+	while doupdate == nil do
+		wait(300)
+	end
 	if doupdate then
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua', thisScript().path,function(id3, status1)
 			if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
