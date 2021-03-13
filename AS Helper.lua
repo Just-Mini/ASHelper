@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local idd = nil
 local devmaxrankp = false
-local scriptvernumb = 3
+local scriptvernumb = 2
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -2567,8 +2567,8 @@ function checkbibl()
 				end
 				io.close(updates)
 				if tonumber(data[1]) > scriptvernumb then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вышла новая версия скрипта, советуем скачать её. Ссылка была скопирована в буфер обмена.", 0xff6633)
-					setClipboardText("https://github.com/Just-Mini/biblioteki/raw/main/AS%20Helper.rar")
+					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Найдено обновление. Пытаюсь установить его.", 0xff6633)
+					doupdate = true
 				end
 				os.remove('moonloader/config/updateashelper.ini')
 			else
@@ -2578,6 +2578,13 @@ function checkbibl()
 		end
 	end)
 	wait(300)
+	if doupdate then
+		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua', thisScript().path,function(id3, status1)
+			if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
+				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Обновление успешно установлено.", 0xff6633)
+			end
+		end)
+	end
 	return true
 end
 
