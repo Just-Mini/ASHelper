@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local idd = nil
 local devmaxrankp = false
-local scriptvernumb = 4
+local scriptvernumb = 5
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -548,13 +548,13 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Cosmo').x) / 2)
 			imgui.Text(u8'Cosmo',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.2').x) / 2)
-			imgui.Text(u8'Версия 1.2',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.3').x) / 2)
+			imgui.Text(u8'Версия 1.3',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Добавлено автообновление;').x) / 2)
-			imgui.Text(u8'Добавлено автообновление;',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Добавлена автоустановка библиотек;').x) / 2)
-			imgui.Text(u8'Добавлена автоустановка библиотек;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с собеседованием;').x) / 2)
+			imgui.Text(u8'Исправлен баг с собеседованием;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с продажей лицензий').x) / 2)
+			imgui.Text(u8'Исправлен баг с продажей лицензий',imgui.ImVec2(70,20))
 		end
 		imgui.End()
 	elseif imgui_fm.v == true then
@@ -735,8 +735,8 @@ function imgui.OnDrawFrame()
 					passverdict = ""
 					mcverdict = ""
 					sobesetap = 0
-					imgui_sobes.v = true
 					imgui_fm.v = false
+					imgui_sobes.v = true
 				else
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данное действие доступно с 5-го ранга.", 0xff6633)
 				end
@@ -757,28 +757,28 @@ function imgui.OnDrawFrame()
 		imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
 		imgui.NewLine()
 		if ComboBox_select.v == 0 then
-			givelic = "авто"
+			whichlic = "авто"
 		elseif ComboBox_select.v == 1 then
-			givelic = "мото"
+			whichlic = "мото"
 		elseif ComboBox_select.v == 2 then
-			givelic = "рыболовство"
+			whichlic = "рыболовство"
 		elseif ComboBox_select.v == 3 then
-			givelic = "плавание"
+			whichlic = "плавание"
 		elseif ComboBox_select.v == 4 then
-			givelic = "оружие"
+			whichlic = "оружие"
 		elseif ComboBox_select.v == 5 then
-			givelic = "охоту"
+			whichlic = "охоту"
 		elseif ComboBox_select.v == 6 then
-			givelic = "раскопки"
+			whichlic = "раскопки"
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'Продать лицензию на '..u8(givelic), imgui.ImVec2(285,30)) then
+		if imgui.Button(u8'Продать лицензию на '..u8(whichlic), imgui.ImVec2(285,30)) then
 			if not inprocess then
 				ComboBox_select.v = 0
-				selltowhostr = tostring(targettingid).." "..tostring(givelic)
+				selltowhostr = tostring(targettingid).." "..tostring(whichlic)
 				selllic(selltowhostr)
 				disableallimgui()
-				else
+			else
 				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
 		end
@@ -1055,6 +1055,7 @@ function imgui.OnDrawFrame()
 			if mcvalue == true and mcverdict == (u8"в порядке") and passvalue == true and passverdict == (u8"в порядке") then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Продолжить', imgui.ImVec2(285,30)) then
+					sobesaccept1()
 					sobesetap = sobesetap + 1
 				end
 			end
@@ -1662,8 +1663,8 @@ function selllic(param)
 							sampSendChat('/me {gender:распечатал|респечатала} лицензию на '..lictype)
 							wait(cd)
 							sampSendChat('/me {gender:передал|передала} лицензию человеку напротив')
-							sampSendChat('/givelicense '..sellto)
 							givelic = true
+							sampSendChat('/givelicense '..sellto)
 							cansell = false
 						end
 					else
@@ -1674,8 +1675,8 @@ function selllic(param)
 						sampSendChat('/me {gender:распечатал|респечатала} лицензию на '..lictype)
 						wait(cd)
 						sampSendChat('/me {gender:передал|передала} лицензию человеку напротив')
-						sampSendChat('/givelicense '..sellto)
 						givelic = true
+						sampSendChat('/givelicense '..sellto)
 					end
 				inprocess = false
 			else
@@ -2522,8 +2523,6 @@ function checkbibl()
 		if doesFileExist('moonloader/lib/fAwesome5.lua') then
 			os.remove('moonloader/lib/fAwesome5.lua')
 		end
-		local fawesomelua = io.open('moonloader/lib/fAwesome5.lua','w')
-		fawesomelua:close()
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/fAwesome5.lua', 'moonloader/lib/fAwesome5.lua', function(id, status)
 			if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 				if doesFileExist('moonloader/lib/fAwesome5.lua') then
@@ -2556,19 +2555,16 @@ function checkbibl()
 	if doesFileExist('moonloader/config/updateashelper.ini') then
 		os.remove('moonloader/config/updateashelper.ini')
 	end
-	createDirectory('moonloader/config/')
-	updates = io.open('moonloader/config/updateashelper.ini','w')
-	io.close(updates)
 	downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/update.ini', 'moonloader/config/updateashelper.ini', function(id, status)
 		if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 			if doesFileExist('moonloader/config/updateashelper.ini') then
 				updates = io.open('moonloader/config/updateashelper.ini','r')
-				local data = {}
+				local tempdata = {}
 				for line in updates:lines() do
-					table.insert(data, line)
+					table.insert(tempdata, line)
 				end
 				io.close(updates)
-				if tonumber(data[1]) > scriptvernumb then
+				if tonumber(tempdata[1]) > scriptvernumb then
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Найдено обновление. Пытаюсь установить его.", 0xff6633)
 					doupdate = true
 				else
@@ -2590,7 +2586,7 @@ function checkbibl()
 				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Обновление успешно установлено.", 0xff6633)
 			end
 		end)
-		wait(300)
+		wait(10000)
 	end
 	return true
 end
