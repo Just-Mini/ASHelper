@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local idd = nil
 local devmaxrankp = false
-local scriptvernumb = 5
+local scriptvernumb = 6
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -549,10 +549,10 @@ function imgui.OnDrawFrame()
 			imgui.Text(u8'Cosmo',imgui.ImVec2(70,20))
 			imgui.Separator()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.3').x) / 2)
-			imgui.Text(u8'Версия 1.3',imgui.ImVec2(70,20))
+			imgui.Text(u8'Версия 1.4',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с собеседованием;').x) / 2)
-			imgui.Text(u8'Исправлен баг с собеседованием;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с автообновлением;').x) / 2)
+			imgui.Text(u8'Исправлен баг с автообновлением;',imgui.ImVec2(70,20))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с продажей лицензий').x) / 2)
 			imgui.Text(u8'Исправлен баг с продажей лицензий',imgui.ImVec2(70,20))
 		end
@@ -603,6 +603,7 @@ function imgui.OnDrawFrame()
 			if configuration.main_settings.myrankint >= 5 then
 				imgui_expel.v = true
 				imgui_fm.v = false
+				expelbuff.v = ""
 			else
 				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 5-го ранга.", 0xff6633)
 			end
@@ -640,6 +641,7 @@ function imgui.OnDrawFrame()
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fm.v = false
 					imgui_giverank.v = true
+					Ranks_select.v = 0
 				else
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
@@ -653,6 +655,7 @@ function imgui.OnDrawFrame()
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fm.v = false
 					imgui_blacklist.v = true
+					blacklistbuff.v = ""
 				else
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
@@ -679,6 +682,7 @@ function imgui.OnDrawFrame()
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fwarn.v = true
 					imgui_fm.v = false
+					fwarnbuff.v = ""
 				else
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
@@ -705,7 +709,9 @@ function imgui.OnDrawFrame()
 				if configuration.main_settings.myrankint >= 9 then
 					imgui_fmute.v = true
 					imgui_fm.v = false
-					else
+					fmutebuff.v = ""
+					fmuteint.v = 0
+				else
 					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
 				end
 			else
@@ -1458,7 +1464,7 @@ function imgui.OnDrawFrame()
 						end
 						updatechatcommands()
 					else
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы не можете удалять бинд во время любой отыгровки!", 0xff6633)
+						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы не можете взаимодействовать с биндером во время любой отыгровки!", 0xff6633)
 					end	
 				end
 				imgui.SameLine()
@@ -2555,6 +2561,7 @@ function checkbibl()
 	if doesFileExist('moonloader/config/updateashelper.ini') then
 		os.remove('moonloader/config/updateashelper.ini')
 	end
+	createDirectory('moonloader/config')
 	downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/update.ini', 'moonloader/config/updateashelper.ini', function(id, status)
 		if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 			if doesFileExist('moonloader/config/updateashelper.ini') then
@@ -2592,7 +2599,7 @@ function checkbibl()
 end
 
 function onWindowMessage(msg, wparam, lparam)
-    if wparam == 0x1B then -- ESC
+    if wparam == 0x1B then
     	if imgui_settings.v or imgui_fm.v or imgui_license.v or imgui_expel.v or imgui_uninvite.v or imgui_giverank.v or imgui_blacklist.v or imgui_fwarn.v or imgui_fmute.v or imgui_sobes.v or imgui_cmds.v then
         	consumeWindowMessage(true, false)
         end
