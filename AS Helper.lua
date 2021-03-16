@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local idd = nil
 local devmaxrankp = false
-local scriptvernumb = 6
+local scriptvernumb = 7
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -288,28 +288,30 @@ emptykey2 = {}
 lua_thread.create(function()
 	while true do
 		wait(0)
-		if getCharPlayerIsTargeting() then
-			result, targettingped = getCharPlayerIsTargeting()
-			if configuration.main_settings.createmarker == true then
-				if sampGetPlayerIdByCharHandle(targettingped) then
-					if marker ~= nil and oldtargettingped ~= targettingped then
-						removeBlip(marker)
-						marker = nil
-						marker = addBlipForChar(targettingped)
-					elseif marker == nil and oldtargettingped ~= targettingped then
-						marker = addBlipForChar(targettingped)
+		if not imgui.Process then
+			if getCharPlayerIsTargeting() then
+				result, targettingped = getCharPlayerIsTargeting()
+				if configuration.main_settings.createmarker == true then
+					if sampGetPlayerIdByCharHandle(targettingped) then
+						if marker ~= nil and oldtargettingped ~= targettingped then
+							removeBlip(marker)
+							marker = nil
+							marker = addBlipForChar(targettingped)
+						elseif marker == nil and oldtargettingped ~= targettingped then
+							marker = addBlipForChar(targettingped)
+						end
 					end
 				end
-			end
-			oldtargettingped = targettingped
-			button = configuration.main_settings.usefastmenu
-			if isKeyJustPressed(vkeys.name_to_id(button,true)) then
-				if not sampIsChatInputActive() then
-					result, targettingid = sampGetPlayerIdByCharHandle(targettingped)
-					if targettingid ~= -1 then
-						if not imgui_fm.v then
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]",0xff6633)
-							imgui_fm.v = true
+				oldtargettingped = targettingped
+				button = configuration.main_settings.usefastmenu
+				if isKeyJustPressed(vkeys.name_to_id(button,true)) then
+					if not sampIsChatInputActive() then
+						result, targettingid = sampGetPlayerIdByCharHandle(targettingped)
+						if targettingid ~= -1 then
+							if not imgui_fm.v then
+								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]",0xff6633)
+								imgui_fm.v = true
+							end
 						end
 					end
 				end
@@ -510,7 +512,11 @@ function imgui.OnDrawFrame()
 				end
 			end
 			imgui.SameLine()
-			imgui.Text(u8"Кнопку быстрого меню: ПКМ + "..configuration.main_settings.usefastmenu.."",imgui.ImVec2(80,25))
+			imgui.Text(u8"Кнопку быстр. меню: ПКМ + "..configuration.main_settings.usefastmenu,imgui.ImVec2(80,25))
+			if getbindkey then
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Нажмите любую кнопку').x) / 2)
+				imgui.Text(u8"Нажмите любую кнопку",imgui.ImVec2(80,25))
+			end
 			if imgui.Button(u8'Биндер', imgui.ImVec2(65,25)) then
 				binder()
 			end
@@ -549,12 +555,10 @@ function imgui.OnDrawFrame()
 			imgui.Text(u8'Cosmo',imgui.ImVec2(70,20))
 			imgui.Separator()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.3').x) / 2)
-			imgui.Text(u8'Версия 1.4',imgui.ImVec2(70,20))
+			imgui.Text(u8'Версия 1.5',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с автообновлением;').x) / 2)
-			imgui.Text(u8'Исправлен баг с автообновлением;',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен баг с продажей лицензий').x) / 2)
-			imgui.Text(u8'Исправлен баг с продажей лицензий',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Выявлена и исправлена причина крашей;').x) / 2)
+			imgui.Text(u8'Выявлена и исправлена причина крашей;',imgui.ImVec2(70,20))
 		end
 		imgui.End()
 	elseif imgui_fm.v == true then
@@ -1571,6 +1575,7 @@ function hello()
 			if configuration.main_settings.useservername then
 				result,myid = sampGetPlayerIdByCharHandle(playerPed)
 				name = sampGetPlayerNickname(myid)
+				name = name:gsub("_"," ")
 			else
 				name = u8:decode(myname.v)
 				if name == '' or name == nil then
@@ -2603,12 +2608,15 @@ function onWindowMessage(msg, wparam, lparam)
     	if imgui_settings.v or imgui_fm.v or imgui_license.v or imgui_expel.v or imgui_uninvite.v or imgui_giverank.v or imgui_blacklist.v or imgui_fwarn.v or imgui_fmute.v or imgui_sobes.v or imgui_cmds.v then
         	consumeWindowMessage(true, false)
         end
-	elseif msg == 0x100 or msg == 0x104 then
-		if getbindkey then
+	elseif getbindkey then
+		if msg == 0x100 or msg == 0x104 then
+			print(msg)
 			if not log[1] then
 				table.insert(log, 1, wparam)
 			end
-		elseif setbinderkey then
+		end
+	elseif setbinderkey then
+		if msg == 0x100 or msg == 0x104 then
 			if not emptykey1[1] then
 				table.insert(emptykey1, 1, wparam)
 			elseif not emptykey2[1] and wparam ~= emptykey1[1] then
