@@ -4,11 +4,11 @@ script_author('JustMini')
 
 require "lib.moonloader"
 local dlstatus = require "moonloader".download_status
-local inicfgcheck, inicfg = pcall(require, "inicfg")
-local vkeyscheck, vkeys = pcall(require, "vkeys")
-local imguicheck, imgui = pcall(require, "imgui")
-local sampevcheck, sampev = pcall(require, "lib.samp.events")
-local encodingcheck, encoding = pcall(require, "encoding")
+local inicfg = require "inicfg"
+local vkeys = require "vkeys"
+local imgui = require "imgui"
+local sampev = require "lib.samp.events"
+local encoding = require "encoding"
 local facheck, fa = pcall(require, "fAwesome5")
 
 local configuration = inicfg.load({
@@ -51,23 +51,15 @@ local ScreenX, ScreenY = getScreenResolution()
 local cd = 2000
 local cansell = false
 local inprocess = false
-local idd = nil
+local windowtype = 0
 local devmaxrankp = false
-local scriptvernumb = 7
+local scriptvernumb = 8
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
 
 local imgui_settings 	= imgui.ImBool(false)
 local imgui_fm 			= imgui.ImBool(false)
-local imgui_license		= imgui.ImBool(false)
-local imgui_expel		= imgui.ImBool(false)
-local imgui_uninvite 	= imgui.ImBool(false)
-local imgui_giverank 	= imgui.ImBool(false)
-local imgui_blacklist	= imgui.ImBool(false)
-local imgui_fwarn		= imgui.ImBool(false)
-local imgui_fmute 		= imgui.ImBool(false)
-local imgui_sobes 		= imgui.ImBool(false)
 local imgui_binder 		= imgui.ImBool(false)
 local imgui_cmds 		= imgui.ImBool(false)
 
@@ -206,11 +198,13 @@ function main()
 	end
 	if not doesFileExist('moonloader/config/AS Helper.ini') then
         if inicfg.save(configuration, 'AS Helper.ini') then
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Создан файл конфигурации.', 0xff6633)
+			addsampmsg('Создан файл конфигурации.')
 		end
     end
-	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}AutoSchool Helper успешно загружен. Автор: JustMini.", 0xff6633)
-	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите /"..cmdhelp.." чтобы настроить его.", 0xff6633)
+	getmyrank = true
+	sampSendChat("/stats")
+	addsampmsg('AutoSchool Helper успешно загружен. Автор: JustMini')
+	addsampmsg("Введите /"..cmdcmds.." чтобы узнать все команды.")
 	imgui.Process = false
 	sampRegisterChatCommand(cmdhelp, fastmenuopen)
 	sampRegisterChatCommand(cmdbind, binder)
@@ -234,10 +228,10 @@ function main()
 				skiporcancel = true
 				cansell = true
 				inprocess = false
-				sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы пропустили ожидание мед.карты', 0xff6633)
+				addsampmsg('Вы пропустили ожидание мед.карты')
 				selllic(tempid..' оружие')
 			else
-				sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вам нечего пропускать!', 0xff6633)
+				addsampmsg('Вам нечего пропускать!')
 			end
 		end)
 	end)
@@ -246,9 +240,9 @@ function main()
 			skiporcancel = true
 			cansell = false
 			inprocess = false
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы отменили ожидание мед.карты', 0xff6633)
+			addsampmsg('Вы отменили ожидание мед.карты')
 		else
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вам нечего отменять!', 0xff6633)
+			addsampmsg('Вам нечего отменять!')
 		end
 	end)
 end
@@ -309,7 +303,8 @@ lua_thread.create(function()
 						result, targettingid = sampGetPlayerIdByCharHandle(targettingped)
 						if targettingid ~= -1 then
 							if not imgui_fm.v then
-								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]",0xff6633)
+								addsampmsg("Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]")
+								windowtype = 0
 								imgui_fm.v = true
 							end
 						end
@@ -317,11 +312,15 @@ lua_thread.create(function()
 				end
 			end
 		end
-		if imgui_settings.v or imgui_fm.v or imgui_license.v or imgui_expel.v or imgui_uninvite.v or imgui_giverank.v or imgui_blacklist.v or imgui_fwarn.v or imgui_fmute.v or imgui_sobes.v or imgui_binder.v or imgui_cmds.v then
-			imgui.Process = true
-			imgui.ShowCursor = true
+		if imgui_settings.v or imgui_fm.v or imgui_binder.v or imgui_cmds.v then
+			if not imgui.Process then
+				imgui.Process = true
+				imgui.ShowCursor = true
+			end
 		else
-			imgui.Process = false
+			if imgui.Process then
+				imgui.Process = false
+			end
 		end
 		for key, value in pairs(configuration.BindsName) do
 			if tostring(value):find(configuration.BindsName[key]) then
@@ -338,7 +337,7 @@ lua_thread.create(function()
 									inprocess = false
 								end
 							else
-								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+								addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 							end
 						end
 					elseif configuration.BindsKeys[key]:match("(.+)") then
@@ -352,7 +351,7 @@ lua_thread.create(function()
 									inprocess = false
 								end
 							else
-								sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+								addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 							end
 						end
 					end
@@ -368,8 +367,14 @@ function imgui.OnDrawFrame()
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8"                  Настройки ASHelper", imgui_settings, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar)
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя', imgui.ImVec2(285,30)) then
-			userset = not userset
+		if userset then
+			if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				userset = not userset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				userset = not userset
+			end
 		end
 		if userset then
 			if imgui.Checkbox(u8"Использовать мой ник из таба",useservername) then
@@ -435,8 +440,14 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий', imgui.ImVec2(285,30)) then
-			licset = not licset
+		if licset then
+			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				licset = not licset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				licset = not licset
+			end
 		end
 		if licset then
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
@@ -499,8 +510,14 @@ function imgui.OnDrawFrame()
 			imgui.PopItemWidth()
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш', imgui.ImVec2(285,30)) then
-			keysset = not keysset
+		if keysset then
+			if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				keysset = not keysset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				keysset = not keysset
+			end
 		end
 		if keysset then
 			if imgui.Button(u8'Изменить', imgui.ImVec2(65,25)) then
@@ -514,8 +531,8 @@ function imgui.OnDrawFrame()
 			imgui.SameLine()
 			imgui.Text(u8"Кнопку быстр. меню: ПКМ + "..configuration.main_settings.usefastmenu,imgui.ImVec2(80,25))
 			if getbindkey then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Нажмите любую кнопку').x) / 2)
-				imgui.Text(u8"Нажмите любую кнопку",imgui.ImVec2(80,25))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Нажмите любую клавишу').x) / 2)
+				imgui.Text(u8"Нажмите любую клавишу",imgui.ImVec2(80,25))
 			end
 			if imgui.Button(u8'Биндер', imgui.ImVec2(65,25)) then
 				binder()
@@ -524,8 +541,14 @@ function imgui.OnDrawFrame()
 			imgui.Text(u8"Открыть настройки биндера",imgui.ImVec2(80,25))
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное', imgui.ImVec2(285,30)) then
-			otherset = not otherset
+		if otherset then
+			if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				otherset = not otherset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				otherset = not otherset
+			end
 		end
 		if otherset then
 			if imgui.Button(u8'Узнать', imgui.ImVec2(65,25)) then
@@ -535,8 +558,14 @@ function imgui.OnDrawFrame()
 			imgui.Text(u8"Все команды биндера",imgui.ImVec2(80,25))
 		end
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте', imgui.ImVec2(285,30)) then
-			scriptinfo = not scriptinfo
+		if scriptinfo then
+			if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				scriptinfo = not scriptinfo
+			end
+		else
+			if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				scriptinfo = not scriptinfo
+			end
 		end
 		if scriptinfo then
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Создатель: JustMini').x) / 2)
@@ -553,295 +582,311 @@ function imgui.OnDrawFrame()
 			imgui.Text(u8'Raymond',imgui.ImVec2(70,20))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Cosmo').x) / 2)
 			imgui.Text(u8'Cosmo',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Alex_Liquid').x) / 2)
+			imgui.Text(u8'Alex_Liquid',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.3').x) / 2)
-			imgui.Text(u8'Версия 1.5',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.6').x) / 2)
+			imgui.Text(u8'Версия 1.6',imgui.ImVec2(70,20))
 			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Выявлена и исправлена причина крашей;').x) / 2)
-			imgui.Text(u8'Выявлена и исправлена причина крашей;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Добавлена функция проверки устава;').x) / 2)
+			imgui.Text(u8'Добавлена функция проверки устава;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен небольшой баг в быстром меню;').x) / 2)
+			imgui.Text(u8'Исправлен небольшой баг в быстром меню;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Теперь продажа лицензий занимает 3 строчки').x) / 2)
+			imgui.Text(u8'Теперь продажа лицензий занимает 3 строчки',imgui.ImVec2(70,20))
 		end
 		imgui.End()
-	elseif imgui_fm.v == true then
+	end
+
+	if imgui_fm.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8"               Меню быстрого доступа", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выбрали ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Вы выбрали ИД: "..targettingid, imgui.ImVec2(75,30))
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 1 then
-					disableallimgui()
-					hello()
+		if windowtype == 0 then -- ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выбрали ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы выбрали ИД: "..targettingid, imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 1 then
+						disableallimgui()
+						hello()
+					else
+						addsampmsg("Данная команда доступна с 1-го ранга.")
+					end
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 1-го ранга.", 0xff6633)
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Озвучить прайс лист', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 1  then
-					disableallimgui()
-					pricelist()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Озвучить прайс лист', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 1  then
+						disableallimgui()
+						pricelist()
+					else
+						addsampmsg("Данная команда доступна с 1-го ранга.")
+					end
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 1-го ранга.", 0xff6633)
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FILE_SIGNATURE..u8' Продать лицензию игроку', imgui.ImVec2(285,30)) then
-			if configuration.main_settings.myrankint >= 3 then
-				imgui_license.v = true
-				imgui_fm.v = false
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 3-го ранга.", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
-			if configuration.main_settings.myrankint >= 5 then
-				imgui_expel.v = true
-				imgui_fm.v = false
-				expelbuff.v = ""
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 5-го ранга.", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					disableallimgui()
-					tosend = tostring(targettingid)
-					invite(tosend)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_FILE_SIGNATURE..u8' Продать лицензию игроку', imgui.ImVec2(285,30)) then
+				if configuration.main_settings.myrankint >= 3 then
+					imgui.SetScrollY(0)
+					windowtype = 1
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+					addsampmsg("Данная команда доступна с 3-го ранга.")
 				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_MINUS..u8' Уволить из организации', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					imgui_fm.v = false
-					imgui_uninvite.v = true
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_EXCHANGE_ALT..u8' Изменить должность', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					imgui_fm.v = false
-					imgui_giverank.v = true
-					Ranks_select.v = 0
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER_SLASH..u8' Занести в чёрный список', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					imgui_fm.v = false
-					imgui_blacklist.v = true
-					blacklistbuff.v = ""
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_USER..u8' Убрать из чёрного списка', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					unblacklist(tostring(targettingid))
-					disableallimgui()
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_FROWN..u8' Выдать выговор сотруднику', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					imgui_fwarn.v = true
-					imgui_fm.v = false
-					fwarnbuff.v = ""
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_SMILE..u8' Снять выговор сотруднику', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					unfwarn(tostring(targettingid))
-					disableallimgui()
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-			end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(fa.ICON_FA_VOLUME_MUTE..u8' Выдать мут сотруднику', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					imgui_fmute.v = true
-					imgui_fm.v = false
-					fmutebuff.v = ""
-					fmuteint.v = 0
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' Снять мут сотруднику', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				if configuration.main_settings.myrankint >= 9 then
-					funmute(tostring(targettingid))
-					disableallimgui()
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
-				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-			end
-		imgui.Separator()
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
-			if not inprocess then
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
 				if configuration.main_settings.myrankint >= 5 then
-					passvalue = false
-					mcvalue = false
-					passverdict = ""
-					mcverdict = ""
-					sobesetap = 0
-					imgui_fm.v = false
-					imgui_sobes.v = true
+					imgui.SetScrollY(0)
+					windowtype = 2
+					expelbuff.v = ""
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данное действие доступно с 5-го ранга.", 0xff6633)
+					addsampmsg("Данная команда доступна с 5-го ранга.")
 				end
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 			end
-		end
-		imgui.End()
-	elseif imgui_license.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               Меню быстрого доступа", imgui_license, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы продаёте лицензию человеку под ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Вы продаёте лицензию человеку под ID: "..targettingid, imgui.ImVec2(75,30))
-		imgui.NewLine()
-		imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
-		imgui.SameLine()
-		imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
-		imgui.NewLine()
-		if ComboBox_select.v == 0 then
-			whichlic = "авто"
-		elseif ComboBox_select.v == 1 then
-			whichlic = "мото"
-		elseif ComboBox_select.v == 2 then
-			whichlic = "рыболовство"
-		elseif ComboBox_select.v == 3 then
-			whichlic = "плавание"
-		elseif ComboBox_select.v == 4 then
-			whichlic = "оружие"
-		elseif ComboBox_select.v == 5 then
-			whichlic = "охоту"
-		elseif ComboBox_select.v == 6 then
-			whichlic = "раскопки"
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'Продать лицензию на '..u8(whichlic), imgui.ImVec2(285,30)) then
-			if not inprocess then
-				ComboBox_select.v = 0
-				selltowhostr = tostring(targettingid).." "..tostring(whichlic)
-				selllic(selltowhostr)
-				disableallimgui()
-			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if imgui.Button(u8'Лицензия на полёты', imgui.ImVec2(285,30)) then
-			if not inprocess then
-				ComboBox_select.v = 0
-				selltowhostr = tostring(targettingid).." полёты"
-				selllic(selltowhostr)
-				disableallimgui()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						disableallimgui()
+						tosend = tostring(targettingid)
+						invite(tosend)
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
 				else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
 			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-		if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-			imgui_fm.v = true
-			imgui_license.v = false
-		end
-		imgui.End()
-	elseif imgui_expel.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               Меню быстрого доступа", imgui_expel, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выгоняете человека под ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Вы выгоняете человека под ID: "..targettingid, imgui.ImVec2(75,30))
-		imgui.NewLine()
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
-		imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-		imgui.InputText(u8"",expelbuff)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
-		if imgui.Button(u8'Выгнать '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(200,30)) then
-			if expelbuff.v == nil or expelbuff.v == "" then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину expel!", 0xff6633)
-			else
-				expel(tostring(targettingid.." "..u8:decode(expelbuff.v)))
-				disableallimgui()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_USER_MINUS..u8' Уволить из организации', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						imgui.SetScrollY(0)
+						windowtype = 3
+						uninvitebuf.v = ""
+						blacklistbuf.v = ""
+						uninvitebox.v = false
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
 			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-		if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-			imgui_fm.v = true
-			imgui_expel.v = false
-		end
-		imgui.End()
-	elseif imgui_uninvite.v == true then
-		if not inprocess then
-			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               Меню быстрого доступа", imgui_uninvite, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_EXCHANGE_ALT..u8' Изменить должность', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						imgui.SetScrollY(0)
+						Ranks_select.v = 0
+						windowtype = 4
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_USER_SLASH..u8' Занести в чёрный список', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						imgui.SetScrollY(0)
+						windowtype = 5
+						blacklistbuff.v = ""
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_USER..u8' Убрать из чёрного списка', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						unblacklist(tostring(targettingid))
+						disableallimgui()
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_FROWN..u8' Выдать выговор сотруднику', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						imgui.SetScrollY(0)
+						fwarnbuff.v = ""
+						windowtype = 6
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_SMILE..u8' Снять выговор сотруднику', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						unfwarn(tostring(targettingid))
+						disableallimgui()
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+				end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_VOLUME_MUTE..u8' Выдать мут сотруднику', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						imgui.SetScrollY(0)
+						fmutebuff.v = ""
+						fmuteint.v = 0
+						windowtype = 7
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' Снять мут сотруднику', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 9 then
+						funmute(tostring(targettingid))
+						disableallimgui()
+					else
+						addsampmsg("Данная команда доступна с 9-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.Separator()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Проверка устава '..fa.ICON_FA_STAMP, imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 5 then
+						imgui.SetScrollY(0)
+						windowtype = 8
+					else
+						addsampmsg("Данное действие доступно с 5-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
+				if not inprocess then
+					if configuration.main_settings.myrankint >= 5 then
+						imgui.SetScrollY(0)
+						passvalue = false
+						mcvalue = false
+						passverdict = ""
+						mcverdict = ""
+						sobesetap = 0
+						windowtype = 9
+					else
+						addsampmsg("Данное действие доступно с 5-го ранга.")
+					end
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+
+
+		elseif windowtype == 1 then -- ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы продаёте лицензию человеку под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы продаёте лицензию человеку под ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.NewLine()
+			imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
+			imgui.SameLine()
+			imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
+			imgui.NewLine()
+			if ComboBox_select.v == 0 then
+				whichlic = "авто"
+			elseif ComboBox_select.v == 1 then
+				whichlic = "мото"
+			elseif ComboBox_select.v == 2 then
+				whichlic = "рыболовство"
+			elseif ComboBox_select.v == 3 then
+				whichlic = "плавание"
+			elseif ComboBox_select.v == 4 then
+				whichlic = "оружие"
+			elseif ComboBox_select.v == 5 then
+				whichlic = "охоту"
+			elseif ComboBox_select.v == 6 then
+				whichlic = "раскопки"
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Продать лицензию на '..u8(whichlic), imgui.ImVec2(285,30)) then
+				if not inprocess then
+					ComboBox_select.v = 0
+					selltowhostr = tostring(targettingid).." "..tostring(whichlic)
+					selllic(selltowhostr)
+					disableallimgui()
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Лицензия на полёты', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					ComboBox_select.v = 0
+					selltowhostr = tostring(targettingid).." полёты"
+					selllic(selltowhostr)
+					disableallimgui()
+					else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+				windowtype = 0
+			end
+
+
+		elseif windowtype == 2 then -- EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выгоняете человека под ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы выгоняете человека под ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.NewLine()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
+			imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
+			imgui.InputText(u8"",expelbuff)
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
+			if imgui.Button(u8'Выгнать '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(200,30)) then
+				if expelbuff.v == nil or expelbuff.v == "" then
+					addsampmsg("Введите причину expel!")
+				else
+					expel(tostring(targettingid.." "..u8:decode(expelbuff.v)))
+					disableallimgui()
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+				windowtype = 0
+			end
+
+
+		elseif windowtype == 3 then -- УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы увольняете сотрудника под ID: "..targettingid).x) / 2)
 			imgui.Text(u8"Вы увольняете сотрудника под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
@@ -859,11 +904,11 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			if imgui.Button(u8'Уволить '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(285,30)) then
 				if uninvitebuf.v == nil or uninvitebuf.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину увольнения!", 0xff6633)
+					addsampmsg("Введите причину увольнения!")
 				else
 					if uninvitebox.v then
 						if blacklistbuf.v == nil or blacklistbuf.v == '' then
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину занесения в ЧС!", 0xff6633)
+							addsampmsg("Введите причину занесения в ЧС!")
 						else
 							uninvite(targettingid.." 1")
 							disableallimgui()
@@ -877,16 +922,11 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				imgui_fm.v = true
-				imgui_uninvite.v = false
+				windowtype = 0
 			end
-			imgui.End()
-		end
-	elseif imgui_giverank.v == true then
-		if not inprocess then
-			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               Меню быстрого доступа", imgui_giverank, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+
+
+		elseif windowtype == 4 then -- ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы меняете ранг сотруднику под ID: "..targettingid).x) / 2)
 			imgui.Text(u8"Вы меняете ранг сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.PushItemWidth(270)
@@ -901,16 +941,11 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				imgui_fm.v = true
-				imgui_giverank.v = false
+				windowtype = 0
 			end
-			imgui.End()
-		end
-	elseif imgui_blacklist.v == true then
-		if not inprocess then
-			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               Меню быстрого доступа", imgui_blacklist, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+
+
+		elseif windowtype == 5 then -- ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы заносите в ЧС человека под ID: "..targettingid).x) / 2)
 			imgui.Text(u8"Вы заносите в ЧС человека под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
@@ -921,7 +956,7 @@ function imgui.OnDrawFrame()
 			imgui.NewLine()
 			if imgui.Button(u8'Занести в ЧС '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
 				if blacklistbuff.v == nil or blacklistbuff.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину занесения в ЧС!", 0xff6633)
+					addsampmsg("Введите причину занесения в ЧС!")
 				else
 					blacklist(targettingid.." "..u8:decode(blacklistbuff.v))
 					disableallimgui()
@@ -930,16 +965,11 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				imgui_fm.v = true
-				imgui_blacklist.v = false
+				windowtype = 0
 			end
-			imgui.End()
-		end
-	elseif imgui_fwarn.v == true then
-		if not inprocess then
-			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               Меню быстрого доступа", imgui_fwarn, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+
+
+		elseif windowtype == 6 then -- ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выдаёте выговор сотруднику под ID: "..targettingid).x) / 2)
 			imgui.Text(u8"Вы выдаёте выговор сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
@@ -950,7 +980,7 @@ function imgui.OnDrawFrame()
 			imgui.NewLine()
 			if imgui.Button(u8'Выдать выговор '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
 				if fwarnbuff.v == nil or fwarnbuff.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину выдачи выговора!", 0xff6633)
+					addsampmsg("Введите причину выдачи выговора!")
 				else
 					fwarn(targettingid.." "..u8:decode(fwarnbuff.v))
 					disableallimgui()
@@ -959,16 +989,11 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				imgui_fm.v = true
-				imgui_fwarn.v = false
+				windowtype = 0
 			end
-			imgui.End()
-		end
-	elseif imgui_fmute.v == true then
-		if not inprocess then
-			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"               Меню быстрого доступа", imgui_fmute, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+
+
+		elseif windowtype == 7 then -- ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выдаёте мут сотруднику под ID: "..targettingid).x) / 2)
 			imgui.Text(u8"Вы выдаёте мут сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.NewLine()
@@ -983,10 +1008,10 @@ function imgui.OnDrawFrame()
 			imgui.NewLine()
 			if imgui.Button(u8'Выдать мут '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
 				if fmutebuff.v == nil or fmutebuff.v == '' then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите причину выдачи мута!", 0xff6633)
+					addsampmsg("Введите причину выдачи мута!")
 					else
 					if fmuteint.v == nil or fmuteint.v == '' or fmuteint.v == 0 then
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Введите время мута!", 0xff6633)
+						addsampmsg("Введите время мута!")
 					else
 						fmute(targettingid.." "..u8:decode(fmuteint.v).." "..u8:decode(fmutebuff.v))
 						disableallimgui()
@@ -996,265 +1021,380 @@ function imgui.OnDrawFrame()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				imgui_fm.v = true
-				imgui_fmute.v = false
+				windowtype = 0
 			end
-			imgui.End()
-		end
-	elseif imgui_sobes.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               Меню быстрого доступа", imgui_sobes, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы проводите собеседование ID: "..targettingid).x) / 2)
-		imgui.Text(u8"Вы проводите собеседование ID: "..targettingid, imgui.ImVec2(75,30))
-		imgui.NewLine()
-		if sobesetap == 0 then
-			lastsobesetap = sobesetap
+
+
+		elseif windowtype == 8 then -- ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Рабочее время в будние дни', imgui.ImVec2(285,30)) then
 				if not inprocess then
-					sobesetap = sobesetap + 1
-					sobes1()
+					addsampmsg("Подсказка: 09:00 - 19:00")
+					sampSendChat("Назовите пожалуйста время днейвной смены в будние дни.")
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Рабочее время в выходные дни', imgui.ImVec2(285,30)) then
 				if not inprocess then
-					sobesetap = sobesetap + 1
+					addsampmsg("Подсказка: 10:00 - 18:00")
+					sampSendChat("Назовите пожалуйста время дневной смены в выходные дни.")
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-		elseif sobesetap == 1 then
-			lastsobesetap = sobesetap
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Попросить документы', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesetap = sobesetap + 1
-					sobes2()
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 				end
 			end
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+			if imgui.Button(u8'Кнопка вызова полиции без причины', imgui.ImVec2(285,30)) then
 				if not inprocess then
-					sobesetap = sobesetap + 1
+					addsampmsg("Подсказка: выговор")
+					sampSendChat("Кто-то нажал на кнопку вызова полиции без особой на то причины, какое наказание за этим последует?.")
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 				end
 			end
-		elseif sobesetap == 2 then
-			lastsobesetap = sobesetap
-			if mcvalue == false then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - не показана").x) / 2)
-				imgui.Text(u8"Мед.карта - не показана", imgui.ImVec2(75,30))
-			else
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - показана ("..mcverdict..")").x) / 2)
-				imgui.Text(u8"Мед.карта - показана ("..mcverdict..")", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Использование транспорта', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					addsampmsg("Подсказка: (3+) Лицензёр - мото и авто, (8+) Зам. директора - вертолёт")
+					sampSendChat("С какой должности разрешено брать автомобили, мотоциклы и вертолёт?")
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
 			end
-			if passvalue == false then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - не показан").x) / 2)
-				imgui.Text(u8"Паспорт - не показан", imgui.ImVec2(75,30))
-			else
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - показан ("..passverdict..")").x) / 2)
-				imgui.Text(u8"Паспорт - показан ("..passverdict..")", imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Должность для отпуска', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					addsampmsg("Подсказка: (5+) Инструктор")
+					sampSendChat("Скажите пожалуйста, с какой должности разрешено брать отпуск?")
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
 			end
-			if mcvalue == true and mcverdict == (u8"в порядке") and passvalue == true and passverdict == (u8"в порядке") then
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Время сна вне раздвелки', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					addsampmsg("Подсказка: 5 минут максимально, за этим последует выговор.")
+					sampSendChat("Сколько времени разрешено спать вне раздевалки?")
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Что такое субординация', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					addsampmsg("Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.")
+					sampSendChat("Что по вашему мнению означает слово 'Субординация'?")
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Обращения к другим сотрудникам', imgui.ImVec2(285,30)) then
+				if not inprocess then
+					addsampmsg("Подсказка: по должности, по имени, 'Сэр', 'Коллега'.")
+					sampSendChat("Ответьте на такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?")
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.NewLine()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			if imgui.Button(u8'Одобрить', imgui.ImVec2(142.5,35)) then
+				if not inprocess then
+					sampSendChat("Поздравляю, "..string.gsub(sampGetPlayerNickname(targettingid), "_", " ")..", вы сдали устав!")
+					disableallimgui()
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SameLine()
+			if imgui.Button(u8'Отказать', imgui.ImVec2(142.5,35)) then
+				if not inprocess then
+					sampSendChat("Очень жаль, но вы не смогли сдать устав. Подучите и приходите в следующий раз.")
+					disableallimgui()
+				else
+					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+				end
+			end
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+				windowtype = 0
+			end
+
+			
+		elseif windowtype == 9 then -- ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы проводите собеседование ID: "..targettingid).x) / 2)
+			imgui.Text(u8"Вы проводите собеседование ID: "..targettingid, imgui.ImVec2(75,30))
+			imgui.NewLine()
+			if sobesetap == 0 then
+				lastsobesetap = sobesetap
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Продолжить', imgui.ImVec2(285,30)) then
-					sobesaccept1()
-					sobesetap = sobesetap + 1
+				if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+						sobes1()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
 				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if mcvalue == true or passvalue == true then
-						if mcverdict == (u8"наркозависимость") then
-							sobesdecline("наркозависимость")
-							disableallimgui()
-						elseif mcverdict == (u8"не полностью здоровый") then
-							sobesdecline("не полностью здоровый")
-							disableallimgui()
-						elseif passverdict == (u8"меньше 3 лет в штате") then
-							sobesdecline("меньше 3 лет в штате")
-							disableallimgui()
-						elseif passverdict == (u8"не законопослушный") then
-							sobesdecline("не законопослушный")
-							disableallimgui()
-						elseif passverdict == (u8"игрок в организации") then
-							sobesdecline("игрок в организации")
-							disableallimgui()
-						elseif passverdict == (u8"был в деморгане") then
-							sobesdecline("был в деморгане")
-							disableallimgui()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			elseif sobesetap == 1 then
+				lastsobesetap = sobesetap
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Попросить документы', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+						sobes2()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			elseif sobesetap == 2 then
+				lastsobesetap = sobesetap
+				if mcvalue == false then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - не показана").x) / 2)
+					imgui.Text(u8"Мед.карта - не показана", imgui.ImVec2(75,30))
+				else
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - показана ("..mcverdict..")").x) / 2)
+					imgui.Text(u8"Мед.карта - показана ("..mcverdict..")", imgui.ImVec2(75,30))
+				end
+				if passvalue == false then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - не показан").x) / 2)
+					imgui.Text(u8"Паспорт - не показан", imgui.ImVec2(75,30))
+				else
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - показан ("..passverdict..")").x) / 2)
+					imgui.Text(u8"Паспорт - показан ("..passverdict..")", imgui.ImVec2(75,30))
+				end
+				if mcvalue == true and mcverdict == (u8"в порядке") and passvalue == true and passverdict == (u8"в порядке") then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Продолжить', imgui.ImVec2(285,30)) then
+						sobesaccept1()
+						sobesetap = sobesetap + 1
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if mcvalue == true or passvalue == true then
+							if mcverdict == (u8"наркозависимость") then
+								sobesdecline("наркозависимость")
+								disableallimgui()
+							elseif mcverdict == (u8"не полностью здоровый") then
+								sobesdecline("не полностью здоровый")
+								disableallimgui()
+							elseif passverdict == (u8"меньше 3 лет в штате") then
+								sobesdecline("меньше 3 лет в штате")
+								disableallimgui()
+							elseif passverdict == (u8"не законопослушный") then
+								sobesdecline("не законопослушный")
+								disableallimgui()
+							elseif passverdict == (u8"игрок в организации") then
+								sobesdecline("игрок в организации")
+								disableallimgui()
+							elseif passverdict == (u8"был в деморгане") then
+								sobesdecline("был в деморгане")
+								disableallimgui()
+							else
+								lastsobesetap = sobesetap
+								sobesetap = 7
+							end
 						else
 							lastsobesetap = sobesetap
 							sobesetap = 7
 						end
 					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			elseif sobesetap == 3 then
+				lastsobesetap = sobesetap
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Расскажите немного о себе.', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if inprocess == true then
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						else
+							inprocess = true
+							sampSendChat("Расскажите немного о себе.")
+							sobesetap = sobesetap + 1
+							inprocess = false
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+					if not inprocess then
 						lastsobesetap = sobesetap
 						sobesetap = 7
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
 				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-		elseif sobesetap == 3 then
-			lastsobesetap = sobesetap
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Расскажите немного о себе.', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobes3()
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					lastsobesetap = sobesetap
-					sobesetap = 7
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-		elseif sobesetap == 4 then
-			lastsobesetap = sobesetap
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Почему выбрали именно нас?', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobes4()
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					lastsobesetap = sobesetap
-					sobesetap = 7
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-		elseif sobesetap == 5 then
-			lastsobesetap = sobesetap
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8"Работали вы уже в организациях ЦА?", imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobes5()
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					lastsobesetap = sobesetap
-					sobesetap = 7
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesetap = sobesetap + 1
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-		elseif sobesetap == 6 then
-			lastsobesetap = sobesetap
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Одобрить', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesaccept2()
-					sobesetap = nil
-					disableallimgui()
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					lastsobesetap = sobesetap
-					sobesetap = 7
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				end
-			end
-		elseif sobesetap == 7 then
-			imgui.PushItemWidth(270)
-			imgui.Combo(" ",sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
-			imgui.PopItemWidth()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					sobesetap = nil
-					if sobesdecline_select.v == 0 then
-						sobesdecline("проф. непригодность2")
-					elseif sobesdecline_select.v == 1 then
-						sobesdecline("проф. непригодность3")
-					elseif sobesdecline_select.v == 2 then
-						sobesdecline("проф. непригодность4")
-					elseif sobesdecline_select.v == 3 then
-						sobesdecline("проф. непригодность1")
-					elseif sobesdecline_select.v == 4 then
-						sobesdecline("проф. непригодность5")
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
-					disableallimgui()
-				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				end
+			elseif sobesetap == 4 then
+				lastsobesetap = sobesetap
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Почему выбрали именно нас?', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if inprocess == true then
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						else
+							inprocess = true
+							sampSendChat("Почему вы выбрали именно нас?")
+							sobesetap = sobesetap + 1
+							inprocess = false
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						lastsobesetap = sobesetap
+						sobesetap = 7
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			elseif sobesetap == 5 then
+				lastsobesetap = sobesetap
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8"Работали вы уже в организациях ЦА?", imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if inprocess == true then
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						else
+							inprocess = true
+							sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
+							sampSendChat("/n ЦА - Центральный аппарат (Автошкола, Правительство, Банк)")
+							sobesetap = sobesetap + 1
+							inprocess = false
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						lastsobesetap = sobesetap
+						sobesetap = 7
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = sobesetap + 1
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			elseif sobesetap == 6 then
+				lastsobesetap = sobesetap
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Одобрить', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesaccept2()
+						sobesetap = nil
+						disableallimgui()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						lastsobesetap = sobesetap
+						sobesetap = 7
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			elseif sobesetap == 7 then
+				imgui.PushItemWidth(270)
+				imgui.Combo(" ",sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
+				imgui.PopItemWidth()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						sobesetap = nil
+						if sobesdecline_select.v == 0 then
+							sobesdecline("проф. непригодность2")
+						elseif sobesdecline_select.v == 1 then
+							sobesdecline("проф. непригодность3")
+						elseif sobesdecline_select.v == 2 then
+							sobesdecline("проф. непригодность4")
+						elseif sobesdecline_select.v == 3 then
+							sobesdecline("проф. непригодность1")
+						elseif sobesdecline_select.v == 4 then
+							sobesdecline("проф. непригодность5")
+						end
+						disableallimgui()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
 				end
 			end
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-		if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-			if sobesetap == 7 then
-				sobesetap = lastsobesetap
-			elseif sobesetap ~= 0 then
-				sobesetap = sobesetap - 1
-			else
-				imgui_fm.v = true
-				imgui_sobes.v = false
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+				if sobesetap == 7 then
+					sobesetap = lastsobesetap
+				elseif sobesetap ~= 0 then
+					sobesetap = sobesetap - 1
+				else
+					windowtype = 0
+				end
 			end
 		end
 		imgui.End()
 	end
+
 	if imgui_binder.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(650, 360), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
@@ -1318,14 +1458,19 @@ function imgui.OnDrawFrame()
 						if binderkeystatus == u8"Нажмите чтобы поменять" then
 							table.remove(emptykey1)
 							table.remove(emptykey2)
+							binderkeystatus = u8"Нажмите любую клавишу"
 							setbinderkey = true
 							getbindkeys()
+						elseif binderkeystatus == u8"Нажмите любую клавишу" then
+							setbinderkey = false
+							binderkeystatus = u8"Нажмите чтобы поменять"
 						elseif string.find(binderkeystatus, u8"Применить") then
 							setbinderkey = false
 							binderkeystatus = string.match(binderkeystatus,u8"Применить (.+)")
 						else
 							table.remove(emptykey1)
 							table.remove(emptykey2)
+							binderkeystatus = u8"Нажмите любую клавишу"
 							keyname = nil
 							keyname2 = nil
 							setbinderkey = true
@@ -1359,7 +1504,7 @@ function imgui.OnDrawFrame()
 										configuration.BindsCmd[kei] = u8:decode(bindercmd.v)
 										configuration.BindsKeys[kei] = ""
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно сохранён!", 0xff6633)
+											addsampmsg("Бинд успешно сохранён!")
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1383,7 +1528,7 @@ function imgui.OnDrawFrame()
 										table.insert(configuration.BindsCmd, u8:decode(bindercmd.v))
 										table.insert(configuration.BindsKeys, "")
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно создан!", 0xff6633)
+											addsampmsg("Бинд успешно создан!")
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1400,10 +1545,10 @@ function imgui.OnDrawFrame()
 										end
 									end
 								else
-									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Какой-то из параметров не введён, перепроверьте всё!", 0xff6633)
+									addsampmsg("Какой-то из параметров не введён, перепроверьте всё!")
 								end
 							elseif bindertype.v == 1 then
-								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "Нажмите чтобы поменять" and not string.find((u8:decode(binderkeystatus)), "Применить ") then
+								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "Нажмите чтобы поменять" and not string.find((u8:decode(binderkeystatus)), "Применить ") and (u8:decode(binderkeystatus)) ~= "Нажмите любую клавишу" then
 									for key, value in pairs(configuration.BindsName) do
 										if u8:decode(bindername.v) == configuration.BindsName[key] then
 											doreplace = true
@@ -1419,7 +1564,7 @@ function imgui.OnDrawFrame()
 										configuration.BindsCmd[kei] = ""
 										configuration.BindsKeys[kei] = u8(binderkeystatus)
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно сохранён!", 0xff6633)
+											addsampmsg("Бинд успешно сохранён!")
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1443,7 +1588,7 @@ function imgui.OnDrawFrame()
 										table.insert(configuration.BindsKeys, u8(binderkeystatus))
 										table.insert(configuration.BindsCmd, "")
 										if inicfg.save(configuration, "AS Helper") then
-											sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно создан!", 0xff6633)
+											addsampmsg("Бинд успешно создан!")
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
@@ -1460,15 +1605,15 @@ function imgui.OnDrawFrame()
 										end
 									end
 								else
-									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы неправильно указали клавишу бинда!", 0xff6633)
+									addsampmsg("Вы неправильно указали клавишу бинда!")
 								end
 							end
 						else
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Какой-то из параметров не введён, перепроверьте всё!", 0xff6633)
+							addsampmsg("Какой-то из параметров не введён, перепроверьте всё!")
 						end
 						updatechatcommands()
 					else
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы не можете взаимодействовать с биндером во время любой отыгровки!", 0xff6633)
+						addsampmsg("Вы не можете взаимодействовать с биндером во время любой отыгровки!")
 					end	
 				end
 				imgui.SameLine()
@@ -1530,13 +1675,13 @@ function imgui.OnDrawFrame()
 									bindercmd.v = ""
 									binderkeystatus = nil
 									choosedslot = nil
-									sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Бинд успешно удалён!", 0xff6633)
+									addsampmsg("Бинд успешно удалён!")
 								end
 							end
 						end
 					updatechatcommands()
 					else
-						sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Вы не можете удалять бинд во время любой отыгровки!", 0xff6633)
+						addsampmsg("Вы не можете удалять бинд во время любой отыгровки!")
 					end
 				end
 			else
@@ -1545,7 +1690,7 @@ function imgui.OnDrawFrame()
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(r, g, b, a/2))
 				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(r, g, b, a/2))
 				imgui.PushStyleColor(imgui.Col.Text, imgui.GetStyle().Colors[imgui.Col.TextDisabled])
-					imgui.Button(u8"Удалить",imgui.ImVec2(82,30))
+				imgui.Button(u8"Удалить",imgui.ImVec2(82,30))
 				imgui.PopStyleColor()
 				imgui.PopStyleColor()
 				imgui.PopStyleColor()
@@ -1553,6 +1698,7 @@ function imgui.OnDrawFrame()
 			end
 		imgui.End()
 	end
+	
 	if imgui_cmds.v == true then
 		imgui.SetNextWindowSize(imgui.ImVec2(310, 130), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(1.5, 0.5))
@@ -1574,14 +1720,13 @@ function hello()
 			hour = tonumber(hour)
 			if configuration.main_settings.useservername then
 				result,myid = sampGetPlayerIdByCharHandle(playerPed)
-				name = sampGetPlayerNickname(myid)
-				name = name:gsub("_"," ")
+				name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
 			else
 				name = u8:decode(myname.v)
 				if name == '' or name == nil then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Введите своё имя в /'..cmdhelp..' ', 0xff6633)
+					addsampmsg('Введите своё имя в /'..cmdhelp..' ')
 					result,myid = sampGetPlayerIdByCharHandle(playerPed)
-					name = sampGetPlayerNickname(myid)
+					name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
 				end
 			end
 			rang = configuration.main_settings.myrank
@@ -1605,7 +1750,7 @@ function hello()
 			end
 			inprocess = false
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		end
 	end)
 end
@@ -1635,7 +1780,7 @@ function pricelist()
 			sampSendChat('/do Лицензия на раскопки - '..separator(tostring(configuration.main_settings.kladprice)..'$.'))
 			inprocess = false
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		end
 	end)
 end
@@ -1653,17 +1798,16 @@ function selllic(param)
 						sampSendChat('/n /gps -> Важные места -> Следующая страница -> [LV] Авиашкола (9)')
 					elseif lictype == 'оружие' then
 						if cansell == false then
-							idd = tostring(sellto)
 							result, myid = sampGetPlayerIdByCharHandle(playerPed)
 							if sampIsPlayerConnected(sellto) or sellto == myid then
 								sampSendChat('Хорошо, для покупки лицензии на оружие покажите мне свою мед.карту')
 								sampSendChat('/n /showmc '..myid)
-								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Началось ожидание показа мед.карты, чтобы отменить его введите /cancelmc, чтобы пропустить введите /skip', 0xff6633)
+								addsampmsg('Началось ожидание показа мед.карты, чтобы отменить его введите /cancelmc, чтобы пропустить введите /skip')
 								skiporcancel = false
 								choosedname = sampGetPlayerNickname(targettingid)
 								tempid = targettingid
 							else
-								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Такого игрока нет на сервере', 0xff6633)
+								addsampmsg('Такого игрока нет на сервере')
 							end
 						else
 							inprocess = true
@@ -1671,27 +1815,23 @@ function selllic(param)
 							wait(cd)
 							sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 							wait(cd)
-							sampSendChat('/me {gender:распечатал|респечатала} лицензию на '..lictype)
-							wait(cd)
-							sampSendChat('/me {gender:передал|передала} лицензию человеку напротив')
+							sampSendChat('/me распечатав лицензию на '..lictype.." {gender:передал|передала} её человеку напротив")
 							givelic = true
-							sampSendChat('/givelicense '..sellto)
 							cansell = false
+							sampSendChat('/givelicense '..sellto)
 						end
 					else
 						sampSendChat('/me {gender:взял|взяла} со стола бланк и заполнил ручкой бланк на получение лицензии на '..lictype)
 						wait(cd)
 						sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 						wait(cd)
-						sampSendChat('/me {gender:распечатал|респечатала} лицензию на '..lictype)
-						wait(cd)
-						sampSendChat('/me {gender:передал|передала} лицензию человеку напротив')
+						sampSendChat('/me распечатав лицензию на '..lictype.." {gender:передал|передала} её человеку напротив")
 						givelic = true
 						sampSendChat('/givelicense '..sellto)
 					end
 				inprocess = false
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			end
 		end
 	end)
@@ -1703,14 +1843,14 @@ function invite(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 				if id == nil then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/invite [id]', 0xff6633)
+					addsampmsg('/invite [id]')
 				else
 					result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					if id == myid then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не можете приглашать в организацию самого себя.', 0xff6633)
+						addsampmsg('Вы не можете приглашать в организацию самого себя.')
 					else
 						inprocess = true
 						sampSendChat('/do Ключи от шкафчика в кармане.')
@@ -1728,7 +1868,7 @@ function invite(param)
 				end
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1780,15 +1920,15 @@ function uninvitewithcmd(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 				inprocess = true
 				if uvalid == nil or uvalid == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/uninvite [id] [причина]', 0xff6633)
+					addsampmsg('/uninvite [id] [причина]')
 				else
 					result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					if uvalid == myid then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не можете увольнять из организации самого себя.', 0xff6633)
+						addsampmsg('Вы не можете увольнять из организации самого себя.')
 					else
 						sampSendChat('/me {gender:достал|достала} КПК из кармана')
 						wait(cd)
@@ -1805,7 +1945,7 @@ function uninvitewithcmd(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1817,15 +1957,15 @@ function giverank(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 				inprocess = true
 				if id == nil or id == '' or rank == nil or rank == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/giverank [id] [ранг]', 0xff6633)
+					addsampmsg('/giverank [id] [ранг]')
 				else
 					result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					if id == myid then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не можете менять ранг самому себе.', 0xff6633)
+						addsampmsg('Вы не можете менять ранг самому себе.')
 					else
 						sampSendChat('/me {gender:включил|включила} КПК')
 						wait(cd)
@@ -1844,7 +1984,7 @@ function giverank(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1855,11 +1995,11 @@ function blacklist(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 				inprocess = true
 				if id == nil or id == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/blacklist [id] [причина]', 0xff6633)
+					addsampmsg('/blacklist [id] [причина]')
 				else
 					sampSendChat("/me {gender:достал|достала} КПК из кармана")
 					wait(cd)
@@ -1877,7 +2017,7 @@ function blacklist(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1888,11 +2028,11 @@ function unblacklist(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 			inprocess = true
 				if id == nil or id == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/unblacklist [id]', 0xff6633)
+					addsampmsg('/unblacklist [id]')
 				else
 					sampSendChat("/me {gender:достал|достала} КПК из кармана")
 					wait(cd)
@@ -1910,7 +2050,7 @@ function unblacklist(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1921,11 +2061,11 @@ function fwarn(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 			inprocess = true
 				if id == nil or id == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/fwarn [id] [причина]', 0xff6633)
+					addsampmsg('/fwarn [id] [причина]')
 				else
 					sampSendChat('/me {gender:достал|достала} КПК из кармана')
 					wait(cd)
@@ -1942,7 +2082,7 @@ function fwarn(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1953,11 +2093,11 @@ function unfwarn(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 				inprocess = true
 				if id == nil or id == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/unfwarn [id]', 0xff6633)
+					addsampmsg('/unfwarn [id]')
 				else
 					sampSendChat("/me {gender:достал|достала} КПК из кармана")
 					wait(cd)
@@ -1973,7 +2113,7 @@ function unfwarn(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -1985,11 +2125,11 @@ function fmute(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 			inprocess = true
 				if id == nil or id == '' or reason == nil or reason == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/fmute [id] [время] [причина]', 0xff6633)
+					addsampmsg('/fmute [id] [время] [причина]')
 				else
 					sampSendChat('/me {gender:достал|достала} КПК из кармана')
 					wait(cd)
@@ -2007,7 +2147,7 @@ function fmute(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
@@ -2018,11 +2158,11 @@ function funmute(param)
 	lua_thread.create(function()
 		if configuration.main_settings.myrankint >= 9 then
 			if inprocess == true then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
 				inprocess = true
 				if id == nil or id == '' then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/funmute [id]', 0xff6633)
+					addsampmsg('/funmute [id]')
 				else
 					sampSendChat('/me {gender:достал|достала} КПК из кармана')
 					wait(cd)
@@ -2040,54 +2180,54 @@ function funmute(param)
 			inprocess = false
 			end
 		else
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 9-го ранга.", 0xff6633)
+			addsampmsg("Данная команда доступна с 9-го ранга.")
 		end
 	end)
 end
 
 function expel(param)
 	local id,reason = param:match("(%d+) (.+)")
-		id = tonumber(id)
-		lua_thread.create(function()
-			if configuration.main_settings.myrankint >= 5 then
-				if inprocess == true then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-				else
-					inprocess = true
-					if id == nil or id == '' or reason == nil or reason == '' then
-						sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}/expel [id] [причина]', 0xff6633)
-					else
-						sampSendChat('/do Рация свисает на поясе.')
-						wait(cd)
-						sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
-						wait(cd)
-						sampSendChat('/do Охрана выводит нарушителя из холла.')
-						sampSendChat("/expel "..id.." "..reason)
-					end
-				inprocess = false
-				end
+	id = tonumber(id)
+	lua_thread.create(function()
+		if configuration.main_settings.myrankint >= 5 then
+			if inprocess == true then
+				addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Данная команда доступна с 5-го ранга.", 0xff6633)
+				inprocess = true
+				if id == nil or id == '' or reason == nil or reason == '' then
+					addsampmsg('/expel [id] [причина]')
+				else
+					sampSendChat('/do Рация свисает на поясе.')
+					wait(cd)
+					sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
+					wait(cd)
+					sampSendChat('/do Охрана выводит нарушителя из холла.')
+					sampSendChat("/expel "..id.." "..reason)
+				end
+			inprocess = false
 			end
-		end)
+		else
+			addsampmsg("Данная команда доступна с 5-го ранга.")
+		end
+	end)
 end
 
 function sobes1()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		else
 			inprocess = true
 			if configuration.main_settings.useservername then
 				result,myid = sampGetPlayerIdByCharHandle(playerPed)
-				name = sampGetPlayerNickname(myid)
+				name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
 				rang = configuration.main_settings.myrank
 			else
 				name = u8:decode(configuration.main_settings.myname)
 				if name == '' or name == nil then
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Введите своё имя в /'..cmdhelp..' ', 0xff6633)
+					addsampmsg('Введите своё имя в /'..cmdhelp..' ')
 					result,myid = sampGetPlayerIdByCharHandle(playerPed)
-					name = sampGetPlayerNickname(myid)
+					name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
 				end
 				rang = configuration.main_settings.myrank
 			end
@@ -2102,7 +2242,7 @@ end
 function sobes2()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		else
 			inprocess = true
 			sampSendChat("Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту")
@@ -2112,46 +2252,10 @@ function sobes2()
 	end)
 end
 
-function sobes3()
-	lua_thread.create(function()
-		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-		else
-			inprocess = true
-			sampSendChat("Расскажите немного о себе.")
-			inprocess = false
-		end
-	end)
-end
-
-function sobes4()
-	lua_thread.create(function()
-		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-		else
-			inprocess = true
-			sampSendChat("Почему вы выбрали именно нас?")
-			inprocess = false
-		end
-	end)
-end
-
-function sobes5()
-	lua_thread.create(function()
-		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
-		else
-			inprocess = true
-			sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
-			inprocess = false
-		end
-	end)
-end
-
 function sobesaccept1()
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		else
 		inprocess = true
 		sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
@@ -2168,7 +2272,7 @@ function sobesaccept2()
 	lua_thread.create(function()
 		rangint = configuration.main_settings.myrankint
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		else
 		inprocess = true
 		if rangint >= 9 then
@@ -2181,7 +2285,7 @@ function sobesaccept2()
 			wait(cd)
 			sampSendChat("/r "..sampGetPlayerNickname(targettingid).." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
 			wait(cd)
-			sampSendChat("/rb ("..targettingid..") id")
+			sampSendChat("/rb "..targettingid.." id")
 		end
 		inprocess = false
 		end
@@ -2192,7 +2296,7 @@ function sobesdecline(param)
 	local reason = param:match("(.+)")
 	lua_thread.create(function()
 		if inprocess == true then
-			sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		else
 			inprocess = true
 			if reason ~= "проф. непригодность1" and reason ~= "проф. непригодность3" then
@@ -2248,7 +2352,7 @@ function updatechatcommands()
 								inprocess = false
 							end
 						else
-							sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Не торопитесь, вы уже отыгрываете что-то!", 0xff6633)
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 						end
 					end)
 				end)
@@ -2277,7 +2381,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 				end
 			end
 		else
-			sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вы не работаете в автошколе, скрипт выгружен!', 0xff6633)
+			addsampmsg('Вы не работаете в автошколе, скрипт выгружен!')
 			disableallimgui()
 			thisScript():unload()
 		end
@@ -2347,7 +2451,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 						else
 							lua_thread.create(function()
 								inprocess = true
-								sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Человек не полностью здоровый, требуется поменять мед.карту!', 0xff6633)
+								addsampmsg('Человек не полностью здоровый, требуется поменять мед.карту!')
 								sampSendChat("/me взяв мед.карту в руки начал её проверять")
 								wait(cd)
 								sampSendChat("/do Мед.карта не в норме.")
@@ -2359,7 +2463,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 							end)
 						end
 				else
-					sampAddChatMessage('{ff6633}[ASHelper] {EBEBEB}Вам подкинули мед.карту, ожидание началось заново!', 0xff6633)
+					addsampmsg('Вам подкинули мед.карту, ожидание началось заново!')
 					sampSendChat('Я просил не вашу мед.карту. Заберите её!')
 				end
 			end
@@ -2460,7 +2564,7 @@ function devmaxrank()
 	result,myid = sampGetPlayerIdByCharHandle(playerPed)
 	if sampGetPlayerNickname(myid) == "Carolos_McCandy" then
 		devmaxrankp = not devmaxrankp
-		sampAddChatMessage("{ff6633}[Режим разработчика] {FFFFFF}Имитировать максимальный ранг: " ..(devmaxrankp and "{00FF00}Включено" or "{FF0000}Выключено"), 0xff6633)
+		sampAddChatMessage("{ff6633}[Режим разработчика] {FFFFFF}Имитировать максимальный ранг: " ..(devmaxrankp and "{00FF00}Включено" or "{FF0000}Выключено"))
 		if devmaxrankp then
 			getmyrank = true
 			sampSendChat("/stats")
@@ -2469,6 +2573,10 @@ function devmaxrank()
 			sampSendChat("/stats")
 		end
 	end
+end
+
+function addsampmsg(value)
+	sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}"..value,0xff6633)
 end
 
 --Разделение денежных сумм на точки от Royan_Millans: https://www.blast.hk/threads/39380/
@@ -2492,7 +2600,7 @@ function separator(text)
 	return text
 end
 
---Логика записи клавиш от Cosmo: https://www.blast.hk/threads/71224/
+--спасибо: https://www.blast.hk/threads/71224/
 function getbindkeys()
 	lua_thread.create(function()
 		while true do
@@ -2530,18 +2638,18 @@ end
 
 function checkbibl()
 	if not facheck then
-		sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Отсутствует библиотека fAwesome5. Пытаюсь её установить.", 0xff6633)
+		addsampmsg("Отсутствует библиотека fAwesome5. Пытаюсь её установить.")
 		if doesFileExist('moonloader/lib/fAwesome5.lua') then
 			os.remove('moonloader/lib/fAwesome5.lua')
 		end
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/fAwesome5.lua', 'moonloader/lib/fAwesome5.lua', function(id, status)
 			if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 				if doesFileExist('moonloader/lib/fAwesome5.lua') then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Библиотека fAwesome5 была успешно установлена.", 0xff6633)
+					addsampmsg("Библиотека fAwesome5 была успешно установлена.")
 					fa = require"fAwesome5"
 					fa_glyph_ranges = imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Произошла ошибка во время установки, обратитесь к разработчику за помощью. JustMini#6291", 0xff6633)
+					addsampmsg("Произошла ошибка во время установки, обратитесь к разработчику за помощью. JustMini#6291")
 					thisScript():unload()
 				end
 			end
@@ -2549,14 +2657,14 @@ function checkbibl()
 		wait(300)
 	end
 	if not doesFileExist('moonloader/resource/fonts/fa-solid-900.ttf') then
-		sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Отсутствует файл шрифта. Пытаюсь его установить.", 0xff6633)
+		addsampmsg("Отсутствует файл шрифта. Пытаюсь его установить.")
 		createDirectory('moonloader/resource/fonts')
 		downloadUrlToFile('https://github.com/Just-Mini/biblioteki/raw/main/fa-solid-900.ttf', 'moonloader/resource/fonts/fa-solid-900.ttf', function(id, status)
 			if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 				if doesFileExist('moonloader/resource/fonts/fa-solid-900.ttf') then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Файл шрифта был успешно установлен.", 0xff6633)
+					addsampmsg("Файл шрифта был успешно установлен.")
 				else
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Произошла ошибка во время установки, обратитесь к разработчику за помощью. JustMini#6291", 0xff6633)
+					addsampmsg("Произошла ошибка во время установки, обратитесь к разработчику за помощью. JustMini#6291")
 					thisScript():unload()
 				end
 			end
@@ -2577,14 +2685,15 @@ function checkbibl()
 				end
 				io.close(updates)
 				if tonumber(tempdata[1]) > scriptvernumb then
-					sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Найдено обновление. Пытаюсь установить его.", 0xff6633)
+					addsampmsg("Найдено обновление. Пытаюсь установить его.")
 					doupdate = true
 				else
+					addsampmsg("Обновлений не найдено.")
 					doupdate = false
 				end
 				os.remove('moonloader/config/updateashelper.ini')
 			else
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Произошла ошибка во время проверки обновлений, обратитесь к разработчику за помощью. JustMini#6291", 0xff6633)
+				addsampmsg("Произошла ошибка во время проверки обновлений, обратитесь к разработчику за помощью. JustMini#6291")
 				thisScript():unload()
 			end
 		end
@@ -2595,17 +2704,17 @@ function checkbibl()
 	if doupdate then
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua', thisScript().path,function(id3, status1)
 			if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
-				sampAddChatMessage("{ff6633}[ASHelper] {EBEBEB}Обновление успешно установлено.", 0xff6633)
+				addsampmsg("Обновление успешно установлено.")
 			end
 		end)
-		wait(10000)
+		wait(-1)
 	end
 	return true
 end
 
 function onWindowMessage(msg, wparam, lparam)
     if wparam == 0x1B then
-    	if imgui_settings.v or imgui_fm.v or imgui_license.v or imgui_expel.v or imgui_uninvite.v or imgui_giverank.v or imgui_blacklist.v or imgui_fwarn.v or imgui_fmute.v or imgui_sobes.v or imgui_cmds.v then
+    	if imgui_settings.v or imgui_fm.v or imgui_cmds.v then
         	consumeWindowMessage(true, false)
         end
 	elseif getbindkey then
@@ -2629,14 +2738,6 @@ end
 function disableallimgui()
 	imgui_settings.v = false
 	imgui_fm.v = false
-	imgui_license.v = false
-	imgui_expel.v = false
-	imgui_uninvite.v = false
-	imgui_giverank.v = false
-	imgui_blacklist.v = false
-	imgui_fwarn.v = false
-	imgui_fmute.v = false
-	imgui_sobes.v = false
 	mcvalue = true
 	passvalue = true
 end
