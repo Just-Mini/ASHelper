@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local windowtype = 0
 local devmaxrankp = false
-local scriptvernumb = 9
+local scriptvernumb = 10
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -2281,9 +2281,9 @@ function sobesdecline(param)
 				wait(cd)
 			end
 			if reason == ("наркозависимость") then
-				sampSendChat("К сожалению я не могу принять вас из-за того, что в мед. карте сказано, что вы наркозависимый.")
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы наркозависимый.")
 			elseif reason == ("не полностью здоровый") then
-				sampSendChat("К сожалению я не могу принять вас из-за того, что в мед. карте сказано, что вы не полностью здоровый.")
+				sampSendChat("К сожалению я не могу принять вас из-за того, что вы не полностью здоровый.")
 			elseif reason == ("не законопослушный") then
 				sampSendChat("К сожалению я не могу принять вас из-за того, что вы слишком незаконопослушный.")
 			elseif reason == ("меньше 3 лет в штате") then
