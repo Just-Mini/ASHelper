@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local windowtype = 0
 local devmaxrankp = false
-local scriptvernumb = 8
+local scriptvernumb = 9
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -603,8 +603,6 @@ function imgui.OnDrawFrame()
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8"               Меню быстрого доступа", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
 		if windowtype == 0 then -- ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выбрали ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы выбрали ИД: "..targettingid, imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
 				if not inprocess then
@@ -811,9 +809,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 1 then -- ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы продаёте лицензию человеку под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы продаёте лицензию человеку под ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
 			imgui.SameLine()
 			imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
@@ -863,9 +858,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 2 then -- EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выгоняете человека под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы выгоняете человека под ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
 			imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -887,9 +879,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 3 then -- УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы увольняете сотрудника под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы увольняете сотрудника под ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина увольнения:").x) / 2)
 			imgui.Text(u8"Причина увольнения:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -927,8 +916,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 4 then -- ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы меняете ранг сотруднику под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы меняете ранг сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
 			imgui.PushItemWidth(270)
 			imgui.Combo(' ', Ranks_select, Ranks_arr, #Ranks_arr)
 			imgui.PopItemWidth()
@@ -946,9 +933,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 5 then -- ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы заносите в ЧС человека под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы заносите в ЧС человека под ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина занесения в ЧС:").x) / 2)
 			imgui.Text(u8"Причина занесения в ЧС:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -970,9 +954,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 6 then -- ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выдаёте выговор сотруднику под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы выдаёте выговор сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина выговора:").x) / 2)
 			imgui.Text(u8"Причина выговора:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -994,9 +975,6 @@ function imgui.OnDrawFrame()
 
 
 		elseif windowtype == 7 then -- ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выдаёте мут сотруднику под ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы выдаёте мут сотруднику под ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина мута:").x) / 2)
 			imgui.Text(u8"Причина мута:", imgui.ImVec2(75,30))
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -1125,9 +1103,6 @@ function imgui.OnDrawFrame()
 
 			
 		elseif windowtype == 9 then -- ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы проводите собеседование ID: "..targettingid).x) / 2)
-			imgui.Text(u8"Вы проводите собеседование ID: "..targettingid, imgui.ImVec2(75,30))
-			imgui.NewLine()
 			if sobesetap == 0 then
 				lastsobesetap = sobesetap
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -1811,7 +1786,7 @@ function selllic(param)
 							end
 						else
 							inprocess = true
-							sampSendChat('/me {gender:взял|взяла} со стола бланк и заполнил ручкой бланк на получение лицензии на '..lictype)
+							sampSendChat('/me {gender:взял|взяла} со стола бланк и {gender:заполнил|заполнила} ручкой бланк на получение лицензии на '..lictype)
 							wait(cd)
 							sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 							wait(cd)
@@ -1821,7 +1796,7 @@ function selllic(param)
 							sampSendChat('/givelicense '..sellto)
 						end
 					else
-						sampSendChat('/me {gender:взял|взяла} со стола бланк и заполнил ручкой бланк на получение лицензии на '..lictype)
+						sampSendChat('/me {gender:взял|взяла} со стола бланк и {gender:заполнил|заполнила} ручкой бланк на получение лицензии на '..lictype)
 						wait(cd)
 						sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 						wait(cd)
@@ -2431,37 +2406,37 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 				end
 			elseif skiporcancel == false then
 				if text:find("Имя: "..choosedname) then
-						if text:find("Полностью здоровый") then
-							lua_thread.create(function()
-								while inprocess do
-									wait(0)
-								end
-								inprocess = true
-								sampSendChat("/me взяв мед.карту в руки начал её проверять")
-								wait(cd)
-								sampSendChat("/do Мед.карта в норме.")
-								wait(cd)
-								sampSendChat("/todo Всё в порядке* отдавая мед.карту обратно")
-								wait(cd)
-								skiporcancel = true
-								cansell = true
-								inprocess = false
-								selllic(tempid..' оружие')
-							end)
-						else
-							lua_thread.create(function()
-								inprocess = true
-								addsampmsg('Человек не полностью здоровый, требуется поменять мед.карту!')
-								sampSendChat("/me взяв мед.карту в руки начал её проверять")
-								wait(cd)
-								sampSendChat("/do Мед.карта не в норме.")
-								wait(cd)
-								sampSendChat("/todo К сожалению, в мед.карте написано, что у вас есть явные отклонения. Обновите её в больнице и приходите снова* отдавая мед.карту обратно")
-								inprocess = false
-								skiporcancel = true
-								cansell = false
-							end)
-						end
+					if text:find("Полностью здоровый") then
+						lua_thread.create(function()
+							while inprocess do
+								wait(0)
+							end
+							inprocess = true
+							sampSendChat("/me взяв мед.карту в руки начал её проверять")
+							wait(cd)
+							sampSendChat("/do Мед.карта в норме.")
+							wait(cd)
+							sampSendChat("/todo Всё в порядке* отдавая мед.карту обратно")
+							wait(cd)
+							skiporcancel = true
+							cansell = true
+							inprocess = false
+							selllic(tempid..' оружие')
+						end)
+					else
+						lua_thread.create(function()
+							inprocess = true
+							addsampmsg('Человек не полностью здоровый, требуется поменять мед.карту!')
+							sampSendChat("/me взяв мед.карту в руки начал её проверять")
+							wait(cd)
+							sampSendChat("/do Мед.карта не в норме.")
+							wait(cd)
+							sampSendChat("/todo К сожалению, в мед.карте написано, что у вас есть явные отклонения. Обновите её в больнице и приходите снова* отдавая мед.карту обратно")
+							inprocess = false
+							skiporcancel = true
+							cansell = false
+						end)
+					end
 				else
 					addsampmsg('Вам подкинули мед.карту, ожидание началось заново!')
 					sampSendChat('Я просил не вашу мед.карту. Заберите её!')
@@ -2719,7 +2694,6 @@ function onWindowMessage(msg, wparam, lparam)
         end
 	elseif getbindkey then
 		if msg == 0x100 or msg == 0x104 then
-			print(msg)
 			if not log[1] then
 				table.insert(log, 1, wparam)
 			end
