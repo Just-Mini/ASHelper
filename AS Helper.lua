@@ -53,7 +53,7 @@ local cansell = false
 local inprocess = false
 local windowtype = 0
 local devmaxrankp = false
-local scriptvernumb = 10
+local scriptvernumb = 11
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
