@@ -30,6 +30,15 @@ local configuration = inicfg.load({
 		createmarker = true,
 		gender = 0
 	},
+	my_stats = {
+		avto = 0,
+		moto = 0,
+		riba = 0,
+		lodka = 0,
+		guns = 0,
+		hunt = 0,
+		klad = 0
+	},
 	binder_settings = {
 		totalslots = 50
 	},
@@ -45,15 +54,13 @@ local cmdhelp = 'ash'
 local cmdbind = "ashbind"
 local cmdcmds = "ashcmds"
 local cmdupdate = "ashupd"
-
-local ScreenX, ScreenY = getScreenResolution()
+local cmdstats = "ashstats"
 
 local cd = 2000
 local cansell = false
 local inprocess = false
-local windowtype = 0
 local devmaxrankp = false
-local scriptvernumb = 11
+local scriptvernumb = 12
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -62,6 +69,7 @@ local imgui_settings 	= imgui.ImBool(false)
 local imgui_fm 			= imgui.ImBool(false)
 local imgui_binder 		= imgui.ImBool(false)
 local imgui_cmds 		= imgui.ImBool(false)
+local imgui_stats		= imgui.ImBool(false)
 
 local useaccent 		= imgui.ImBool(configuration.main_settings.useaccent)
 local createmarker 		= imgui.ImBool(configuration.main_settings.createmarker)
@@ -98,6 +106,9 @@ local binderdelay 		= imgui.ImBuffer(7)
 local bindertype 		= imgui.ImInt(0)
 local bindercmd 		= imgui.ImBuffer(15)
 
+local windowtype		= imgui.ImInt(0)
+local sobesetap			= imgui.ImInt(0)
+
 local mcvalue = true
 local passvalue = true
 
@@ -127,6 +138,7 @@ local clr = imgui.Col
 local ImVec4 = imgui.ImVec4
 local ImVec2 = imgui.ImVec2
 
+style.WindowTitleAlign = ImVec2(0.5, 0.5)
 style.WindowPadding = ImVec2(15, 15)
 style.WindowRounding = 6.0
 style.FramePadding = ImVec2(5, 5)
@@ -210,6 +222,7 @@ function main()
 	sampRegisterChatCommand(cmdbind, binder)
 	sampRegisterChatCommand(cmdcmds, cmds)
 	sampRegisterChatCommand(cmdupdate, updaterank)
+	sampRegisterChatCommand(cmdstats, checkmystats)
 	sampRegisterChatCommand("uninvite", uninvitewithcmd)
 	sampRegisterChatCommand("invite", invite)
 	sampRegisterChatCommand("giverank", giverank)
@@ -274,6 +287,10 @@ function updaterank()
 	sampSendChat("/stats")
 end
 
+function checkmystats()
+	imgui_stats.v = not imgui_stats.v
+end
+
 log = {}
 
 emptykey1 = {}
@@ -303,8 +320,9 @@ lua_thread.create(function()
 						result, targettingid = sampGetPlayerIdByCharHandle(targettingped)
 						if targettingid ~= -1 then
 							if not imgui_fm.v then
-								addsampmsg("Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(targettingid).."["..targettingid.."]")
-								windowtype = 0
+								fastmenuID = targettingid
+								addsampmsg("Вы использовали меню быстрого доступа на: "..sampGetPlayerNickname(fastmenuID).."["..fastmenuID.."]")
+								windowtype.v = 0
 								imgui_fm.v = true
 							end
 						end
@@ -312,7 +330,7 @@ lua_thread.create(function()
 				end
 			end
 		end
-		if imgui_settings.v or imgui_fm.v or imgui_binder.v or imgui_cmds.v then
+		if imgui_settings.v or imgui_fm.v or imgui_binder.v or imgui_cmds.v or imgui_stats.v then
 			if not imgui.Process then
 				imgui.Process = true
 				imgui.ShowCursor = true
@@ -360,1331 +378,6 @@ lua_thread.create(function()
 		end
 	end
 end)
-
-function imgui.OnDrawFrame()
-	if imgui_settings.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"                  Настройки ASHelper", imgui_settings, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar)
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if userset then
-			if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
-				userset = not userset
-			end
-		else
-			if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
-				userset = not userset
-			end
-		end
-		if userset then
-			if imgui.Checkbox(u8"Использовать мой ник из таба",useservername) then
-				if configuration.main_settings.myname == '' then
-					result,myid = sampGetPlayerIdByCharHandle(playerPed)
-					myname.v = sampGetPlayerNickname(myid)
-					configuration.main_settings.myname = sampGetPlayerNickname(myid)
-				end
-				configuration.main_settings.useservername = useservername.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			if not useservername.v then
-				if imgui.InputText(u8" ", myname) then
-					configuration.main_settings.myname = myname.v
-					if inicfg.save(configuration,"AS Helper") then
-					end
-				end
-			end
-			if imgui.Checkbox(u8"Использовать акцент",useaccent) then
-				configuration.main_settings.useaccent = useaccent.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			if useaccent.v then
-				imgui.PushItemWidth(150)
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 275))
-				if imgui.InputText(u8"", myaccent) then
-					configuration.main_settings.myaccent = myaccent.v
-					if inicfg.save(configuration,"AS Helper") then
-					end
-				end
-				imgui.PopItemWidth()
-				imgui.SameLine()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"[").x) / 18)
-				imgui.Text("[")
-				imgui.SameLine()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"[").x) / 1.65)
-				imgui.Text("]")
-			end
-			if imgui.Checkbox(u8"Создавать маркер при выделении",createmarker) then
-				if marker ~= nil then
-					removeBlip(marker)
-				end
-				marker = nil
-				oldtargettingped = 0
-				configuration.main_settings.createmarker = createmarker.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			if imgui.Button(u8'Обновить', imgui.ImVec2(65,25)) then
-				getmyrank = true
-				sampSendChat("/stats")
-			end
-			imgui.SameLine()
-			imgui.Text(u8"Ваш ранг: "..u8(configuration.main_settings.myrank).." ("..u8(configuration.main_settings.myrankint)..")")
-			imgui.PushItemWidth(85)
-			if imgui.Combo(u8"Ваш пол",gender, gender_arr, #gender_arr) then
-				configuration.main_settings.gender = gender.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if licset then
-			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
-				licset = not licset
-			end
-		else
-			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
-				licset = not licset
-			end
-		end
-		if licset then
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Авто", avtoprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.avtoprice = avtoprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-			imgui.SameLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() + 29) / 2)
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Мото", motoprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.motoprice = motoprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Рыбалка", ribaprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.ribaprice = ribaprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-			imgui.SameLine()
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Плавание", lodkaprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.lodkaprice = lodkaprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Оружие", gunaprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.gunaprice = gunaprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-			imgui.SameLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() + 31) / 2)
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Охота", huntprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.huntprice = huntprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
-			imgui.PushItemWidth(62)
-			if imgui.InputText(u8"Раскопки", kladprice, imgui.InputTextFlags.CharsDecimal) then
-				configuration.main_settings.kladprice = kladprice.v
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.PopItemWidth()
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if keysset then
-			if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
-				keysset = not keysset
-			end
-		else
-			if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
-				keysset = not keysset
-			end
-		end
-		if keysset then
-			if imgui.Button(u8'Изменить', imgui.ImVec2(65,25)) then
-				table.remove(log)
-				getbindkey = true
-				getbindkeys()
-				configuration.main_settings.usefastmenu = ""
-				if inicfg.save(configuration,"AS Helper") then
-				end
-			end
-			imgui.SameLine()
-			imgui.Text(u8"Кнопку быстр. меню: ПКМ + "..configuration.main_settings.usefastmenu,imgui.ImVec2(80,25))
-			if getbindkey then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Нажмите любую клавишу').x) / 2)
-				imgui.Text(u8"Нажмите любую клавишу",imgui.ImVec2(80,25))
-			end
-			if imgui.Button(u8'Биндер', imgui.ImVec2(65,25)) then
-				binder()
-			end
-			imgui.SameLine()
-			imgui.Text(u8"Открыть настройки биндера",imgui.ImVec2(80,25))
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if otherset then
-			if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
-				otherset = not otherset
-			end
-		else
-			if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
-				otherset = not otherset
-			end
-		end
-		if otherset then
-			if imgui.Button(u8'Узнать', imgui.ImVec2(65,25)) then
-				imgui_cmds.v = not imgui_cmds.v
-			end
-			imgui.SameLine()
-			imgui.Text(u8"Все команды биндера",imgui.ImVec2(80,25))
-		end
-		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-		if scriptinfo then
-			if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
-				scriptinfo = not scriptinfo
-			end
-		else
-			if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
-				scriptinfo = not scriptinfo
-			end
-		end
-		if scriptinfo then
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Создатель: JustMini').x) / 2)
-			imgui.Text(u8'Создатель: JustMini',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Отдельное спасибо:').x) / 2)
-			imgui.Text(u8'Отдельное спасибо:',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Zody').x) / 2)
-			imgui.Text(u8'Zody',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'madrasso').x) / 2)
-			imgui.Text(u8'madrasso',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Royan_Millans').x) / 2)
-			imgui.Text(u8'Royan_Millans',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Raymond').x) / 2)
-			imgui.Text(u8'Raymond',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Cosmo').x) / 2)
-			imgui.Text(u8'Cosmo',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Alex_Liquid').x) / 2)
-			imgui.Text(u8'Alex_Liquid',imgui.ImVec2(70,20))
-			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.6').x) / 2)
-			imgui.Text(u8'Версия 1.6',imgui.ImVec2(70,20))
-			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Добавлена функция проверки устава;').x) / 2)
-			imgui.Text(u8'Добавлена функция проверки устава;',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Исправлен небольшой баг в быстром меню;').x) / 2)
-			imgui.Text(u8'Исправлен небольшой баг в быстром меню;',imgui.ImVec2(70,20))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Теперь продажа лицензий занимает 3 строчки').x) / 2)
-			imgui.Text(u8'Теперь продажа лицензий занимает 3 строчки',imgui.ImVec2(70,20))
-		end
-		imgui.End()
-	end
-
-	if imgui_fm.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"               Меню быстрого доступа", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
-		if windowtype == 0 then -- ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 1 then
-						disableallimgui()
-						hello()
-					else
-						addsampmsg("Данная команда доступна с 1-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Озвучить прайс лист', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 1  then
-						disableallimgui()
-						pricelist()
-					else
-						addsampmsg("Данная команда доступна с 1-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_FILE_SIGNATURE..u8' Продать лицензию игроку', imgui.ImVec2(285,30)) then
-				if configuration.main_settings.myrankint >= 3 then
-					imgui.SetScrollY(0)
-					windowtype = 1
-				else
-					addsampmsg("Данная команда доступна с 3-го ранга.")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
-				if configuration.main_settings.myrankint >= 5 then
-					imgui.SetScrollY(0)
-					windowtype = 2
-					expelbuff.v = ""
-				else
-					addsampmsg("Данная команда доступна с 5-го ранга.")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						disableallimgui()
-						tosend = tostring(targettingid)
-						invite(tosend)
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_USER_MINUS..u8' Уволить из организации', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						imgui.SetScrollY(0)
-						windowtype = 3
-						uninvitebuf.v = ""
-						blacklistbuf.v = ""
-						uninvitebox.v = false
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_EXCHANGE_ALT..u8' Изменить должность', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						imgui.SetScrollY(0)
-						Ranks_select.v = 0
-						windowtype = 4
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_USER_SLASH..u8' Занести в чёрный список', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						imgui.SetScrollY(0)
-						windowtype = 5
-						blacklistbuff.v = ""
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_USER..u8' Убрать из чёрного списка', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						unblacklist(tostring(targettingid))
-						disableallimgui()
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_FROWN..u8' Выдать выговор сотруднику', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						imgui.SetScrollY(0)
-						fwarnbuff.v = ""
-						windowtype = 6
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_SMILE..u8' Снять выговор сотруднику', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						unfwarn(tostring(targettingid))
-						disableallimgui()
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-				end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_VOLUME_MUTE..u8' Выдать мут сотруднику', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						imgui.SetScrollY(0)
-						fmutebuff.v = ""
-						fmuteint.v = 0
-						windowtype = 7
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' Снять мут сотруднику', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 9 then
-						funmute(tostring(targettingid))
-						disableallimgui()
-					else
-						addsampmsg("Данная команда доступна с 9-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.Separator()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Проверка устава '..fa.ICON_FA_STAMP, imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 5 then
-						imgui.SetScrollY(0)
-						windowtype = 8
-					else
-						addsampmsg("Данное действие доступно с 5-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
-				if not inprocess then
-					if configuration.main_settings.myrankint >= 5 then
-						imgui.SetScrollY(0)
-						passvalue = false
-						mcvalue = false
-						passverdict = ""
-						mcverdict = ""
-						sobesetap = 0
-						windowtype = 9
-					else
-						addsampmsg("Данное действие доступно с 5-го ранга.")
-					end
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-
-
-		elseif windowtype == 1 then -- ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  
-			imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
-			imgui.SameLine()
-			imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
-			imgui.NewLine()
-			if ComboBox_select.v == 0 then
-				whichlic = "авто"
-			elseif ComboBox_select.v == 1 then
-				whichlic = "мото"
-			elseif ComboBox_select.v == 2 then
-				whichlic = "рыболовство"
-			elseif ComboBox_select.v == 3 then
-				whichlic = "плавание"
-			elseif ComboBox_select.v == 4 then
-				whichlic = "оружие"
-			elseif ComboBox_select.v == 5 then
-				whichlic = "охоту"
-			elseif ComboBox_select.v == 6 then
-				whichlic = "раскопки"
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Продать лицензию на '..u8(whichlic), imgui.ImVec2(285,30)) then
-				if not inprocess then
-					ComboBox_select.v = 0
-					selltowhostr = tostring(targettingid).." "..tostring(whichlic)
-					selllic(selltowhostr)
-					disableallimgui()
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Лицензия на полёты', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					ComboBox_select.v = 0
-					selltowhostr = tostring(targettingid).." полёты"
-					selllic(selltowhostr)
-					disableallimgui()
-					else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 2 then -- EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
-			imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-			imgui.InputText(u8"",expelbuff)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
-			if imgui.Button(u8'Выгнать '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(200,30)) then
-				if expelbuff.v == nil or expelbuff.v == "" then
-					addsampmsg("Введите причину expel!")
-				else
-					expel(tostring(targettingid.." "..u8:decode(expelbuff.v)))
-					disableallimgui()
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 3 then -- УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина увольнения:").x) / 2)
-			imgui.Text(u8"Причина увольнения:", imgui.ImVec2(75,30))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-			imgui.InputText(u8"", uninvitebuf)
-			if uninvitebox.v then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина ЧС:").x) / 2)
-				imgui.Text(u8"Причина ЧС:", imgui.ImVec2(75,30))
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
-				imgui.InputText(u8" ", blacklistbuf)
-			end
-			imgui.Checkbox(u8"Уволить с ЧС", uninvitebox)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Уволить '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(285,30)) then
-				if uninvitebuf.v == nil or uninvitebuf.v == '' then
-					addsampmsg("Введите причину увольнения!")
-				else
-					if uninvitebox.v then
-						if blacklistbuf.v == nil or blacklistbuf.v == '' then
-							addsampmsg("Введите причину занесения в ЧС!")
-						else
-							uninvite(targettingid.." 1")
-							disableallimgui()
-						end
-					else
-						uninvite(targettingid.." 0")
-						disableallimgui()
-					end
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 4 then -- ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  
-			imgui.PushItemWidth(270)
-			imgui.Combo(' ', Ranks_select, Ranks_arr, #Ranks_arr)
-			imgui.PopItemWidth()
-			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 270) / 2)
-			if imgui.Button(u8'Изменить ранг этому сотруднику', imgui.ImVec2(270,40)) then
-				giverank(targettingid.." "..(Ranks_select.v+1))
-				disableallimgui()
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 5 then -- ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина занесения в ЧС:").x) / 2)
-			imgui.Text(u8"Причина занесения в ЧС:", imgui.ImVec2(75,30))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-			imgui.InputText(u8"", blacklistbuff)
-			imgui.NewLine()
-			if imgui.Button(u8'Занести в ЧС '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
-				if blacklistbuff.v == nil or blacklistbuff.v == '' then
-					addsampmsg("Введите причину занесения в ЧС!")
-				else
-					blacklist(targettingid.." "..u8:decode(blacklistbuff.v))
-					disableallimgui()
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 6 then -- ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина выговора:").x) / 2)
-			imgui.Text(u8"Причина выговора:", imgui.ImVec2(75,30))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-			imgui.InputText(u8"", fwarnbuff)
-			imgui.NewLine()
-			if imgui.Button(u8'Выдать выговор '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
-				if fwarnbuff.v == nil or fwarnbuff.v == '' then
-					addsampmsg("Введите причину выдачи выговора!")
-				else
-					fwarn(targettingid.." "..u8:decode(fwarnbuff.v))
-					disableallimgui()
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 7 then -- ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина мута:").x) / 2)
-			imgui.Text(u8"Причина мута:", imgui.ImVec2(75,30))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-			imgui.InputText(u8"", fmutebuff)
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Время мута:").x) / 2)
-			imgui.Text(u8"Время мута:", imgui.ImVec2(75,30))
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
-			imgui.InputInt(u8" ", fmuteint)
-			imgui.NewLine()
-			if imgui.Button(u8'Выдать мут '..sampGetPlayerNickname(targettingid)..'['..targettingid..']', imgui.ImVec2(270,30)) then
-				if fmutebuff.v == nil or fmutebuff.v == '' then
-					addsampmsg("Введите причину выдачи мута!")
-					else
-					if fmuteint.v == nil or fmuteint.v == '' or fmuteint.v == 0 then
-						addsampmsg("Введите время мута!")
-					else
-						fmute(targettingid.." "..u8:decode(fmuteint.v).." "..u8:decode(fmutebuff.v))
-						disableallimgui()
-					end
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-
-		elseif windowtype == 8 then -- ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Рабочее время в будние дни', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: 09:00 - 19:00")
-					sampSendChat("Назовите пожалуйста время днейвной смены в будние дни.")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Рабочее время в выходные дни', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: 10:00 - 18:00")
-					sampSendChat("Назовите пожалуйста время дневной смены в выходные дни.")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Кнопка вызова полиции без причины', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: выговор")
-					sampSendChat("Кто-то нажал на кнопку вызова полиции без причины, какое наказание он получит?")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Использование транспорта', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: (3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт")
-					sampSendChat("С какой должности разрешено брать автомобили, мотоциклы и вертолёт?")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Должность для отпуска', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: (5+) Инструктор")
-					sampSendChat("Скажите пожалуйста, с какой должности разрешено брать отпуск?")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Время сна вне раздвелки', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: 5 минут максимально, за этим последует выговор.")
-					sampSendChat("Сколько времени разрешено спать вне раздевалки?")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Что такое субординация', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.")
-					sampSendChat("Что по вашему мнению означает слово 'Субординация'?")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Обращения к другим сотрудникам', imgui.ImVec2(285,30)) then
-				if not inprocess then
-					addsampmsg("Подсказка: по должности, по имени, 'Сэр', 'Коллега'.")
-					sampSendChat("Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?")
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			if imgui.Button(u8'Одобрить', imgui.ImVec2(142.5,35)) then
-				if not inprocess then
-					sampSendChat("Поздравляю, "..string.gsub(sampGetPlayerNickname(targettingid), "_", " ")..", вы сдали устав!")
-					disableallimgui()
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SameLine()
-			if imgui.Button(u8'Отказать', imgui.ImVec2(142.5,35)) then
-				if not inprocess then
-					sampSendChat("Очень жаль, но вы не смогли сдать устав. Подучите и приходите в следующий раз.")
-					disableallimgui()
-				else
-					addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				windowtype = 0
-			end
-
-			
-		elseif windowtype == 9 then -- ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС
-			if sobesetap == 0 then
-				lastsobesetap = sobesetap
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-						sobes1()
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 1 then
-				lastsobesetap = sobesetap
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Попросить документы', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-						sobes2()
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 2 then
-				lastsobesetap = sobesetap
-				if mcvalue == false then
-					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - не показана").x) / 2)
-					imgui.Text(u8"Мед.карта - не показана", imgui.ImVec2(75,30))
-				else
-					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - показана ("..mcverdict..")").x) / 2)
-					imgui.Text(u8"Мед.карта - показана ("..mcverdict..")", imgui.ImVec2(75,30))
-				end
-				if passvalue == false then
-					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - не показан").x) / 2)
-					imgui.Text(u8"Паспорт - не показан", imgui.ImVec2(75,30))
-				else
-					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - показан ("..passverdict..")").x) / 2)
-					imgui.Text(u8"Паспорт - показан ("..passverdict..")", imgui.ImVec2(75,30))
-				end
-				if mcvalue == true and mcverdict == (u8"в порядке") and passvalue == true and passverdict == (u8"в порядке") then
-					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-					if imgui.Button(u8'Продолжить', imgui.ImVec2(285,30)) then
-						sobesaccept1()
-						sobesetap = sobesetap + 1
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						if mcvalue == true or passvalue == true then
-							if mcverdict == (u8"наркозависимость") then
-								sobesdecline("наркозависимость")
-								disableallimgui()
-							elseif mcverdict == (u8"не полностью здоровый") then
-								sobesdecline("не полностью здоровый")
-								disableallimgui()
-							elseif passverdict == (u8"меньше 3 лет в штате") then
-								sobesdecline("меньше 3 лет в штате")
-								disableallimgui()
-							elseif passverdict == (u8"не законопослушный") then
-								sobesdecline("не законопослушный")
-								disableallimgui()
-							elseif passverdict == (u8"игрок в организации") then
-								sobesdecline("игрок в организации")
-								disableallimgui()
-							elseif passverdict == (u8"был в деморгане") then
-								sobesdecline("был в деморгане")
-								disableallimgui()
-							else
-								lastsobesetap = sobesetap
-								sobesetap = 7
-							end
-						else
-							lastsobesetap = sobesetap
-							sobesetap = 7
-						end
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 3 then
-				lastsobesetap = sobesetap
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Расскажите немного о себе.', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						if inprocess == true then
-							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-						else
-							inprocess = true
-							sampSendChat("Расскажите немного о себе.")
-							sobesetap = sobesetap + 1
-							inprocess = false
-						end
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						lastsobesetap = sobesetap
-						sobesetap = 7
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 4 then
-				lastsobesetap = sobesetap
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Почему выбрали именно нас?', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						if inprocess == true then
-							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-						else
-							inprocess = true
-							sampSendChat("Почему вы выбрали именно нас?")
-							sobesetap = sobesetap + 1
-							inprocess = false
-						end
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						lastsobesetap = sobesetap
-						sobesetap = 7
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 5 then
-				lastsobesetap = sobesetap
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8"Работали вы уже в организациях ЦА?", imgui.ImVec2(285,30)) then
-					if not inprocess then
-						if inprocess == true then
-							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-						else
-							inprocess = true
-							sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
-							sampSendChat("/n ЦА - Центральный аппарат (Автошкола, Правительство, Банк)")
-							sobesetap = sobesetap + 1
-							inprocess = false
-						end
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						lastsobesetap = sobesetap
-						sobesetap = 7
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = sobesetap + 1
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 6 then
-				lastsobesetap = sobesetap
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Одобрить', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesaccept2()
-						sobesetap = nil
-						disableallimgui()
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						lastsobesetap = sobesetap
-						sobesetap = 7
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			elseif sobesetap == 7 then
-				imgui.PushItemWidth(270)
-				imgui.Combo(" ",sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
-				imgui.PopItemWidth()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						sobesetap = nil
-						if sobesdecline_select.v == 0 then
-							sobesdecline("проф. непригодность2")
-						elseif sobesdecline_select.v == 1 then
-							sobesdecline("проф. непригодность3")
-						elseif sobesdecline_select.v == 2 then
-							sobesdecline("проф. непригодность4")
-						elseif sobesdecline_select.v == 3 then
-							sobesdecline("проф. непригодность1")
-						elseif sobesdecline_select.v == 4 then
-							sobesdecline("проф. непригодность5")
-						end
-						disableallimgui()
-					else
-						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
-					end
-				end
-			end
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
-			if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
-				if sobesetap == 7 then
-					sobesetap = lastsobesetap
-				elseif sobesetap ~= 0 then
-					sobesetap = sobesetap - 1
-				else
-					windowtype = 0
-				end
-			end
-		end
-		imgui.End()
-	end
-
-	if imgui_binder.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(650, 360), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(u8"                                                                   Настройки биндера", imgui_binder, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar)
-			imgui.BeginChild("ChildWindow",imgui.ImVec2(175,270),false,imgui.WindowFlags.NoScrollbar)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - 160) / 2)
-				for key, value in pairs(configuration.BindsName) do
-					value = tostring(value)
-					if value:find(configuration.BindsName[key]) then
-						imgui.SetCursorPosX((imgui.GetWindowWidth() - 160) / 2)
-						if imgui.Button(u8(configuration.BindsName[key]),imgui.ImVec2(160,30)) then
-							choosedslot = key
-							binderbuff.v = tostring(configuration.BindsAction[key]):gsub("~", "\n")
-							binderbuff.v = u8(binderbuff.v)
-							bindername.v = u8(configuration.BindsName[key])
-							bindertype.v = u8(configuration.BindsType[key])
-							bindercmd.v = u8(configuration.BindsCmd[key])
-							binderkeystatus = configuration.BindsKeys[key]
-							binderdelay.v = tostring(configuration.BindsDelay[key])
-						end
-					end
-				end
-			imgui.EndChild()
-			if choosedslot ~= nil and choosedslot <= configuration.binder_settings.totalslots then
-				imgui.SameLine()
-				imgui.BeginChild("ChildWindow2",imgui.ImVec2(435,200),false)
-				imgui.InputTextMultiline(u8"",binderbuff, imgui.ImVec2(435,200))
-				imgui.EndChild()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').y - 135) / 2)
-				imgui.Text(u8'Название бинда:'); imgui.SameLine()
-				imgui.PushItemWidth(150)
-				if choosedslot ~= 50 then
-					imgui.InputText("##bindername", bindername,imgui.InputTextFlags.ReadOnly)
-				else
-					imgui.InputText("##bindername", bindername)
-				end
-				imgui.PopItemWidth()
-				imgui.SameLine()
-				imgui.PushItemWidth(162)
-				imgui.Combo(" ",bindertype, u8"Использовать команду\0Использовать клавиши\0\0", 2)
-				imgui.PopItemWidth()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Задержка между строками (ms):').y - 70) / 2)
-				imgui.Text(u8'Задержка между строками (ms):'); imgui.SameLine()
-				imgui.PushItemWidth(58)
-				imgui.InputText("##binderdelay", binderdelay, imgui.InputTextFlags.CharsDecimal)
-				imgui.PopItemWidth()
-				imgui.SameLine()
-				if bindertype.v == 0 then
-					imgui.Text("/")
-					imgui.SameLine()
-					imgui.PushItemWidth(147)
-					imgui.InputText("##bindercmd",bindercmd,imgui.InputTextFlags.CharsNoBlank)
-					imgui.PopItemWidth()
-				elseif bindertype.v == 1 then
-					if binderkeystatus == nil or binderkeystatus == "" then
-						binderkeystatus = u8"Нажмите чтобы поменять"
-					end
-					if imgui.Button(binderkeystatus) then
-						if binderkeystatus == u8"Нажмите чтобы поменять" then
-							table.remove(emptykey1)
-							table.remove(emptykey2)
-							binderkeystatus = u8"Нажмите любую клавишу"
-							setbinderkey = true
-							getbindkeys()
-						elseif binderkeystatus == u8"Нажмите любую клавишу" then
-							setbinderkey = false
-							binderkeystatus = u8"Нажмите чтобы поменять"
-						elseif string.find(binderkeystatus, u8"Применить") then
-							setbinderkey = false
-							binderkeystatus = string.match(binderkeystatus,u8"Применить (.+)")
-						else
-							table.remove(emptykey1)
-							table.remove(emptykey2)
-							binderkeystatus = u8"Нажмите любую клавишу"
-							keyname = nil
-							keyname2 = nil
-							setbinderkey = true
-							getbindkeys()
-						end
-					end
-				end
-				imgui.NewLine()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() + 429) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
-				local kei
-				doreplace = false
-				if imgui.Button(u8"Сохранить",imgui.ImVec2(100,30)) then
-					if not inprocess then
-						if binderbuff.v ~= "" and bindername.v ~= "" and binderdelay.v ~= "" and bindertype.v ~= nil then
-							if bindertype.v == 0 then
-								if bindercmd.v ~= "" and bindercmd.v ~= nil then
-									for key, value in pairs(configuration.BindsName) do
-									value = tostring(value)
-										if u8:decode(bindername.v) == configuration.BindsName[key] then
-											doreplace = true
-											kei = key
-										end
-									end
-									if doreplace == true then
-										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
-										configuration.BindsName[kei] = u8:decode(bindername.v)
-										configuration.BindsAction[kei] = refresh_text
-										configuration.BindsDelay[kei] = u8:decode(binderdelay.v)
-										configuration.BindsType[kei]= u8:decode(bindertype.v)
-										configuration.BindsCmd[kei] = u8:decode(bindercmd.v)
-										configuration.BindsKeys[kei] = ""
-										if inicfg.save(configuration, "AS Helper") then
-											addsampmsg("Бинд успешно сохранён!")
-											setbinderkey = false
-											keyname = nil
-											keyname2 = nil
-											table.remove(emptykey1)
-											table.remove(emptykey2)
-											bindercmd.v = ""
-											binderbuff.v = ""
-											bindername.v = ""
-											bindertype.v = 0
-											binderdelay.v = ""
-											bindercmd.v = ""
-											binderkeystatus = nil
-											choosedslot = nil
-										end
-									else
-										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
-										table.insert(configuration.BindsName, u8:decode(bindername.v))
-										table.insert(configuration.BindsAction, refresh_text)
-										table.insert(configuration.BindsDelay, u8:decode(binderdelay.v))
-										table.insert(configuration.BindsType, u8:decode(bindertype.v))
-										table.insert(configuration.BindsCmd, u8:decode(bindercmd.v))
-										table.insert(configuration.BindsKeys, "")
-										if inicfg.save(configuration, "AS Helper") then
-											addsampmsg("Бинд успешно создан!")
-											setbinderkey = false
-											keyname = nil
-											keyname2 = nil
-											table.remove(emptykey1)
-											table.remove(emptykey2)
-											bindercmd.v = ""
-											binderbuff.v = ""
-											bindername.v = ""
-											bindertype.v = 0
-											binderdelay.v = ""
-											bindercmd.v = ""
-											binderkeystatus = nil
-											choosedslot = nil
-										end
-									end
-								else
-									addsampmsg("Какой-то из параметров не введён, перепроверьте всё!")
-								end
-							elseif bindertype.v == 1 then
-								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "Нажмите чтобы поменять" and not string.find((u8:decode(binderkeystatus)), "Применить ") and (u8:decode(binderkeystatus)) ~= "Нажмите любую клавишу" then
-									for key, value in pairs(configuration.BindsName) do
-										if u8:decode(bindername.v) == configuration.BindsName[key] then
-											doreplace = true
-											kei = key
-										end
-									end
-									if doreplace == true then
-										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
-										configuration.BindsName[kei] = u8:decode(bindername.v)
-										configuration.BindsAction[kei] = refresh_text
-										configuration.BindsDelay[kei] = u8:decode(binderdelay.v)
-										configuration.BindsType[kei]= u8:decode(bindertype.v)
-										configuration.BindsCmd[kei] = ""
-										configuration.BindsKeys[kei] = u8(binderkeystatus)
-										if inicfg.save(configuration, "AS Helper") then
-											addsampmsg("Бинд успешно сохранён!")
-											setbinderkey = false
-											keyname = nil
-											keyname2 = nil
-											table.remove(emptykey1)
-											table.remove(emptykey2)
-											bindercmd.v = ""
-											binderbuff.v = ""
-											bindername.v = ""
-											bindertype.v = 0
-											binderdelay.v = ""
-											bindercmd.v = ""
-											binderkeystatus = nil
-											choosedslot = nil
-										end
-									else
-										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
-										table.insert(configuration.BindsName, u8:decode(bindername.v))
-										table.insert(configuration.BindsAction, refresh_text)
-										table.insert(configuration.BindsDelay, u8:decode(binderdelay.v))
-										table.insert(configuration.BindsType, u8:decode(bindertype.v))
-										table.insert(configuration.BindsKeys, u8(binderkeystatus))
-										table.insert(configuration.BindsCmd, "")
-										if inicfg.save(configuration, "AS Helper") then
-											addsampmsg("Бинд успешно создан!")
-											setbinderkey = false
-											keyname = nil
-											keyname2 = nil
-											table.remove(emptykey1)
-											table.remove(emptykey2)
-											bindercmd.v = ""
-											binderbuff.v = ""
-											bindername.v = ""
-											bindertype.v = 0
-											binderdelay.v = ""
-											bindercmd.v = ""
-											binderkeystatus = nil
-											choosedslot = nil
-										end
-									end
-								else
-									addsampmsg("Вы неправильно указали клавишу бинда!")
-								end
-							end
-						else
-							addsampmsg("Какой-то из параметров не введён, перепроверьте всё!")
-						end
-						updatechatcommands()
-					else
-						addsampmsg("Вы не можете взаимодействовать с биндером во время любой отыгровки!")
-					end	
-				end
-				imgui.SameLine()
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 247) / 2)
-				if imgui.Button(u8"Отменить",imgui.ImVec2(100,30)) then
-					setbinderkey = false
-					keyname = nil
-					keyname2 = nil
-					table.remove(emptykey1)
-					table.remove(emptykey2)
-					bindercmd.v = ""
-					binderbuff.v = ""
-					bindername.v = ""
-					bindertype.v = 0
-					binderdelay.v = ""
-					bindercmd.v = ""
-					binderkeystatus = nil
-					updatechatcommands()
-					choosedslot = nil
-				end
-			end
-			imgui.NewLine()
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - 621) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
-			if imgui.Button(u8"Добавить",imgui.ImVec2(82,30)) then
-				choosedslot = 50
-				binderbuff.v = ''
-				bindername.v = ''
-				bindertype.v = 0
-				bindercmd.v = ''
-				binderkeystatus = nil
-				binderdelay.v = ''
-				updatechatcommands()
-			end
-			imgui.SameLine()
-			if choosedslot ~= nil and choosedslot ~= 50 then
-				if imgui.Button(u8"Удалить",imgui.ImVec2(82,30)) then
-					if not inprocess then
-						for key, value in pairs(configuration.BindsName) do
-							value = tostring(value)
-							if u8:decode(bindername.v) == tostring(configuration.BindsName[key]) then
-								table.remove(configuration.BindsName,key)
-								table.remove(configuration.BindsKeys,key)
-								table.remove(configuration.BindsAction,key)
-								table.remove(configuration.BindsCmd,key)
-								table.remove(configuration.BindsDelay,key)
-								table.remove(configuration.BindsType,key)
-								if inicfg.save(configuration,"AS Helper") then
-									setbinderkey = false
-									keyname = nil
-									keyname2 = nil
-									table.remove(emptykey1)
-									table.remove(emptykey2)
-									bindercmd.v = ""
-									binderbuff.v = ""
-									bindername.v = ""
-									bindertype.v = 0
-									binderdelay.v = ""
-									bindercmd.v = ""
-									binderkeystatus = nil
-									choosedslot = nil
-									addsampmsg("Бинд успешно удалён!")
-								end
-							end
-						end
-					updatechatcommands()
-					else
-						addsampmsg("Вы не можете удалять бинд во время любой отыгровки!")
-					end
-				end
-			else
-				local r, g, b, a = imgui.ImColor(imgui.GetStyle().Colors[imgui.Col.Button]):GetFloat4()
-				imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(r, g, b, a/2) )
-				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(r, g, b, a/2))
-				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(r, g, b, a/2))
-				imgui.PushStyleColor(imgui.Col.Text, imgui.GetStyle().Colors[imgui.Col.TextDisabled])
-				imgui.Button(u8"Удалить",imgui.ImVec2(82,30))
-				imgui.PopStyleColor()
-				imgui.PopStyleColor()
-				imgui.PopStyleColor()
-				imgui.PopStyleColor()
-			end
-		imgui.End()
-	end
-	
-	if imgui_cmds.v == true then
-		imgui.SetNextWindowSize(imgui.ImVec2(310, 130), imgui.Cond.FirstUseEver)
-		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(1.5, 0.5))
-		imgui.Begin(u8"                     Команды хелпера", imgui_cmds, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoMove)
-		imgui.Text("/"..cmdhelp..u8" - открыть меню настроек хелпера")
-		imgui.Text("/"..cmdbind..u8" - открыть меню настроек биндера")
-		imgui.Text("/"..cmdcmds..u8" - открыть меню команд хелпера")
-		imgui.Text("/"..cmdupdate..u8" - команда для обновление ранга")
-		imgui.End()
-	end
-end
 
 function hello()
 	lua_thread.create(function()
@@ -1779,8 +472,8 @@ function selllic(param)
 								sampSendChat('/n /showmc '..myid)
 								addsampmsg('Началось ожидание показа мед.карты, чтобы отменить его введите /cancelmc, чтобы пропустить введите /skip')
 								skiporcancel = false
-								choosedname = sampGetPlayerNickname(targettingid)
-								tempid = targettingid
+								choosedname = sampGetPlayerNickname(fastmenuID)
+								tempid = fastmenuID
 							else
 								addsampmsg('Такого игрока нет на сервере')
 							end
@@ -2254,13 +947,13 @@ function sobesaccept2()
 			sampSendChat("Отлично, я думаю вы нам подходите!")
 			wait(cd)
 			inprocess = false
-			invite(tostring(targettingid))
+			invite(tostring(fastmenuID))
 		else
 			sampSendChat("Отлично, я думаю вы нам подходите!")
 			wait(cd)
-			sampSendChat("/r "..sampGetPlayerNickname(targettingid).." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
+			sampSendChat("/r "..sampGetPlayerNickname(fastmenuID).." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
 			wait(cd)
-			sampSendChat("/rb "..targettingid.." id")
+			sampSendChat("/rb "..fastmenuID.." id")
 		end
 		inprocess = false
 		end
@@ -2274,7 +967,7 @@ function sobesdecline(param)
 			addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 		else
 			inprocess = true
-			if reason ~= "проф. непригодность1" and reason ~= "проф. непригодность3" then
+			if reason ~= "проф. непригодность1" and reason ~= "проф. непригодность3" and reason ~= "проф. непригодность5" then
 				sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
 				wait(cd)
 				sampSendChat("/todo Очень грустно...* отдавая документы обратно")
@@ -2383,7 +1076,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 	elseif dialogId == 1234 then
 		if text:find('Срок действия') then
 			if mcvalue == false then
-				if text:find("Имя: "..sampGetPlayerNickname(targettingid)) then
+				if text:find("Имя: "..sampGetPlayerNickname(fastmenuID)) then
 					for DialogLine in text:gmatch('[^\r\n]+') do
 						if text:find("Полностью здоровый") then
 						local statusint = DialogLine:match('{CEAD2A}Наркозависимость: (%d+)')
@@ -2431,7 +1124,9 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 							wait(cd)
 							sampSendChat("/do Мед.карта не в норме.")
 							wait(cd)
-							sampSendChat("/todo К сожалению, в мед.карте написано, что у вас есть явные отклонения. Обновите её в больнице и приходите снова* отдавая мед.карту обратно")
+							sampSendChat("/todo К сожалению, в мед.карте написано, что у вас есть отклонения.* отдавая мед.карту обратно")
+							wait(cd)
+							sampSendChat("Обновите её и приходите снова!")
 							inprocess = false
 							skiporcancel = true
 							cansell = false
@@ -2445,7 +1140,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		elseif text:find('Серия') then
 			if passvalue == false then
 				for DialogLine in text:gmatch('[^\r\n]+') do
-					if text:find("Имя: {FFD700}"..sampGetPlayerNickname(targettingid)) then
+					if text:find("Имя: {FFD700}"..sampGetPlayerNickname(fastmenuID)) then
 						local job = text:find('{FFFFFF}Организация:')
 						if not job then
 							for DialogLine in text:gmatch('[^\r\n]+') do
@@ -2491,6 +1186,46 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 				end
 			end
 		end
+	end
+end
+
+function sampev.onServerMessage(color, message)
+	if message:find('Используйте: /jobprogress %[ ID игрока %]') then
+		addsampmsg("Вы просмотрели свою рабочую успеваемость.")
+		return false
+	end
+	if message:find('повысил до') then
+		getmyrank = true
+		sampSendChat("/stats")
+	end
+	if message:find('%[Информация%] {FFFFFF}Вы покинули пост!') then
+		addsampmsg('Вы покинули пост.')
+		return false
+	end
+	if message:find("%[Информация%] {FFFFFF}Вы успешно продали лицензию") then
+		typeddd, toddd = message:match("%[Информация%] {FFFFFF}Вы успешно продали лицензию на (.+) игроку (.+).")
+		if typeddd == "авто" then
+			configuration.my_stats.avto = configuration.my_stats.avto + 1
+		elseif typeddd == "мото" then
+			configuration.my_stats.moto = configuration.my_stats.moto + 1
+		elseif typeddd == "рыбалку" then
+			configuration.my_stats.riba = configuration.my_stats.riba + 1
+		elseif typeddd == "плавание" then
+			configuration.my_stats.lodka = configuration.my_stats.lodka + 1
+		elseif typeddd == "оружие" then
+			configuration.my_stats.guns = configuration.my_stats.guns + 1
+		elseif typeddd == "охоту" then
+			configuration.my_stats.hunt = configuration.my_stats.hunt + 1
+		elseif typeddd == "раскопки" then
+			configuration.my_stats.klad = configuration.my_stats.klad + 1
+		else
+			addsampmsg("Вы успешно продали лицензию на "..typeddd.." игроку "..toddd..".")
+			return false
+		end
+		if inicfg.save(configuration,"AS Helper") then
+			addsampmsg("Вы успешно продали лицензию на "..typeddd.." игроку "..toddd..". Она была засчитана в вашу статистику.")
+			return false
+		end	
 	end
 end
 
@@ -2611,6 +1346,1371 @@ function getbindkeys()
 	end)
 end
 
+function onWindowMessage(msg, wparam, lparam)
+    if wparam == 0x1B then
+    	if imgui_settings.v or imgui_fm.v or imgui_cmds.v or imgui_stats.v then
+        	consumeWindowMessage(true, false)
+        end
+	elseif getbindkey then
+		if msg == 0x100 or msg == 0x104 then
+			if not log[1] then
+				table.insert(log, 1, wparam)
+			end
+		end
+	elseif setbinderkey then
+		if msg == 0x100 or msg == 0x104 then
+			if not emptykey1[1] then
+				table.insert(emptykey1, 1, wparam)
+			elseif not emptykey2[1] and wparam ~= emptykey1[1] then
+				table.insert(emptykey2, 1, wparam)
+			end
+		end
+	end
+end
+
+function disableallimgui()
+	imgui_settings.v = false
+	imgui_fm.v = false
+	mcvalue = true
+	passvalue = true
+end
+
+function imgui.OnDrawFrame()
+	local ScreenX, ScreenY = getScreenResolution()
+	if imgui_settings.v == true then
+		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		imgui.Begin(u8"Настройки ASHelper", imgui_settings, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoMove)
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+		if userset then
+			if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				userset = not userset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_USER_COG..u8' Настройки пользователя '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				userset = not userset
+			end
+		end
+		if userset then
+			if imgui.Checkbox(u8"Использовать мой ник из таба",useservername) then
+				if configuration.main_settings.myname == '' then
+					result,myid = sampGetPlayerIdByCharHandle(playerPed)
+					myname.v = sampGetPlayerNickname(myid)
+					configuration.main_settings.myname = sampGetPlayerNickname(myid)
+				end
+				configuration.main_settings.useservername = useservername.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			if not useservername.v then
+				if imgui.InputText(u8" ", myname) then
+					configuration.main_settings.myname = myname.v
+					if inicfg.save(configuration,"AS Helper") then
+					end
+				end
+			end
+			if imgui.Checkbox(u8"Использовать акцент",useaccent) then
+				configuration.main_settings.useaccent = useaccent.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			if useaccent.v then
+				imgui.PushItemWidth(150)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 275))
+				if imgui.InputText(u8"", myaccent) then
+					configuration.main_settings.myaccent = myaccent.v
+					if inicfg.save(configuration,"AS Helper") then
+					end
+				end
+				imgui.PopItemWidth()
+				imgui.SameLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"[").x) / 18)
+				imgui.Text("[")
+				imgui.SameLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"[").x) / 1.65)
+				imgui.Text("]")
+			end
+			if imgui.Checkbox(u8"Создавать маркер при выделении",createmarker) then
+				if marker ~= nil then
+					removeBlip(marker)
+				end
+				marker = nil
+				oldtargettingped = 0
+				configuration.main_settings.createmarker = createmarker.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			if imgui.Button(u8'Обновить', imgui.ImVec2(65,25)) then
+				getmyrank = true
+				sampSendChat("/stats")
+			end
+			imgui.SameLine()
+			imgui.Text(u8"Ваш ранг: "..u8(configuration.main_settings.myrank).." ("..u8(configuration.main_settings.myrankint)..")")
+			imgui.PushItemWidth(85)
+			if imgui.Combo(u8"Ваш пол",gender, gender_arr, #gender_arr) then
+				configuration.main_settings.gender = gender.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+		end
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+		if licset then
+			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				licset = not licset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Настройки лицензий '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				licset = not licset
+			end
+		end
+		if licset then
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Авто", avtoprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.avtoprice = avtoprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+			imgui.SameLine()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() + 29) / 2)
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Мото", motoprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.motoprice = motoprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Рыбалка", ribaprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.ribaprice = ribaprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+			imgui.SameLine()
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Плавание", lodkaprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.lodkaprice = lodkaprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Оружие", gunaprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.gunaprice = gunaprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+			imgui.SameLine()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() + 31) / 2)
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Охота", huntprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.huntprice = huntprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
+			imgui.PushItemWidth(62)
+			if imgui.InputText(u8"Раскопки", kladprice, imgui.InputTextFlags.CharsDecimal) then
+				configuration.main_settings.kladprice = kladprice.v
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.PopItemWidth()
+		end
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+		if keysset then
+			if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				keysset = not keysset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_KEYBOARD..u8' Настройки горячих клавиш '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				keysset = not keysset
+			end
+		end
+		if keysset then
+			if imgui.Button(u8'Изменить', imgui.ImVec2(65,25)) then
+				table.remove(log)
+				getbindkey = true
+				getbindkeys()
+				configuration.main_settings.usefastmenu = ""
+				if inicfg.save(configuration,"AS Helper") then
+				end
+			end
+			imgui.SameLine()
+			imgui.Text(u8"Кнопку быстр. меню: ПКМ + "..configuration.main_settings.usefastmenu,imgui.ImVec2(80,25))
+			if getbindkey then
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Нажмите любую клавишу').x) / 2)
+				imgui.Text(u8"Нажмите любую клавишу",imgui.ImVec2(80,25))
+			end
+			if imgui.Button(u8'Биндер', imgui.ImVec2(65,25)) then
+				binder()
+			end
+			imgui.SameLine()
+			imgui.Text(u8"Открыть настройки биндера",imgui.ImVec2(80,25))
+		end
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+		if otherset then
+			if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				otherset = not otherset
+			end
+		else
+			if imgui.Button(fa.ICON_FA_CIRCLE_NOTCH..u8' Остальное '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				otherset = not otherset
+			end
+		end
+		if otherset then
+			if imgui.Button(u8'Узнать', imgui.ImVec2(65,25)) then
+				imgui_cmds.v = not imgui_cmds.v
+			end
+			imgui.SameLine()
+			imgui.Text(u8"Все команды биндера",imgui.ImVec2(80,25))
+			if imgui.Button(u8'Узнaть', imgui.ImVec2(65,25)) then
+				imgui_stats.v = not imgui_stats.v
+			end
+			imgui.SameLine()
+			imgui.Text(u8"Статистику проданных лицензий",imgui.ImVec2(80,25))
+		end
+		imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+		if scriptinfo then
+			if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте '..(fa.ICON_FA_CARET_DOWN), imgui.ImVec2(285,30)) then
+				scriptinfo = not scriptinfo
+			end
+		else
+			if imgui.Button(fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте '..(fa.ICON_FA_CARET_LEFT), imgui.ImVec2(285,30)) then
+				scriptinfo = not scriptinfo
+			end
+		end
+		if scriptinfo then
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Создатель: JustMini').x) / 2)
+			imgui.Text(u8'Создатель: JustMini',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Отдельное спасибо:').x) / 2)
+			imgui.Text(u8'Отдельное спасибо:',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Zody, madrasso, Royan_Millans,\n\n Raymond, Cosmo, Alex_Liquid').x) / 2)
+			imgui.Text(u8'Zody, madrasso, Royan_Millans,\n\n Raymond, Cosmo, Alex_Liquid',imgui.ImVec2(70,20))
+			imgui.Separator()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Версия 1.7').x) / 2)
+			imgui.Text(u8'Версия 1.7',imgui.ImVec2(70,20))
+			imgui.Separator()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Добавлена статистика проданных лицензий;').x) / 2)
+			imgui.Text(u8'Добавлена статистика проданных лицензий;',imgui.ImVec2(70,20))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Изменены некоторые сообщения в чате').x) / 2)
+			imgui.Text(u8'Изменены некоторые сообщения в чате',imgui.ImVec2(70,20))
+		end
+		imgui.End()
+	end
+
+	if imgui_fm.v == true then
+		imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		imgui.Begin(u8"Меню быстрого доступа", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
+		if sampIsPlayerConnected(fastmenuID) then
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выбрали ид: "..fastmenuID).x) / 2)
+			imgui.Text(u8"Вы выбрали ID: "..fastmenuID, imgui.ImVec2(75,30))
+			imgui.Separator()
+			if windowtype.v == 0 then -- ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 1 then
+							disableallimgui()
+							hello()
+						else
+							addsampmsg("Данная команда доступна с 1-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_FILE_ALT..u8' Озвучить прайс лист', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 1  then
+							disableallimgui()
+							pricelist()
+						else
+							addsampmsg("Данная команда доступна с 1-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_FILE_SIGNATURE..u8' Продать лицензию игроку', imgui.ImVec2(285,30)) then
+					if configuration.main_settings.myrankint >= 3 then
+						imgui.SetScrollY(0)
+						windowtype.v = 1
+					else
+						addsampmsg("Данная команда доступна с 3-го ранга.")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
+					if configuration.main_settings.myrankint >= 5 then
+						imgui.SetScrollY(0)
+						windowtype.v = 2
+						expelbuff.v = ""
+					else
+						addsampmsg("Данная команда доступна с 5-го ранга.")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							disableallimgui()
+							tosend = tostring(fastmenuID)
+							invite(tosend)
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_USER_MINUS..u8' Уволить из организации', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							imgui.SetScrollY(0)
+							windowtype.v = 3
+							uninvitebuf.v = ""
+							blacklistbuf.v = ""
+							uninvitebox.v = false
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_EXCHANGE_ALT..u8' Изменить должность', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							imgui.SetScrollY(0)
+							Ranks_select.v = 0
+							windowtype.v = 4
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_USER_SLASH..u8' Занести в чёрный список', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							imgui.SetScrollY(0)
+							windowtype.v = 5
+							blacklistbuff.v = ""
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_USER..u8' Убрать из чёрного списка', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							unblacklist(tostring(fastmenuID))
+							disableallimgui()
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_FROWN..u8' Выдать выговор сотруднику', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							imgui.SetScrollY(0)
+							fwarnbuff.v = ""
+							windowtype.v = 6
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_SMILE..u8' Снять выговор сотруднику', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							unfwarn(tostring(fastmenuID))
+							disableallimgui()
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_VOLUME_MUTE..u8' Выдать мут сотруднику', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							imgui.SetScrollY(0)
+							fmutebuff.v = ""
+							fmuteint.v = 0
+							windowtype.v = 7
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' Снять мут сотруднику', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 9 then
+							funmute(tostring(fastmenuID))
+							disableallimgui()
+						else
+							addsampmsg("Данная команда доступна с 9-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.Separator()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Проверка устава '..fa.ICON_FA_STAMP, imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 5 then
+							imgui.SetScrollY(0)
+							windowtype.v = 8
+						else
+							addsampmsg("Данное действие доступно с 5-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
+					if not inprocess then
+						if configuration.main_settings.myrankint >= 5 then
+							imgui.SetScrollY(0)
+							passvalue = false
+							mcvalue = false
+							passverdict = ""
+							mcverdict = ""
+							sobesetap.v = 0
+							sobesdecline_select.v = 0
+							windowtype.v = 9
+						else
+							addsampmsg("Данное действие доступно с 5-го ранга.")
+						end
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+			end
+
+			if windowtype.v == 1 then -- ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  
+				imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
+				imgui.SameLine()
+				imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
+				imgui.NewLine()
+				if ComboBox_select.v == 0 then
+					whichlic = "авто"
+				elseif ComboBox_select.v == 1 then
+					whichlic = "мото"
+				elseif ComboBox_select.v == 2 then
+					whichlic = "рыболовство"
+				elseif ComboBox_select.v == 3 then
+					whichlic = "плавание"
+				elseif ComboBox_select.v == 4 then
+					whichlic = "оружие"
+				elseif ComboBox_select.v == 5 then
+					whichlic = "охоту"
+				elseif ComboBox_select.v == 6 then
+					whichlic = "раскопки"
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Продать лицензию на '..u8(whichlic), imgui.ImVec2(285,30)) then
+					if not inprocess then
+						ComboBox_select.v = 0
+						selltowhostr = tostring(fastmenuID).." "..tostring(whichlic)
+						selllic(selltowhostr)
+						disableallimgui()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Лицензия на полёты', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						ComboBox_select.v = 0
+						selltowhostr = tostring(fastmenuID).." полёты"
+						selllic(selltowhostr)
+						disableallimgui()
+						else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 2 then -- EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
+				imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
+				imgui.InputText(u8"",expelbuff)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
+				if imgui.Button(u8'Выгнать '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(200,30)) then
+					if expelbuff.v == nil or expelbuff.v == "" then
+						addsampmsg("Введите причину expel!")
+					else
+						expel(tostring(fastmenuID.." "..u8:decode(expelbuff.v)))
+						disableallimgui()
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 3 then -- УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина увольнения:").x) / 2)
+				imgui.Text(u8"Причина увольнения:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
+				imgui.InputText(u8"", uninvitebuf)
+				if uninvitebox.v then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина ЧС:").x) / 2)
+					imgui.Text(u8"Причина ЧС:", imgui.ImVec2(75,30))
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
+					imgui.InputText(u8" ", blacklistbuf)
+				end
+				imgui.Checkbox(u8"Уволить с ЧС", uninvitebox)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Уволить '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(285,30)) then
+					if uninvitebuf.v == nil or uninvitebuf.v == '' then
+						addsampmsg("Введите причину увольнения!")
+					else
+						if uninvitebox.v then
+							if blacklistbuf.v == nil or blacklistbuf.v == '' then
+								addsampmsg("Введите причину занесения в ЧС!")
+							else
+								uninvite(fastmenuID.." 1")
+								disableallimgui()
+							end
+						else
+							uninvite(fastmenuID.." 0")
+							disableallimgui()
+						end
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 4 then -- ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  
+				imgui.PushItemWidth(270)
+				imgui.Combo(' ', Ranks_select, Ranks_arr, #Ranks_arr)
+				imgui.PopItemWidth()
+				imgui.NewLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 270) / 2)
+				if imgui.Button(u8'Изменить ранг этому сотруднику', imgui.ImVec2(270,40)) then
+					giverank(fastmenuID.." "..(Ranks_select.v+1))
+					disableallimgui()
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 5 then -- ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина занесения в ЧС:").x) / 2)
+				imgui.Text(u8"Причина занесения в ЧС:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
+				imgui.InputText(u8"", blacklistbuff)
+				imgui.NewLine()
+				if imgui.Button(u8'Занести в ЧС '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(270,30)) then
+					if blacklistbuff.v == nil or blacklistbuff.v == '' then
+						addsampmsg("Введите причину занесения в ЧС!")
+					else
+						blacklist(fastmenuID.." "..u8:decode(blacklistbuff.v))
+						disableallimgui()
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 6 then -- ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина выговора:").x) / 2)
+				imgui.Text(u8"Причина выговора:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
+				imgui.InputText(u8"", fwarnbuff)
+				imgui.NewLine()
+				if imgui.Button(u8'Выдать выговор '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(270,30)) then
+					if fwarnbuff.v == nil or fwarnbuff.v == '' then
+						addsampmsg("Введите причину выдачи выговора!")
+					else
+						fwarn(fastmenuID.." "..u8:decode(fwarnbuff.v))
+						disableallimgui()
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+			
+			if windowtype.v == 7 then -- ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина мута:").x) / 2)
+				imgui.Text(u8"Причина мута:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
+				imgui.InputText(u8"", fmutebuff)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Время мута:").x) / 2)
+				imgui.Text(u8"Время мута:", imgui.ImVec2(75,30))
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
+				imgui.InputInt(u8" ", fmuteint)
+				imgui.NewLine()
+				if imgui.Button(u8'Выдать мут '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(270,30)) then
+					if fmutebuff.v == nil or fmutebuff.v == '' then
+						addsampmsg("Введите причину выдачи мута!")
+						else
+						if fmuteint.v == nil or fmuteint.v == '' or fmuteint.v == 0 then
+							addsampmsg("Введите время мута!")
+						else
+							fmute(fastmenuID.." "..u8:decode(fmuteint.v).." "..u8:decode(fmutebuff.v))
+							disableallimgui()
+						end
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 8 then -- ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Рабочее время в будние дни', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: 09:00 - 19:00")
+						sampSendChat("Назовите пожалуйста время дневной смены в будние дни.")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Рабочее время в выходные дни', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: 10:00 - 18:00")
+						sampSendChat("Назовите пожалуйста время дневной смены в выходные дни.")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Кнопка вызова полиции без причины', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: выговор")
+						sampSendChat("Какое наказание получает человек за ложное нажатие кнопки вызова полиции?")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Использование транспорта', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: (3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт")
+						sampSendChat("С какой должности разрешено брать автомобили, мотоциклы и вертолёт?")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Должность для отпуска', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: (5+) Инструктор")
+						sampSendChat("Скажите пожалуйста, с какой должности разрешено брать отпуск?")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Время сна вне раздвелки', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: 5 минут максимально, за этим последует выговор.")
+						sampSendChat("Сколько времени разрешено спать вне раздевалки?")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Что такое субординация', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.")
+						sampSendChat("Что по вашему мнению означает слово 'Субординация'?")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Обращения к другим сотрудникам', imgui.ImVec2(285,30)) then
+					if not inprocess then
+						addsampmsg("Подсказка: по должности, по имени, 'Сэр', 'Коллега'.")
+						sampSendChat("Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?")
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.NewLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				if imgui.Button(u8'Одобрить', imgui.ImVec2(142.5,35)) then
+					if not inprocess then
+						sampSendChat("Поздравляю, "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ")..", вы сдали устав!")
+						disableallimgui()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SameLine()
+				if imgui.Button(u8'Отказать', imgui.ImVec2(142.5,35)) then
+					if not inprocess then
+						sampSendChat("Очень жаль, но вы не смогли сдать устав. Подучите и приходите в следующий раз.")
+						disableallimgui()
+					else
+						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					windowtype.v = 0
+				end
+			end
+
+			if windowtype.v == 9 then -- ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС
+				if sobesetap.v == 0 then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+							sobes1()
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 1 then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Попросить документы', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+							sobes2()
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 2 then
+					if mcvalue == false then
+						imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - не показана").x) / 2)
+						imgui.Text(u8"Мед.карта - не показана", imgui.ImVec2(75,30))
+					else
+						imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Мед.карта - показана ("..mcverdict..")").x) / 2)
+						imgui.Text(u8"Мед.карта - показана ("..mcverdict..")", imgui.ImVec2(75,30))
+					end
+					if passvalue == false then
+						imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - не показан").x) / 2)
+						imgui.Text(u8"Паспорт - не показан", imgui.ImVec2(75,30))
+					else
+						imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Паспорт - показан ("..passverdict..")").x) / 2)
+						imgui.Text(u8"Паспорт - показан ("..passverdict..")", imgui.ImVec2(75,30))
+					end
+					if mcvalue == true and mcverdict == (u8"в порядке") and passvalue == true and passverdict == (u8"в порядке") then
+						imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+						if imgui.Button(u8'Продолжить', imgui.ImVec2(285,30)) then
+							sobesaccept1()
+							sobesetap.v = sobesetap.v + 1
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							if mcvalue == true or passvalue == true then
+								if mcverdict == (u8"наркозависимость") then
+									sobesdecline("наркозависимость")
+									disableallimgui()
+								elseif mcverdict == (u8"не полностью здоровый") then
+									sobesdecline("не полностью здоровый")
+									disableallimgui()
+								elseif passverdict == (u8"меньше 3 лет в штате") then
+									sobesdecline("меньше 3 лет в штате")
+									disableallimgui()
+								elseif passverdict == (u8"не законопослушный") then
+									sobesdecline("не законопослушный")
+									disableallimgui()
+								elseif passverdict == (u8"игрок в организации") then
+									sobesdecline("игрок в организации")
+									disableallimgui()
+								elseif passverdict == (u8"был в деморгане") then
+									sobesdecline("был в деморгане")
+									disableallimgui()
+								else
+									lastsobesetap = sobesetap.v
+									sobesetap.v = 7
+								end
+							else
+								lastsobesetap = sobesetap.v
+								sobesetap.v = 7
+							end
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 3 then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Расскажите немного о себе.', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							if inprocess == true then
+								addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+							else
+								inprocess = true
+								sampSendChat("Расскажите немного о себе.")
+								sobesetap.v = sobesetap.v + 1
+								inprocess = false
+							end
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							lastsobesetap = sobesetap.v
+							sobesetap.v = 7
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 4 then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Почему выбрали именно нас?', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							if inprocess == true then
+								addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+							else
+								inprocess = true
+								sampSendChat("Почему вы выбрали именно нас?")
+								sobesetap.v = sobesetap.v + 1
+								inprocess = false
+							end
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							lastsobesetap = sobesetap.v
+							sobesetap.v = 7
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 5 then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8"Работали вы уже в организациях ЦА?", imgui.ImVec2(285,30)) then
+						if not inprocess then
+							if inprocess == true then
+								addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+							else
+								inprocess = true
+								sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
+								sampSendChat("/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк, Страховая]")
+								sobesetap.v = sobesetap.v + 1
+								inprocess = false
+							end
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							lastsobesetap = sobesetap.v
+							sobesetap.v = 7
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Пропустить этап', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = sobesetap.v + 1
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 6 then
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Одобрить', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesaccept2()
+							sobesetap.v = 0
+							disableallimgui()
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							lastsobesetap = sobesetap.v
+							sobesetap.v = 7
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				elseif sobesetap.v == 7 then
+					imgui.PushItemWidth(270)
+					imgui.Combo(" ",sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
+					imgui.PopItemWidth()
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+					if imgui.Button(u8'Отказать', imgui.ImVec2(285,30)) then
+						if not inprocess then
+							sobesetap.v = 0
+							if sobesdecline_select.v == 0 then
+								sobesdecline("проф. непригодность2")
+							elseif sobesdecline_select.v == 1 then
+								sobesdecline("проф. непригодность3")
+							elseif sobesdecline_select.v == 2 then
+								sobesdecline("проф. непригодность4")
+							elseif sobesdecline_select.v == 3 then
+								sobesdecline("проф. непригодность1")
+							elseif sobesdecline_select.v == 4 then
+								sobesdecline("проф. непригодность5")
+							end
+							disableallimgui()
+						else
+							addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
+						end
+					end
+				end
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
+				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
+					if sobesetap.v == 7 then
+						sobesetap.v = lastsobesetap
+					elseif sobesetap.v ~= 0 then
+						sobesetap.v = sobesetap.v - 1
+					else
+						windowtype.v = 0
+					end
+				end
+			end
+		else
+			disableallimgui()
+			addsampmsg("Игрок с к которым вы взаимодействовали вышел из игры.")
+		end	
+		imgui.End()
+	end
+
+	if imgui_binder.v == true then
+		imgui.SetNextWindowSize(imgui.ImVec2(650, 360), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		imgui.Begin(u8"Настройки биндера", imgui_binder, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar)
+			imgui.BeginChild("ChildWindow",imgui.ImVec2(175,270),false,imgui.WindowFlags.NoScrollbar)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - 160) / 2)
+				for key, value in pairs(configuration.BindsName) do
+					if value:find(configuration.BindsName[key]) then
+						imgui.SetCursorPosX((imgui.GetWindowWidth() - 160) / 2)
+						if imgui.Button(u8(configuration.BindsName[key]),imgui.ImVec2(160,30)) then
+							choosedslot = key
+							binderbuff.v = tostring(configuration.BindsAction[key]):gsub("~", "\n")
+							binderbuff.v = u8(binderbuff.v)
+							bindername.v = u8(configuration.BindsName[key])
+							bindertype.v = u8(configuration.BindsType[key])
+							bindercmd.v = u8(configuration.BindsCmd[key])
+							binderkeystatus = configuration.BindsKeys[key]
+							binderdelay.v = tostring(configuration.BindsDelay[key])
+						end
+					end
+				end
+			imgui.EndChild()
+			if choosedslot ~= nil and choosedslot <= configuration.binder_settings.totalslots then
+				imgui.SameLine()
+				imgui.BeginChild("ChildWindow2",imgui.ImVec2(435,200),false)
+				imgui.InputTextMultiline(u8"",binderbuff, imgui.ImVec2(435,200))
+				imgui.EndChild()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').y - 135) / 2)
+				imgui.Text(u8'Название бинда:'); imgui.SameLine()
+				imgui.PushItemWidth(150)
+				if choosedslot ~= 50 then
+					imgui.InputText("##bindername", bindername,imgui.InputTextFlags.ReadOnly)
+				else
+					imgui.InputText("##bindername", bindername)
+				end
+				imgui.PopItemWidth()
+				imgui.SameLine()
+				imgui.PushItemWidth(162)
+				imgui.Combo(" ",bindertype, u8"Использовать команду\0Использовать клавиши\0\0", 2)
+				imgui.PopItemWidth()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Задержка между строками (ms):').y - 70) / 2)
+				imgui.Text(u8'Задержка между строками (ms):'); imgui.SameLine()
+				imgui.PushItemWidth(58)
+				imgui.InputText("##binderdelay", binderdelay, imgui.InputTextFlags.CharsDecimal)
+				imgui.PopItemWidth()
+				imgui.SameLine()
+				if bindertype.v == 0 then
+					imgui.Text("/")
+					imgui.SameLine()
+					imgui.PushItemWidth(147)
+					imgui.InputText("##bindercmd",bindercmd,imgui.InputTextFlags.CharsNoBlank)
+					imgui.PopItemWidth()
+				elseif bindertype.v == 1 then
+					if binderkeystatus == nil or binderkeystatus == "" then
+						binderkeystatus = u8"Нажмите чтобы поменять"
+					end
+					if imgui.Button(binderkeystatus) then
+						if binderkeystatus == u8"Нажмите чтобы поменять" then
+							table.remove(emptykey1)
+							table.remove(emptykey2)
+							binderkeystatus = u8"Нажмите любую клавишу"
+							setbinderkey = true
+							getbindkeys()
+						elseif binderkeystatus == u8"Нажмите любую клавишу" then
+							setbinderkey = false
+							binderkeystatus = u8"Нажмите чтобы поменять"
+						elseif string.find(binderkeystatus, u8"Применить") then
+							setbinderkey = false
+							binderkeystatus = string.match(binderkeystatus,u8"Применить (.+)")
+						else
+							table.remove(emptykey1)
+							table.remove(emptykey2)
+							binderkeystatus = u8"Нажмите любую клавишу"
+							keyname = nil
+							keyname2 = nil
+							setbinderkey = true
+							getbindkeys()
+						end
+					end
+				end
+				imgui.NewLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() + 429) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
+				local kei
+				doreplace = false
+				if imgui.Button(u8"Сохранить",imgui.ImVec2(100,30)) then
+					if not inprocess then
+						if binderbuff.v ~= "" and bindername.v ~= "" and binderdelay.v ~= "" and bindertype.v ~= nil then
+							bindername.v = u8:decode(bindername.v):gsub("-"," ")
+							if bindertype.v == 0 then
+								if bindercmd.v ~= "" and bindercmd.v ~= nil then
+									for key, value in pairs(configuration.BindsName) do
+									value = tostring(value)
+										if u8:decode(bindername.v) == configuration.BindsName[key] then
+											doreplace = true
+											kei = key
+										end
+									end
+									if doreplace == true then
+										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
+										configuration.BindsName[kei] = u8:decode(bindername.v)
+										configuration.BindsAction[kei] = refresh_text
+										configuration.BindsDelay[kei] = u8:decode(binderdelay.v)
+										configuration.BindsType[kei]= u8:decode(bindertype.v)
+										configuration.BindsCmd[kei] = u8:decode(bindercmd.v)
+										configuration.BindsKeys[kei] = ""
+										if inicfg.save(configuration, "AS Helper") then
+											addsampmsg("Бинд успешно сохранён!")
+											setbinderkey = false
+											keyname = nil
+											keyname2 = nil
+											table.remove(emptykey1)
+											table.remove(emptykey2)
+											bindercmd.v = ""
+											binderbuff.v = ""
+											bindername.v = ""
+											bindertype.v = 0
+											binderdelay.v = ""
+											bindercmd.v = ""
+											binderkeystatus = nil
+											choosedslot = nil
+										end
+									else
+										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
+										table.insert(configuration.BindsName, u8:decode(bindername.v))
+										table.insert(configuration.BindsAction, refresh_text)
+										table.insert(configuration.BindsDelay, u8:decode(binderdelay.v))
+										table.insert(configuration.BindsType, u8:decode(bindertype.v))
+										table.insert(configuration.BindsCmd, u8:decode(bindercmd.v))
+										table.insert(configuration.BindsKeys, "")
+										if inicfg.save(configuration, "AS Helper") then
+											addsampmsg("Бинд успешно создан!")
+											setbinderkey = false
+											keyname = nil
+											keyname2 = nil
+											table.remove(emptykey1)
+											table.remove(emptykey2)
+											bindercmd.v = ""
+											binderbuff.v = ""
+											bindername.v = ""
+											bindertype.v = 0
+											binderdelay.v = ""
+											bindercmd.v = ""
+											binderkeystatus = nil
+											choosedslot = nil
+										end
+									end
+								else
+									addsampmsg("Какой-то из параметров не введён, перепроверьте всё!")
+								end
+							elseif bindertype.v == 1 then
+								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "Нажмите чтобы поменять" and not string.find((u8:decode(binderkeystatus)), "Применить ") and (u8:decode(binderkeystatus)) ~= "Нажмите любую клавишу" then
+									for key, value in pairs(configuration.BindsName) do
+										if u8:decode(bindername.v) == configuration.BindsName[key] then
+											doreplace = true
+											kei = key
+										end
+									end
+									if doreplace == true then
+										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
+										configuration.BindsName[kei] = u8:decode(bindername.v)
+										configuration.BindsAction[kei] = refresh_text
+										configuration.BindsDelay[kei] = u8:decode(binderdelay.v)
+										configuration.BindsType[kei]= u8:decode(bindertype.v)
+										configuration.BindsCmd[kei] = ""
+										configuration.BindsKeys[kei] = u8(binderkeystatus)
+										if inicfg.save(configuration, "AS Helper") then
+											addsampmsg("Бинд успешно сохранён!")
+											setbinderkey = false
+											keyname = nil
+											keyname2 = nil
+											table.remove(emptykey1)
+											table.remove(emptykey2)
+											bindercmd.v = ""
+											binderbuff.v = ""
+											bindername.v = ""
+											bindertype.v = 0
+											binderdelay.v = ""
+											bindercmd.v = ""
+											binderkeystatus = nil
+											choosedslot = nil
+										end
+									else
+										refresh_text = u8:decode(binderbuff.v):gsub("\n", "~")
+										table.insert(configuration.BindsName, u8:decode(bindername.v))
+										table.insert(configuration.BindsAction, refresh_text)
+										table.insert(configuration.BindsDelay, u8:decode(binderdelay.v))
+										table.insert(configuration.BindsType, u8:decode(bindertype.v))
+										table.insert(configuration.BindsKeys, u8(binderkeystatus))
+										table.insert(configuration.BindsCmd, "")
+										if inicfg.save(configuration, "AS Helper") then
+											addsampmsg("Бинд успешно создан!")
+											setbinderkey = false
+											keyname = nil
+											keyname2 = nil
+											table.remove(emptykey1)
+											table.remove(emptykey2)
+											bindercmd.v = ""
+											binderbuff.v = ""
+											bindername.v = ""
+											bindertype.v = 0
+											binderdelay.v = ""
+											bindercmd.v = ""
+											binderkeystatus = nil
+											choosedslot = nil
+										end
+									end
+								else
+									addsampmsg("Вы неправильно указали клавишу бинда!")
+								end
+							end
+						else
+							addsampmsg("Какой-то из параметров не введён, перепроверьте всё!")
+						end
+						updatechatcommands()
+					else
+						addsampmsg("Вы не можете взаимодействовать с биндером во время любой отыгровки!")
+					end	
+				end
+				imgui.SameLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 247) / 2)
+				if imgui.Button(u8"Отменить",imgui.ImVec2(100,30)) then
+					setbinderkey = false
+					keyname = nil
+					keyname2 = nil
+					table.remove(emptykey1)
+					table.remove(emptykey2)
+					bindercmd.v = ""
+					binderbuff.v = ""
+					bindername.v = ""
+					bindertype.v = 0
+					binderdelay.v = ""
+					bindercmd.v = ""
+					binderkeystatus = nil
+					updatechatcommands()
+					choosedslot = nil
+				end
+			end
+			imgui.NewLine()
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - 621) / 2)
+			imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
+			if imgui.Button(u8"Добавить",imgui.ImVec2(82,30)) then
+				choosedslot = 50
+				binderbuff.v = ''
+				bindername.v = ''
+				bindertype.v = 0
+				bindercmd.v = ''
+				binderkeystatus = nil
+				binderdelay.v = ''
+				updatechatcommands()
+			end
+			imgui.SameLine()
+			if choosedslot ~= nil and choosedslot ~= 50 then
+				if imgui.Button(u8"Удалить",imgui.ImVec2(82,30)) then
+					if not inprocess then
+						for key, value in pairs(configuration.BindsName) do
+							value = tostring(value)
+							if u8:decode(bindername.v) == tostring(configuration.BindsName[key]) then
+								table.remove(configuration.BindsName,key)
+								table.remove(configuration.BindsKeys,key)
+								table.remove(configuration.BindsAction,key)
+								table.remove(configuration.BindsCmd,key)
+								table.remove(configuration.BindsDelay,key)
+								table.remove(configuration.BindsType,key)
+								if inicfg.save(configuration,"AS Helper") then
+									setbinderkey = false
+									keyname = nil
+									keyname2 = nil
+									table.remove(emptykey1)
+									table.remove(emptykey2)
+									bindercmd.v = ""
+									binderbuff.v = ""
+									bindername.v = ""
+									bindertype.v = 0
+									binderdelay.v = ""
+									bindercmd.v = ""
+									binderkeystatus = nil
+									choosedslot = nil
+									addsampmsg("Бинд успешно удалён!")
+								end
+							end
+						end
+					updatechatcommands()
+					else
+						addsampmsg("Вы не можете удалять бинд во время любой отыгровки!")
+					end
+				end
+			else
+				local r, g, b, a = imgui.ImColor(imgui.GetStyle().Colors[imgui.Col.Button]):GetFloat4()
+				imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(r, g, b, a/2) )
+				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(r, g, b, a/2))
+				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(r, g, b, a/2))
+				imgui.PushStyleColor(imgui.Col.Text, imgui.GetStyle().Colors[imgui.Col.TextDisabled])
+				imgui.Button(u8"Удалить",imgui.ImVec2(82,30))
+				imgui.PopStyleColor()
+				imgui.PopStyleColor()
+				imgui.PopStyleColor()
+				imgui.PopStyleColor()
+			end
+		imgui.End()
+	end
+	
+	if imgui_cmds.v == true then
+		imgui.SetNextWindowSize(imgui.ImVec2(310, 150), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(1.5, 0.5))
+		imgui.Begin(u8"Команды хелпера", imgui_cmds, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoMove)
+		imgui.Text("/"..cmdhelp..u8" - открыть меню настроек хелпера")
+		imgui.Text("/"..cmdbind..u8" - открыть меню настроек биндера")
+		imgui.Text("/"..cmdcmds..u8" - открыть меню команд хелпера")
+		imgui.Text("/"..cmdupdate..u8" - команда для обновление ранга")
+		imgui.Text("/"..cmdstats..u8" - команда для просмотра статистики")
+		imgui.End()
+	end
+
+	if imgui_stats.v == true then
+		imgui.SetNextWindowSize(imgui.ImVec2(150, 195), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(-1.05, 0.5))
+		imgui.Begin(u8"Ваша статистика", imgui_stats, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoMove)
+		imgui.Text(u8"Авто - "..configuration.my_stats.avto)
+		imgui.Text(u8"Мото - "..configuration.my_stats.moto)
+		imgui.Text(u8"Рыболовство - "..configuration.my_stats.riba)
+		imgui.Text(u8"Плавание - "..configuration.my_stats.lodka)
+		imgui.Text(u8"Оружие - "..configuration.my_stats.guns)
+		imgui.Text(u8"Охота - "..configuration.my_stats.hunt)
+		imgui.Text(u8"Раскопки - "..configuration.my_stats.klad)
+		imgui.End()
+	end
+end
+
 function checkbibl()
 	if not facheck then
 		addsampmsg("Отсутствует библиотека fAwesome5. Пытаюсь её установить.")
@@ -2685,33 +2785,4 @@ function checkbibl()
 		wait(-1)
 	end
 	return true
-end
-
-function onWindowMessage(msg, wparam, lparam)
-    if wparam == 0x1B then
-    	if imgui_settings.v or imgui_fm.v or imgui_cmds.v then
-        	consumeWindowMessage(true, false)
-        end
-	elseif getbindkey then
-		if msg == 0x100 or msg == 0x104 then
-			if not log[1] then
-				table.insert(log, 1, wparam)
-			end
-		end
-	elseif setbinderkey then
-		if msg == 0x100 or msg == 0x104 then
-			if not emptykey1[1] then
-				table.insert(emptykey1, 1, wparam)
-			elseif not emptykey2[1] and wparam ~= emptykey1[1] then
-				table.insert(emptykey2, 1, wparam)
-			end
-		end
-	end
-end
-
-function disableallimgui()
-	imgui_settings.v = false
-	imgui_fm.v = false
-	mcvalue = true
-	passvalue = true
 end
