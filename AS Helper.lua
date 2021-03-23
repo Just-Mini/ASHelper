@@ -60,7 +60,7 @@ local cd = 2000
 local cansell = false
 local inprocess = false
 local devmaxrankp = false
-local scriptvernumb = 12
+local scriptvernumb = 13
 
 local u8 = encoding.UTF8
 encoding.default = 'CP1251'
@@ -1611,8 +1611,8 @@ function imgui.OnDrawFrame()
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8"Меню быстрого доступа", imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus)
 		if sampIsPlayerConnected(fastmenuID) then
-			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Вы выбрали ид: "..fastmenuID).x) / 2)
-			imgui.Text(u8"Вы выбрали ID: "..fastmenuID, imgui.ImVec2(75,30))
+			imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Ник игрока: "..sampGetPlayerNickname(fastmenuID).."["..fastmenuID.."]").x) / 2)
+			imgui.Text(u8"Ник игрока: "..sampGetPlayerNickname(fastmenuID).."["..fastmenuID.."]", imgui.ImVec2(75,30))
 			imgui.Separator()
 			if windowtype.v == 0 then -- ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  ГЛАВНОЕ МЕНЮ  
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -1819,9 +1819,8 @@ function imgui.OnDrawFrame()
 						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
 				end
-			end
 
-			if windowtype.v == 1 then -- ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  
+			elseif windowtype.v == 1 then -- ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  ПРОДАТЬ ЛИЦ  
 				imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
 				imgui.SameLine()
 				imgui.Combo(' ', ComboBox_select, ComboBox_arr, #ComboBox_arr)
@@ -1868,9 +1867,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 2 then -- EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  
+			elseif windowtype.v == 2 then -- EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  EXPEL  
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина expel:").x) / 2)
 				imgui.Text(u8"Причина expel:", imgui.ImVec2(75,30))
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -1889,9 +1887,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 3 then -- УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  
+			elseif windowtype.v == 3 then -- УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  УВОЛИТЬ  
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина увольнения:").x) / 2)
 				imgui.Text(u8"Причина увольнения:", imgui.ImVec2(75,30))
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -1926,9 +1923,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 4 then -- ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  
+			elseif windowtype.v == 4 then -- ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  ДАТЬ РАНГ  
 				imgui.PushItemWidth(270)
 				imgui.Combo(' ', Ranks_select, Ranks_arr, #Ranks_arr)
 				imgui.PopItemWidth()
@@ -1943,9 +1939,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 5 then -- ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  
+			elseif windowtype.v == 5 then -- ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  ДАТЬ ЧС  
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина занесения в ЧС:").x) / 2)
 				imgui.Text(u8"Причина занесения в ЧС:", imgui.ImVec2(75,30))
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -1964,9 +1959,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 6 then -- ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР
+			elseif windowtype.v == 6 then -- ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР  ВЫГОВОР
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина выговора:").x) / 2)
 				imgui.Text(u8"Причина выговора:", imgui.ImVec2(75,30))
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -1985,9 +1979,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 			
-			if windowtype.v == 7 then -- ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  
+			elseif windowtype.v == 7 then -- ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  ВЫДАТЬ МУТ  
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"Причина мута:").x) / 2)
 				imgui.Text(u8"Причина мута:", imgui.ImVec2(75,30))
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
@@ -2014,14 +2007,13 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 8 then -- ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  
+			elseif windowtype.v == 8 then -- ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  ПРОВЕРИТЬ УСТАВ  
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Рабочее время в будние дни', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						addsampmsg("Подсказка: 09:00 - 19:00")
-						sampSendChat("Назовите пожалуйста время дневной смены в будние дни.")
+						sampSendChat("Назовите время дневной смены в будние дни.")
 					else
 						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
@@ -2030,7 +2022,7 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Рабочее время в выходные дни', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						addsampmsg("Подсказка: 10:00 - 18:00")
-						sampSendChat("Назовите пожалуйста время дневной смены в выходные дни.")
+						sampSendChat("Назовите время дневной смены в выходные дни.")
 					else
 						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
@@ -2057,7 +2049,7 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Должность для отпуска', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						addsampmsg("Подсказка: (5+) Инструктор")
-						sampSendChat("Скажите пожалуйста, с какой должности разрешено брать отпуск?")
+						sampSendChat("Скажите, с какой должности разрешено брать отпуск?")
 					else
 						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
@@ -2066,7 +2058,7 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Время сна вне раздвелки', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						addsampmsg("Подсказка: 5 минут максимально, за этим последует выговор.")
-						sampSendChat("Сколько времени разрешено спать вне раздевалки?")
+						sampSendChat("Максимально допустимое время сна вне раздевалки?")
 					else
 						addsampmsg("Не торопитесь, вы уже отыгрываете что-то!")
 					end
@@ -2113,9 +2105,8 @@ function imgui.OnDrawFrame()
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype.v = 0
 				end
-			end
 
-			if windowtype.v == 9 then -- ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС
+			elseif windowtype.v == 9 then -- ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС  ПРОВЕСТИ СОБЕС
 				if sobesetap.v == 0 then
 					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 					if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
@@ -2291,7 +2282,7 @@ function imgui.OnDrawFrame()
 							else
 								inprocess = true
 								sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
-								sampSendChat("/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк, Страховая]")
+								sampSendChat("/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк]")
 								sobesetap.v = sobesetap.v + 1
 								inprocess = false
 							end
