@@ -62,7 +62,7 @@ local cansell 				= false
 local inprocess 			= false
 local devmaxrankp			= false
 local NoErrors				= false
-local scriptvernumb 		= 15
+local scriptvernumb 		= 16
 
 if imguicheck and encodingcheck then
 	u8 						= encoding.UTF8
@@ -179,7 +179,7 @@ if imguicheck and encodingcheck then
 	colors[clr.CheckMark] = ImVec4(1.00, 0.42, 0.00, 0.53)
 	colors[clr.SliderGrab] = ImVec4(1.00, 0.42, 0.00, 0.53)
 	colors[clr.SliderGrabActive] = ImVec4(1.00, 0.42, 0.00, 1.00)
-	colors[clr.Button] = ImVec4(0.13, 0.12, 0.15, 0.65)
+	colors[clr.Button] = ImVec4(0.15, 0.14, 0.21, 0.60)
 	colors[clr.ButtonHovered] = ImVec4(0.24, 0.23, 0.29, 1.00)
 	colors[clr.ButtonActive] = ImVec4(0.56, 0.56, 0.58, 1.00)
 	colors[clr.Header] = ImVec4(0.10, 0.09, 0.12, 1.00)
@@ -458,7 +458,7 @@ function hello()
 				local result,myid = sampGetPlayerIdByCharHandle(playerPed)
 				name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
 			else
-				local name = u8:decode(myname.v)
+				name = u8:decode(myname.v)
 				if name == '' or name == nil then
 					ASHelperMessage('Введите своё имя в /'..cmdhelp..' ')
 					local result,myid = sampGetPlayerIdByCharHandle(playerPed)
@@ -3092,6 +3092,7 @@ function checkbibl()
 	if doupdate then
 		downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua', thisScript().path,function(id3, status1)
 			if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
+				NoErrors = true
 				ASHelperMessage("Обновление успешно установлено.")
 			end
 		end)
