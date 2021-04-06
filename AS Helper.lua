@@ -68,7 +68,7 @@ local cansell 				= false
 local inprocess 			= false
 local devmaxrankp			= false
 local NoErrors				= false
-local scriptvernumb 		= 16
+local scriptvernumb 		= 17
 
 if imguicheck and encodingcheck then
 	u8 						= encoding.UTF8
