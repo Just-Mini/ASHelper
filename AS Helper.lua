@@ -66,7 +66,6 @@ local cmdstats 				= "ashstats"
 
 local cd 					= 2000
 
-local log = {}
 local emptykey1 = {}
 local emptykey2 = {}
 
@@ -1707,8 +1706,7 @@ if imguicheck and encodingcheck then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 160) / 2)
 				if imgui.Button(u8(configuration.BindsName[key]),imgui.ImVec2(160,30)) then
 					choosedslot = key
-					binderbuff.v = tostring(configuration.BindsAction[key]):gsub("~", "\n")
-					binderbuff.v = u8(binderbuff.v)
+					binderbuff.v = u8(configuration.BindsAction[key]):gsub("~", "\n")
 					bindername.v = u8(configuration.BindsName[key])
 					bindertype.v = u8(configuration.BindsType[key])
 					bindercmd.v = u8(configuration.BindsCmd[key])
@@ -2185,7 +2183,6 @@ if imguicheck and encodingcheck then
 			elseif settingswindow.v == 3 then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 				if imgui.Button(u8'Изменить кнопку быстрого меню', imgui.ImVec2(230,40)) then
-					table.remove(log)
 					getbindkey = true
 					configuration.main_settings.usefastmenu = ""
 					if inicfg.save(configuration,"AS Helper") then
@@ -2198,7 +2195,6 @@ if imguicheck and encodingcheck then
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 				if imgui.Button(u8'Изменить кнопку быстрого скрина', imgui.ImVec2(230,40)) then
-					table.remove(log)
 					getscreenkey = true
 					configuration.main_settings.fastscreen = ""
 					if inicfg.save(configuration,"AS Helper") then
@@ -2498,38 +2494,47 @@ function main()
 				imgui.ShowCursor = false
 			end
 		else
+			imgui.ShowCursor = false
 			imgui.Process = false
 		end
 		for key, value in pairs(configuration.BindsName) do
-			if tostring(value) == (configuration.BindsName[key]) then
+			if tostring(value) == tostring(configuration.BindsName[key]) then
 				if configuration.BindsKeys[key] ~= "" then
 					if configuration.BindsKeys[key]:match("(.+) %p (.+)") then
 						local fkey = configuration.BindsKeys[key]:match("(.+) %p")
 						local skey = configuration.BindsKeys[key]:match("%p (.+)")
 						if isKeyDown(vkeys.name_to_id(fkey,true)) and wasKeyPressed(vkeys.name_to_id(skey,true)) then
-							if not inprocess then
-								inprocess = true
-								for bp in configuration.BindsAction[key]:gmatch('[^~]+') do
-									sampSendChat(tostring(bp))
-									wait(configuration.BindsDelay[key])
+							if not imgui.Process then
+								if not inprocess then
+									inprocess = true
+									for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
+										sampSendChat(tostring(bp))
+										wait(configuration.BindsDelay[key])
+									end
+									inprocess = false
+								else
+									ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
 								end
-								inprocess = false
 							else
-								ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+								ASHelperMessage("Закройте все окна для активации бинда.")
 							end
 						end
 					elseif configuration.BindsKeys[key]:match("(.+)") then
 						local fkey = configuration.BindsKeys[key]:match("(.+)")
 						if wasKeyPressed(vkeys.name_to_id(fkey,true)) then
-							if not inprocess then
-								inprocess = true
-								for bp in configuration.BindsAction[key]:gmatch('[^~]+') do
-									sampSendChat(tostring(bp))
-									wait(configuration.BindsDelay[key])
+							if not imgui.Process then
+								if not inprocess then
+									inprocess = true
+									for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
+										sampSendChat(tostring(bp))
+										wait(configuration.BindsDelay[key])
+									end
+									inprocess = false
+								else
+									ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
 								end
-								inprocess = false
 							else
-								ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+								ASHelperMessage("Закройте все окна для активации бинда.")
 							end
 						end
 					end
@@ -3192,13 +3197,13 @@ end
 
 function updatechatcommands()
 	for key, value in pairs(configuration.BindsName) do
-		if tostring(value) == configuration.BindsName[key] then
+		if tostring(value) == tostring(configuration.BindsName[key]) then
 			if configuration.BindsCmd[key] ~= "" then
 				sampUnregisterChatCommand(configuration.BindsCmd[key])
 				sampRegisterChatCommand(configuration.BindsCmd[key], function()
 					lua_thread.create(function()
 						if not inprocess then
-							for bp in configuration.BindsAction[key]:gmatch('[^~]+') do
+							for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
 								inprocess = true
 								sampSendChat(tostring(bp))
 								wait(configuration.BindsDelay[key])
