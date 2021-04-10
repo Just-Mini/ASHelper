@@ -534,7 +534,7 @@ if imguicheck and encodingcheck then
 
 	function changelog()
 		if imgui.BeginPopupModal(u8("Список изменений"), nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
-			imgui.CenterTextColoredRGB("Версия скрипта: 2.0")
+			imgui.CenterTextColoredRGB("Версия скрипта: 2.0b")
 			imgui.BeginChild("##ChangeLog", imgui.ImVec2(700, 330), false)
 			imgui.InputTextMultiline("Read",imgui.ImBuffer(u8([[
 Версия 2.0
@@ -947,7 +947,36 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 1 then
 							disableallimgui()
-							hello()
+							lua_thread.create(function()
+								getmyrank = true
+								sampSendChat("/stats")
+								local hour = tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60))
+								if configuration.main_settings.useservername then
+									local result,myid = sampGetPlayerIdByCharHandle(playerPed)
+									name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
+								else
+									name = u8:decode(myname.v)
+									if name == '' or name == nil then
+										ASHelperMessage('Введите своё имя в /'..cmdhelp..' ')
+										local result,myid = sampGetPlayerIdByCharHandle(playerPed)
+										name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
+									end
+								end
+								local rang = configuration.main_settings.myrank
+								inprocess = true
+								if hour > 4 and hour < 13 then
+									sampSendChat("Доброе утро, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+								elseif hour > 12 and hour < 17 then
+									sampSendChat("Добрый день, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+								elseif hour > 16 and hour < 24 then
+									sampSendChat("Добрый вечер, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+								elseif hour < 5 then
+									sampSendChat("Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+								end
+								wait(cd)
+								sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name..".")
+								inprocess = false
+							end)
 						else
 							ASHelperMessage("Данная команда доступна с 1-го ранга.")
 						end
@@ -960,7 +989,29 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 1  then
 							disableallimgui()
-							pricelist()
+							lua_thread.create(function()
+								inprocess = true
+								sampSendChat('/do В кармане брюк лежит прайс лист на лицензии.')
+								wait(cd)
+								sampSendChat('/me {gender:достал|достала} прайс лист из кармана брюк и передал его клиенту')
+								wait(cd)
+								sampSendChat('/do В прайс листе написано:')
+								wait(cd)
+								sampSendChat('/do Лицензия на вождение автомобилей - '..separator(tostring(configuration.main_settings.avtoprice)..'$.'))
+								wait(cd)
+								sampSendChat('/do Лицензия на вождение мотоциклов - '..separator(tostring(configuration.main_settings.motoprice)..'$.'))
+								wait(cd)
+								sampSendChat('/do Лицензия на рыболовство - '..separator(tostring(configuration.main_settings.ribaprice)..'$.'))
+								wait(cd)
+								sampSendChat('/do Лицензия на водный транспорт - '..separator(tostring(configuration.main_settings.lodkaprice)..'$.'))
+								wait(cd)
+								sampSendChat('/do Лицензия на оружие - '..separator(tostring(configuration.main_settings.gunaprice)..'$.'))
+								wait(cd)
+								sampSendChat('/do Лицензия на охоту - '..separator(tostring(configuration.main_settings.huntprice)..'$.'))
+								wait(cd)
+								sampSendChat('/do Лицензия на раскопки - '..separator(tostring(configuration.main_settings.kladprice)..'$.'))
+								inprocess = false
+							end)
 						else
 							ASHelperMessage("Данная команда доступна с 1-го ранга.")
 						end
@@ -1487,8 +1538,22 @@ if imguicheck and encodingcheck then
 				end
 				if mcvalue and mcverdict == ("в порядке") and passvalue and passverdict == ("в порядке") then
 					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-					if imgui.Button(u8'Продолжить >', imgui.ImVec2(285,30)) then
-						sobesaccept1()
+					if imgui.Button(u8'Продолжить '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
+						if not inprocess then
+							lua_thread.create(function()
+								inprocess = true
+								wait(50)
+								sobesetap.v = 2
+								sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
+								wait(cd)
+								sampSendChat("/todo Хорошо...* отдавая документы обратно")
+								wait(cd)
+								sampSendChat("Сейчас я задам вам несколько вопросов, вы готовы на них отвечать?")
+								inprocess = false
+							end)
+						else
+							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						end
 					end
 				end
 			end
@@ -1530,15 +1595,40 @@ if imguicheck and encodingcheck then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						sobes1()
+						lua_thread.create(function()
+							inprocess = true
+							if configuration.main_settings.useservername then
+								local result,myid = sampGetPlayerIdByCharHandle(playerPed)
+								name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
+							else
+								name = u8:decode(configuration.main_settings.myname)
+								if name == '' or name == nil then
+									ASHelperMessage('Введите своё имя в /'..cmdhelp..' ')
+									local result,myid = sampGetPlayerIdByCharHandle(playerPed)
+									name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
+								end
+							end
+							local rang = configuration.main_settings.myrank
+							sampSendChat("Здравствуйте, вы на собеседование?")
+							wait(cd)
+							sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
+							inprocess = false
+						end)
 					else
 						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Попросить документы >', imgui.ImVec2(285,30)) then
+				if imgui.Button(u8'Попросить документы '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 					if not inprocess then
-						sobes2()
+						lua_thread.create(function()
+							inprocess = true
+							sampSendChat("Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту")
+							sampSendChat("/n ОБЯЗАТЕЛЬНО по рп!")
+							wait(50)
+							sobesetap.v = 1
+							inprocess = false
+						end)
 					else
 						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
 					end
@@ -1577,7 +1667,7 @@ if imguicheck and encodingcheck then
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8"Работали вы уже в организациях ЦА? >", imgui.ImVec2(285,30)) then
+				if imgui.Button(u8"Работали вы уже в организациях ЦА? "..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 					if not inprocess then
 						if inprocess then
 							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
@@ -1605,7 +1695,22 @@ if imguicheck and encodingcheck then
 				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.00, 0.30, 0.00, 1.00))
 				if imgui.Button(u8'Принять', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						sobesaccept2()
+						lua_thread.create(function()
+							inprocess = true
+							if configuration.main_settings.myrankint >= 9 then
+								sampSendChat("Отлично, я думаю вы нам подходите!")
+								wait(cd)
+								inprocess = false
+								invite(tostring(fastmenuID))
+							else
+								sampSendChat("Отлично, я думаю вы нам подходите!")
+								wait(cd)
+								sampSendChat("/r "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ").." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
+								wait(cd)
+								sampSendChat("/rb "..fastmenuID.." id")
+							end
+							inprocess = false
+						end)
 						sobesetap.v = 0
 						disableallimgui()
 					else
@@ -1710,8 +1815,8 @@ if imguicheck and encodingcheck then
 					bindername.v = u8(configuration.BindsName[key])
 					bindertype.v = u8(configuration.BindsType[key])
 					bindercmd.v = u8(configuration.BindsCmd[key])
-					binderkeystatus = configuration.BindsKeys[key]
-					binderdelay.v = tostring(configuration.BindsDelay[key])
+					binderkeystatus = u8(configuration.BindsKeys[key])
+					binderdelay.v = u8(configuration.BindsDelay[key])
 				end
 			end
 			imgui.EndChild()
@@ -2500,9 +2605,9 @@ function main()
 		for key, value in pairs(configuration.BindsName) do
 			if tostring(value) == tostring(configuration.BindsName[key]) then
 				if configuration.BindsKeys[key] ~= "" then
-					if configuration.BindsKeys[key]:match("(.+) %p (.+)") then
-						local fkey = configuration.BindsKeys[key]:match("(.+) %p")
-						local skey = configuration.BindsKeys[key]:match("%p (.+)")
+					if tostring(configuration.BindsKeys[key]):match("(.+) %p (.+)") then
+						local fkey = tostring(configuration.BindsKeys[key]):match("(.+) %p")
+						local skey = tostring(configuration.BindsKeys[key]):match("%p (.+)")
 						if isKeyDown(vkeys.name_to_id(fkey,true)) and wasKeyPressed(vkeys.name_to_id(skey,true)) then
 							if not imgui.Process then
 								if not inprocess then
@@ -2519,8 +2624,8 @@ function main()
 								ASHelperMessage("Закройте все окна для активации бинда.")
 							end
 						end
-					elseif configuration.BindsKeys[key]:match("(.+)") then
-						local fkey = configuration.BindsKeys[key]:match("(.+)")
+					elseif tostring(configuration.BindsKeys[key]):match("(.+)") then
+						local fkey = tostring(configuration.BindsKeys[key]):match("(.+)")
 						if wasKeyPressed(vkeys.name_to_id(fkey,true)) then
 							if not imgui.Process then
 								if not inprocess then
@@ -2570,71 +2675,8 @@ function checkmystats()
 	imgui_stats.v = not imgui_stats.v
 end
 
-function hello()
-	lua_thread.create(function()
-		if inprocess ~= true then
-			getmyrank = true
-			sampSendChat("/stats")
-			local hour = tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60))
-			if configuration.main_settings.useservername then
-				local result,myid = sampGetPlayerIdByCharHandle(playerPed)
-				name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
-			else
-				name = u8:decode(myname.v)
-				if name == '' or name == nil then
-					ASHelperMessage('Введите своё имя в /'..cmdhelp..' ')
-					local result,myid = sampGetPlayerIdByCharHandle(playerPed)
-					name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
-				end
-			end
-			local rang = configuration.main_settings.myrank
-			inprocess = true
-			if hour > 4 and hour < 13 then
-				sampSendChat("Доброе утро, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
-			elseif hour > 12 and hour < 17 then
-				sampSendChat("Добрый день, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
-			elseif hour > 16 and hour < 24 then
-				sampSendChat("Добрый вечер, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
-			elseif hour < 5 then
-				sampSendChat("Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
-			end
-			wait(cd)
-			sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name..".")
-			inprocess = false
-		else
-			ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-		end
-	end)
-end
-
 function pricelist()
-	lua_thread.create(function()
-		if inprocess ~= true then
-			inprocess = true
-			sampSendChat('/do В кармане брюк лежит прайс лист на лицензии.')
-			wait(cd)
-			sampSendChat('/me {gender:достал|достала} прайс лист из кармана брюк и передал его клиенту')
-			wait(cd)
-			sampSendChat('/do В прайс листе написано:')
-			wait(cd)
-			sampSendChat('/do Лицензия на вождение автомобилей - '..separator(tostring(configuration.main_settings.avtoprice)..'$.'))
-			wait(cd)
-			sampSendChat('/do Лицензия на вождение мотоциклов - '..separator(tostring(configuration.main_settings.motoprice)..'$.'))
-			wait(cd)
-			sampSendChat('/do Лицензия на рыболовство - '..separator(tostring(configuration.main_settings.ribaprice)..'$.'))
-			wait(cd)
-			sampSendChat('/do Лицензия на водный транспорт - '..separator(tostring(configuration.main_settings.lodkaprice)..'$.'))
-			wait(cd)
-			sampSendChat('/do Лицензия на оружие - '..separator(tostring(configuration.main_settings.gunaprice)..'$.'))
-			wait(cd)
-			sampSendChat('/do Лицензия на охоту - '..separator(tostring(configuration.main_settings.huntprice)..'$.'))
-			wait(cd)
-			sampSendChat('/do Лицензия на раскопки - '..separator(tostring(configuration.main_settings.kladprice)..'$.'))
-			inprocess = false
-		else
-			ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-		end
-	end)
+	
 end
 
 function selllic(param)
@@ -3066,88 +3108,6 @@ function expel(param)
 	end)
 end
 
-function sobes1()
-	lua_thread.create(function()
-		if inprocess then
-			ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-		else
-			inprocess = true
-			if configuration.main_settings.useservername then
-				local result,myid = sampGetPlayerIdByCharHandle(playerPed)
-				name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
-			else
-				name = u8:decode(configuration.main_settings.myname)
-				if name == '' or name == nil then
-					ASHelperMessage('Введите своё имя в /'..cmdhelp..' ')
-					local result,myid = sampGetPlayerIdByCharHandle(playerPed)
-					name = string.gsub(sampGetPlayerNickname(myid), "_", " ")
-				end
-			end
-			local rang = configuration.main_settings.myrank
-			sampSendChat("Здравствуйте, вы на собеседование?")
-			wait(cd)
-			sampSendChat('/do На груди висит бейджик с надписью '..rang..' '..name)
-			inprocess = false
-		end
-	end)
-end
-
-function sobes2()
-	lua_thread.create(function()
-		if inprocess then
-			ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-		else
-			inprocess = true
-			sampSendChat("Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту")
-			sampSendChat("/n ОБЯЗАТЕЛЬНО по рп!")
-			wait(50)
-			sobesetap.v = 1
-			inprocess = false
-		end
-	end)
-end
-
-function sobesaccept1()
-	lua_thread.create(function()
-		if inprocess then
-			ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-		else
-			inprocess = true
-			wait(50)
-			sobesetap.v = 2
-			sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
-			wait(cd)
-			sampSendChat("/todo Хорошо...* отдавая документы обратно")
-			wait(cd)
-			sampSendChat("Сейчас я задам вам несколько вопросов, вы готовы на них отвечать?")
-			inprocess = false
-		end
-	end)
-end
-
-function sobesaccept2()
-	lua_thread.create(function()
-		if inprocess then
-			ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-		else
-			inprocess = true
-			if configuration.main_settings.myrankint >= 9 then
-				sampSendChat("Отлично, я думаю вы нам подходите!")
-				wait(cd)
-				inprocess = false
-				invite(tostring(fastmenuID))
-			else
-				sampSendChat("Отлично, я думаю вы нам подходите!")
-				wait(cd)
-				sampSendChat("/r "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ").." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
-				wait(cd)
-				sampSendChat("/rb "..fastmenuID.." id")
-			end
-			inprocess = false
-		end
-	end)
-end
-
 function sobesdecline(param)
 	local reason = param:match("(.+)")
 	lua_thread.create(function()
@@ -3173,6 +3133,7 @@ function sobesdecline(param)
 				sampSendChat("К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.")
 			elseif reason == ("был в деморгане") then
 				sampSendChat("К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.")
+				sampSendChat("/n Поменяй мед. карту")
 			elseif reason == ("в чс автошколы") then
 				sampSendChat("К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.")
 			elseif reason == ("проф. непригодность1") then
