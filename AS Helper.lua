@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(21)
+script_version_number(22)
 script_version('2.1')
 script_dependencies('imgui; samp events; fontAwesome5')
 
@@ -1179,6 +1179,7 @@ if imguicheck and encodingcheck and facheck then
 	local Ranks_select 					= imgui.ImInt(0)
 
 	local sobesdecline_select 			= imgui.ImInt(0)
+	local lastsobesetap
 
 	local fa_glyph_ranges	= imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 	function imgui.BeforeDrawFrame()
@@ -2744,7 +2745,6 @@ if imguicheck and encodingcheck and facheck then
 					end
 				end)
 			end
-			local lastsobesetap
 			local sobes = {
 				[0] = function()
 					CenterTextColoredRGB("Собеседование: Этап 1")
