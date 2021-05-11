@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(23)
+script_version_number(24)
 script_version('2.2')
 script_dependencies('imgui; samp events; fontAwesome5')
 
@@ -359,10 +359,8 @@ local configuration = inicfg.load({
 		ASChatColor = 4281558783
 	},
 	imgui_pos = {
-		stats = {
-			posX = 100,
-			posY = 300
-		}
+		posX = 100,
+		posY = 300
 	},
 	my_stats = {
 		avto = 0,
@@ -401,6 +399,9 @@ function main()
 			ASHelperMessage('Создан файл конфигурации.')
 		end
     end
+	while not sampIsLocalPlayerSpawned() do
+		wait(200)
+	end
 	getmyrank = true
 	sampSendChat("/stats")
 	ASHelperMessage('AS Helper '..thisScript().version..' успешно загружен. Автор: JustMini')
@@ -827,30 +828,6 @@ function main()
 		sampSendChat("/expel "..param)
 		return
 	end)
-
-	sampRegisterChatCommand("devmaxrank", function()
-		if sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))) == "Carolos_McCandy" then
-			devmaxrankp = not devmaxrankp
-			sampAddChatMessage("{ff6633}[Режим разработчика] {FFFFFF}Имитировать максимальный ранг: " ..(devmaxrankp and "{00FF00}Включено" or "{FF0000}Выключено"), 0xff6633)
-			getmyrank = true
-			sampSendChat("/stats")
-		else
-			sampAddChatMessage("{ff6347}[Ошибка] {FFFFFF}Неизвестная команда! Введите /help для просмотра доступных функций.",0xff6347)
-		end
-	end)
-
-	sampRegisterChatCommand("goodverdict", function()
-		if sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))) == "Carolos_McCandy" then
-			sampAddChatMessage("{ff6633}[Режим разработчика] {FFFFFF}Вы имитировали одобренный вердикт паспорта и мед.карты в собеседовании.", 0xff6633)
-			mcvalue = true
-			passvalue = true
-			mcverdict = ("в порядке")
-			passverdict = ("в порядке")
-		else
-			sampAddChatMessage("{ff6347}[Ошибка] {FFFFFF}Неизвестная команда! Введите /help для просмотра доступных функций.",0xff6347)
-		end
-	end)
-
 	updatechatcommands()
 	updatechatkeys()
 
@@ -1047,7 +1024,7 @@ if sampevcheck then
 						end
 						configuration.main_settings.myrank = rang
 						configuration.main_settings.myrankint = rangint
-						if nameRankStats:find('Упраляющий') or devmaxrankp then
+						if nameRankStats:find('Упраляющий') then
 							getStatsRank = 10
 							configuration.main_settings.myrank = "Упраляющий"
 							configuration.main_settings.myrankint = 10
@@ -1300,6 +1277,14 @@ if sampevcheck then
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
+		end
+	end
+
+	function sampev.onSendSpawn()
+		if not checkServer(select(1, sampGetCurrentServerAddress())) then
+			ASHelperMessage('Скрипт работает только на серверах Arizona RP. Скрипт выгружен.')
+			NoErrors = true
+			thisScript():unload()
 		end
 	end
 end
@@ -3612,7 +3597,7 @@ if imguicheck and encodingcheck and facheck then
 				if imgui.Button(u8"Сбросить##RCol",imgui.ImVec2(65,25)) then
 					configuration.main_settings.RChatColor = 4282626093
 					if inicfg.save(configuration, 'AS Helper.ini') then
-						RChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.RChatColor):GetFloat4())
+						chatcolors.RChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.RChatColor):GetFloat4())
 					end
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 130)
@@ -3630,7 +3615,7 @@ if imguicheck and encodingcheck and facheck then
 				if imgui.Button(u8"Сбросить##DCol",imgui.ImVec2(65,25)) then
 					configuration.main_settings.DChatColor = 4294940723
 					if inicfg.save(configuration, 'AS Helper.ini') then
-						DChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.DChatColor):GetFloat4())
+						chatcolors.DChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.DChatColor):GetFloat4())
 					end
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 130)
@@ -3648,7 +3633,7 @@ if imguicheck and encodingcheck and facheck then
 				if imgui.Button(u8"Сбросить##SCol",imgui.ImVec2(65,25)) then
 					configuration.main_settings.ASChatColor = 4281558783
 					if inicfg.save(configuration, 'AS Helper.ini') then
-						ASChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.ASChatColor):GetFloat4())
+						chatcolors.ASChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.ASChatColor):GetFloat4())
 					end
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 130)
@@ -4019,12 +4004,12 @@ if imguicheck and encodingcheck and facheck then
 
 		if windows.imgui_stats.v then
 			imgui.SetNextWindowSize(imgui.ImVec2(150, 195), imgui.Cond.FirstUseEver)
-			imgui.SetNextWindowPos(imgui.ImVec2(configuration.imgui_pos.stats.posX,configuration.imgui_pos.stats.posY),imgui.Cond.FirstUseEver)
+			imgui.SetNextWindowPos(imgui.ImVec2(configuration.imgui_pos.posX,configuration.imgui_pos.posY),imgui.Cond.FirstUseEver)
 			imgui.Begin(u8"Статистика  ##stats",_,imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoResize)
 			if imgui.IsMouseDoubleClicked(0) and imgui.IsWindowHovered() then
 				local pos = imgui.GetWindowPos()
-				configuration.imgui_pos.stats.posX = pos.x
-				configuration.imgui_pos.stats.posY = pos.y
+				configuration.imgui_pos.posX = pos.x
+				configuration.imgui_pos.posY = pos.y
 				if inicfg.save(configuration, 'AS Helper.ini') then
 					ASHelperMessage('Позиция была сохранена.')
 				end
