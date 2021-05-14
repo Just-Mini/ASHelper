@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(26)
+script_version_number(27)
 script_version('2.3')
 script_dependencies('imgui; samp events; lfs')
 
@@ -1182,7 +1182,7 @@ if sampevcheck then
 			elseif text:find('Серия') then
 				if passvalue then
 					if text:find('Имя: {FFD700}'..sampGetPlayerNickname(fastmenuID)) then
-						if text:find('{FFFFFF}Организация:') then
+						if not text:find('{FFFFFF}Организация:') then
 							for DialogLine in text:gmatch('[^\r\n]+') do
 								local passstatusint = DialogLine:match('{FFFFFF}Лет в штате: {FFD700}(%d+)')
 								if tonumber(passstatusint) then
