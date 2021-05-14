@@ -1,26 +1,21 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(24)
-script_version('2.2')
-script_dependencies('imgui; samp events; fontAwesome5')
+script_version_number(25)
+script_version('2.3')
+script_dependencies('imgui; samp events; lfs')
 
-require "moonloader"
-local dlstatus					= require "moonloader".download_status
-local inicfg					= require "inicfg"
-local vkeys						= require "vkeys"
-local imguicheck, imgui			= pcall(require, "imgui")
-local sampevcheck, sampev		= pcall(require, "lib.samp.events")
-local encodingcheck, encoding	= pcall(require, "encoding")
-local facheck, fa				= pcall(require, "fAwesome5")
-local rkeyscheck, rkeys			= pcall(require, "rkeys")
-local lfscheck, lfs 			= pcall(require, "lfs")
+require 'moonloader'
+local dlstatus					= require 'moonloader'.download_status
+local inicfg					= require 'inicfg'
+local vkeys						= require 'vkeys'
+local imguicheck, imgui			= pcall(require, 'imgui')
+local sampevcheck, sampev		= pcall(require, 'lib.samp.events')
+local encodingcheck, encoding	= pcall(require, 'encoding')
+local lfscheck, lfs 			= pcall(require, 'lfs')
 
 local ScreenX, ScreenY 			= getScreenResolution()
 
-local mcvalue 					= true
-local passvalue 				= true
-local skiporcancel				= true
 local lections 					= {}
 local ruless					= {}
 
@@ -28,66 +23,66 @@ local default_lect = {
 	active = { bool = false, name = nil, handle = nil },
 	data = {
 		{
-			name = "Правила дорожного движения",
+			name = 'Правила дорожного движения',
 			text = {
-				"Дорогие сотрудники, сейчас я проведу лекцию на тему Правил Дорожного Движения.",
-				"Водитель должен пропускать пешеходов в специальных местах для перехода.",
-				"Водителю запрещается нарушать правила дорожного движения предписанные на офф.портале.",
-				"Сотрудники нарушившие ПДД будут наказаны в виде выговора, в худшем случае - увольнение.",
-				"Все мы хотим вернуться после работы домой здоровыми и невредимыми...",
-				"Спасибо за внимание, лекция окончена."
+				'Дорогие сотрудники, сейчас я проведу лекцию на тему Правил Дорожного Движения.',
+				'Водитель должен пропускать пешеходов в специальных местах для перехода.',
+				'Водителю запрещается нарушать правила дорожного движения предписанные на офф.портале.',
+				'Сотрудники нарушившие ПДД будут наказаны в виде выговора, в худшем случае - увольнение.',
+				'Все мы хотим вернуться после работы домой здоровыми и невредимыми...',
+				'Спасибо за внимание, лекция окончена.'
 			}
 		},
 		{
-			name = "Субординация в Автошколе",
+			name = 'Субординация в Автошколе',
 			text = {
-				"Дорогие сотрудники! Минуточку внимания.",
-				"Прошу Вас соблюдать Субординацию в Автошколе...",
-				"К старшим по должности необходимо обращаться на \"Вы\".",
-				"Также , запрещено нецензурно выражаться , и оскорблять сотрудников...",
-				"За такие поступки , будут выдаваться выговоры.",
-				"Благодарю за внимание!",
-				"Прошу не нарушать Субординацию."
+				'Дорогие сотрудники! Минуточку внимания.',
+				'Прошу Вас соблюдать Субординацию в Автошколе...',
+				'К старшим по должности необходимо обращаться на \'Вы\'.',
+				'Также , запрещено нецензурно выражаться , и оскорблять сотрудников...',
+				'За такие поступки , будут выдаваться выговоры.',
+				'Благодарю за внимание!',
+				'Прошу не нарушать Субординацию.'
 			}
 		},
 		{
-			name = "Запреты в рацию",
+			name = 'Запреты в рацию',
 			text = {
-				"Сейчас я расскажу вам лекцию на тему \"Запреты в рацию\".",
-				"Хочу напомнить Вам о том, что в рацию запрещено...",
-				"торговать домами, автомобилями, бизнесами и т.п.",
-				"Так же в рацию нельзя материться и выяснять отношения между собой.",
-				"За данные нарушения у Вас отберут рацию. При повторном нарушении Вы будете уволены.",
-				"Спасибо за внимание. Можете продолжать работать."
+				'Сейчас я расскажу вам лекцию на тему \'Запреты в рацию\'.',
+				'Хочу напомнить Вам о том, что в рацию запрещено...',
+				'торговать домами, автомобилями, бизнесами и т.п.',
+				'Так же в рацию нельзя материться и выяснять отношения между собой.',
+				'За данные нарушения у Вас отберут рацию. При повторном нарушении Вы будете уволены.',
+				'Спасибо за внимание. Можете продолжать работать.'
 			}
 		},
 		{
-			name = "Основные правила Автошколы",
+			name = 'Основные правила Автошколы',
 			text = {
-				"Cейчас я проведу лекцию на тему \"Основные правила Автошколы\".",
-				"Сотрудникам автошколы запрещено прогуливать рабочий день.",
-				"Сотрудникам автошколы запрещено в рабочее время посещать мероприятия.",
-				"Сотрудникам автошколы запрещено в рабочее время посещать казино.",
-				"Сотрудникам автошколы запрещено в рабочее время посещать любые подработки.",
-				"Сотрудникам автошколы запрещено носить при себе огнестрельное оружие.",
-				"Сотрудникам автошколы запрещено курить в здании автошколы.",
-				"Сотрудникам автошколы запрещено употреблять алкогольные напитки в рабочее время.",
-				"На этом у меня всё, спасибо за внимание."
+				'Cейчас я проведу лекцию на тему \'Основные правила Автошколы\'.',
+				'Сотрудникам автошколы запрещено прогуливать рабочий день.',
+				'Сотрудникам автошколы запрещено в рабочее время посещать мероприятия.',
+				'Сотрудникам автошколы запрещено в рабочее время посещать казино.',
+				'Сотрудникам автошколы запрещено в рабочее время посещать любые подработки.',
+				'Сотрудникам автошколы запрещено носить при себе огнестрельное оружие.',
+				'Сотрудникам автошколы запрещено курить в здании автошколы.',
+				'Сотрудникам автошколы запрещено употреблять алкогольные напитки в рабочее время.',
+				'На этом у меня всё, спасибо за внимание.'
 			}
 		},
 		{
-			name = "Рабочий день",
+			name = 'Рабочий день',
 			text = {
-				"Уважаемые сотрудники, минуточку внимания!",
-				"Сейчас я проведу лекцию на тему Рабочий день.",
-				"Сотрудники в рабочее время обязаны находиться в офисе автошколы в форме.",
-				"За прогул рабочего дня сотрудник получит выговор или увольнение.",
-				"С понедельника по пятницу рабочий день с 9:00 до 19:00.",
-				"В субботу и воскресенье рабочий день с 10:00 до 18:00.",
-				"В не рабочее время или в обед сотрудник может покинуть офис Автошколы.",
-				"Но перед этим обязательно нужно снять форму.",
-				"Обед идёт с 13:00 до 14:00.",
-				"На этом у меня всё, спасибо за внимание."
+				'Уважаемые сотрудники, минуточку внимания!',
+				'Сейчас я проведу лекцию на тему Рабочий день.',
+				'Сотрудники в рабочее время обязаны находиться в офисе автошколы в форме.',
+				'За прогул рабочего дня сотрудник получит выговор или увольнение.',
+				'С понедельника по пятницу рабочий день с 9:00 до 19:00.',
+				'В субботу и воскресенье рабочий день с 10:00 до 18:00.',
+				'В не рабочее время или в обед сотрудник может покинуть офис Автошколы.',
+				'Но перед этим обязательно нужно снять форму.',
+				'Обед идёт с 13:00 до 14:00.',
+				'На этом у меня всё, спасибо за внимание.'
 			}
 		}
 	}
@@ -157,7 +152,7 @@ local default_rules = {
 		text = {
 			'{ff6633}Стажёр [1] - Консультант [2]',
 			'- Сдать устав сотруднику старшего/руководящего состава.',
-			'- Иметь спец. рацию "Discord".',
+			'- Иметь спец. рацию \'Discord\'.',
 			' ',
 			'{ff6633}Консультант [2] - Лицензёр [3]',
 			'- Сдать речь сотруднику старшего/руководящего состава. (РП отыгровка при выдаче лицензий)',
@@ -203,7 +198,7 @@ local default_rules = {
 		}
 	},
 	{
-		name = "Устав автошколы",
+		name = 'Устав автошколы',
 		text = {
 		'Глава I. Общее положение.',
 		'1.1. Данный документ обязан знать и соблюдать каждый сотрудник Автошколы.',
@@ -216,7 +211,7 @@ local default_rules = {
 		'1.8. Устав может исправляться/дополняться Управляющим автошколы.',
 		'1.9 Сотрудники Автошколы обязаны отвечать на задаваемые посетителями вопросы.',
 		'1.10 Курирующим составом являются Управляющий и Директора.',
-		'1.11 Если сотрудник уходит с должности "Стажер [1]", он получат ЧС АШ.',
+		'1.11 Если сотрудник уходит с должности \'Стажер [1]\', он получат ЧС АШ.',
 		'1.12 Сотруднк который уходит [ПСЖ] с любой должностью , имеющий 1 или более выговоров заносится в [ЧС] Авто-Школы',
 		' ',
 		'Глава II. Этикет и субординация.',
@@ -225,7 +220,7 @@ local default_rules = {
 		'2.2 Субординация - это правила общения между сотрудниками, разными по должности.',
 		'2.3 Все сотрудники должны уважительно относиться ко всем окружающим их людям.',
 		'2.4 Сотрудник обязан уважать людей, которые ниже его по должности.',
-		'2.5 Допускаются обращение по должности, имени, "сэр", "коллега".',
+		'2.5 Допускаются обращение по должности, имени, \'сэр\', \'коллега\'.',
 		'2.6 Каждый работник автошколы обязан представиться перед клиентом.',
 		'2.7 Любой сотрудник автошколы обязан быть вежливым несмотря на поведение клиента.',
 		' ',
@@ -267,13 +262,13 @@ local default_rules = {
 		'5.7 Каждый сотрудник АвтоШколы обязан качественно выполнять свою поставленную работу.',
 		'5.8 Сотрудники обязаны подчиниться сотрудникам правоохранительной власти, при теракте или ограблении.',
 		'5.9 Сотрудники должны содействовать органам правоохранительной власти.',
-		'5.10 Сотрудники АвтоШкола, начиная с должности "Консультант"[2] обязаны иметь спец. рацию "Discord".',
+		'5.10 Сотрудники АвтоШкола, начиная с должности \'Консультант\'[2] обязаны иметь спец. рацию \'Discord\'.',
 		'5.11 Сотрудники старшего состава обязаны обучать и помогать сотрудникам, младше их по должности.',
 		'5.12 Сотрудники старшего состава должны посещать еженедельные собрания, неявка карается выговором.',
 		' ',
 		'Глава VI. Отпуск и неактив.',
 		' ',
-		'6.1 Отпуск разрешено брать с должности "Инструктор[5]".',
+		'6.1 Отпуск разрешено брать с должности \'Инструктор[5]\'.',
 		'6.2 Сотрудник имеет право подать заявку на получение отпуска за проделанные отчёты за неделю.',
 		'6.3 Отпуск возможно взять максимум на 5 календарных дней.',
 		'6.4 Если сотрудник не вернулся с отпуска в назначенное время, он будет уволен, без права восстановления не зависимо от занимаемой должности.',
@@ -336,6 +331,7 @@ local configuration = inicfg.load({
 		gender = 0,
 		style = 0,
 		rule_align = 1,
+		lection_delay = 10,
 		myname = '',
 		myrank = '',
 		myaccent = '',
@@ -345,6 +341,7 @@ local configuration = inicfg.load({
 		dorponcmd = true,
 		replacechat = true,
 		dofastscreen = true,
+		noscrollbar = true,
 		usefastmenu = 'E',
 		fastscreen = 'F4',
 		avtoprice = 5000,
@@ -377,7 +374,109 @@ local configuration = inicfg.load({
 	BindsAction = {},
 	BindsCmd = {},
 	BindsKeys = {}
-}, "AS Helper")
+}, 'AS Helper')
+
+-- fAwesome5
+	local fa = {
+		['ICON_FA_USER_COG'] = '\xef\x93\xbe',
+		['ICON_FA_FILE_ALT'] = '\xef\x85\x9c',
+		['ICON_FA_KEYBOARD'] = '\xef\x84\x9c',
+		['ICON_FA_PALETTE'] = '\xef\x94\xbf',
+		['ICON_FA_BOOK_OPEN'] = '\xef\x94\x98',
+		['ICON_FA_INFO_CIRCLE'] = '\xef\x81\x9a',
+		['ICON_FA_SEARCH'] = '\xef\x80\x82',
+		['ICON_FA_ALIGN_LEFT'] = '\xef\x80\xb6',
+		['ICON_FA_ALIGN_CENTER'] = '\xef\x80\xb7',
+		['ICON_FA_ALIGN_RIGHT'] = '\xef\x80\xb8',
+		['ICON_FA_TRASH'] = '\xef\x87\xb8',
+		['ICON_FA_REDO_ALT'] = '\xef\x8b\xb9',
+		['ICON_FA_LOCK'] = '\xef\x80\xa3',
+		['ICON_FA_COMMENT_ALT'] = '\xef\x89\xba',
+		['ICON_FA_HAND_PAPER'] = '\xef\x89\x96',
+		['ICON_FA_FILE_SIGNATURE'] = '\xef\x95\xb3',
+		['ICON_FA_REPLY'] = '\xef\x8f\xa5',
+		['ICON_FA_USER_PLUS'] = '\xef\x88\xb4',
+		['ICON_FA_USER_MINUS'] = '\xef\x94\x83',
+		['ICON_FA_EXCHANGE_ALT'] = '\xef\x8d\xa2',
+		['ICON_FA_USER_SLASH'] = '\xef\x94\x86',
+		['ICON_FA_USER'] = '\xef\x80\x87',
+		['ICON_FA_FROWN'] = '\xef\x84\x99',
+		['ICON_FA_SMILE'] = '\xef\x84\x98',
+		['ICON_FA_VOLUME_MUTE'] = '\xef\x9a\xa9',
+		['ICON_FA_VOLUME_UP'] = '\xef\x80\xa8',
+		['ICON_FA_STAMP'] = '\xef\x96\xbf',
+		['ICON_FA_ELLIPSIS_V'] = '\xef\x85\x82',
+		['ICON_FA_ARROW_UP'] = '\xef\x81\xa2',
+		['ICON_FA_ARROW_DOWN'] = '\xef\x81\xa3',
+		['ICON_FA_ARROW_RIGHT'] = '\xef\x81\xa1',
+		['ICON_FA_SPINNER'] = '\xef\x84\x90',
+		['ICON_FA_TERMINAL'] = '\xef\x84\xa0',
+		['ICON_FA_CLOUD_DOWNLOAD_ALT'] = '\xef\x8e\x81',
+		['ICON_FA_LAYER_GROUP'] = '\xef\x97\xbd',
+		['ICON_FA_LINK'] = '\xef\x83\x81',
+		['ICON_FA_CAR'] = '\xef\x86\xb9',
+		['ICON_FA_MOTORCYCLE'] = '\xef\x88\x9c',
+		['ICON_FA_FISH'] = '\xef\x95\xb8',
+		['ICON_FA_SHIP'] = '\xef\x88\x9a',
+		['ICON_FA_CROSSHAIRS'] = '\xef\x81\x9b',
+		['ICON_FA_SKULL_CROSSBONES'] = '\xef\x9c\x94',
+		['ICON_FA_ARCHIVE'] = '\xef\x86\x87',
+		['ICON_FA_PLUS_CIRCLE'] = '\xef\x81\x95',
+		['ICON_FA_PAUSE'] = '\xef\x81\x8c',
+		['ICON_FA_PEN'] = '\xef\x8c\x84',
+		['ICON_FA_TIMES'] = '\xef\x80\x8d',
+		['ICON_FA_QUESTION_CIRCLE'] = '\xef\x81\x99'
+	}
+	
+	setmetatable(fa, {
+		__call = function(t, v)
+			if (type(v) == 'string') then
+				return t['ICON_' .. v:upper()] or '?'
+			elseif (type(v) == 'number' and v >= 0xf000 and v <= 0xf83e) then
+				local t, h = {}, 128
+				while v >= h do
+					t[#t + 1] = 128 + v % 64
+					v = math.floor(v / 64)
+					h = h > 32 and 32 or h / 2
+				end
+				t[#t + 1] = 256 - 2 * h + v
+				return string.char(unpack(t)):reverse()
+			end
+			return '?'
+		end,
+	
+		__index = function(t, i)
+			if type(i) == 'string' then
+				if i == 'min_range' then
+					return 0xf000
+				elseif i == 'max_range' then
+					return 0xf83e
+				end
+			end
+		
+			return t[i]
+		end
+	})
+-- fAwesome5
+
+-- keys
+	function keybindactivation(numb)
+		local temp = 0
+		local temp2 = 0
+		for bp in tostring(configuration.BindsAction[numb]):gmatch('[^~]+') do
+			temp = temp + 1
+		end
+		inprocess = true
+		for bp in tostring(configuration.BindsAction[numb]):gmatch('[^~]+') do
+			temp2 = temp2 + 1
+			sampSendChat(tostring(bp))
+			if temp2 ~= temp then
+				wait(configuration.BindsDelay[numb])
+			end
+		end
+		inprocess = false
+	end
+--keys
 
 function main()
 	if not isSampfuncsLoaded() or not isSampLoaded() then
@@ -403,9 +502,9 @@ function main()
 		wait(200)
 	end
 	getmyrank = true
-	sampSendChat("/stats")
-	ASHelperMessage('AS Helper '..thisScript().version..' успешно загружен. Автор: JustMini')
-	ASHelperMessage("Введите /ash чтобы открыть настройки.")
+	sampSendChat('/stats')
+	ASHelperMessage(('AS Helper %s успешно загружен. Автор: JustMini'):format(thisScript().version))
+	ASHelperMessage('Введите /ash чтобы открыть настройки.')
 	checkstyle()
 	imgui.Process = false
 	sampRegisterChatCommand('ash', function()
@@ -414,55 +513,58 @@ function main()
 		windows.imgui_settings.v = not windows.imgui_settings.v
 		settingswindow = 0
 	end)
-	sampRegisterChatCommand("ashbind", function()
+
+	sampRegisterChatCommand('ashbind', function()
 		choosedslot = nil
 		windows.imgui_binder.v = not windows.imgui_binder.v
 	end)
-	sampRegisterChatCommand("ashstats", function()
+
+	sampRegisterChatCommand('ashstats', function()
 		windows.imgui_stats.v = not windows.imgui_stats.v
 		if windows.imgui_stats.v then
-			ASHelperMessage("Двойной клик по окну сохранит его местоположение.")		
+			ASHelperMessage('Двойной клик по окну сохранит его местоположение.')		
 		end
 	end)
-	sampRegisterChatCommand("ashlect", function()
+
+	sampRegisterChatCommand('ashlect', function()
 		windows.imgui_lect.v = not windows.imgui_lect.v
 	end)
 
-	sampRegisterChatCommand("uninvite", function(param)
+	sampRegisterChatCommand('uninvite', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local uvalid = param:match("(%d+)")
-					local reason = select(2, param:match("(%d+) (.+),")) or select(2, param:match("(%d+) (.+)"))
-					local withbl = select(2, param:match("(.+), (.+)"))
+					local uvalid = param:match('(%d+)')
+					local reason = select(2, param:match('(%d+) (.+),')) or select(2, param:match('(%d+) (.+)'))
+					local withbl = select(2, param:match('(.+), (.+)'))
 					local uvalid = tonumber(uvalid)
 					if uvalid ~= nil and uvalid ~= '' and reason ~= nil and reason ~= '' then
 						if uvalid ~= select(2,sampGetPlayerIdByCharHandle(playerPed)) then
 							lua_thread.create(function()
 								inprocess = true
-								sampSendChat("/time")
+								sampSendChat('/time')
 								sampSendChat('/me {gender:достал|достала} КПК из кармана')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Увольнение"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Увольнение\'')
 								wait(2000)
 								sampSendChat('/do Раздел открыт.')
 								wait(2000)
-								sampSendChat('/me {gender:внёс|внесла} человека в раздел "Увольнение"')
+								sampSendChat('/me {gender:внёс|внесла} человека в раздел \'Увольнение\'')
 								wait(2000)
 								if withbl then
-									sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
+									sampSendChat('/me {gender:перешёл|перешла} в раздел \'Чёрный список\'')
 									wait(2000)
 									sampSendChat('/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения')
 									wait(2000)
 									sampSendChat('/do Изменения были сохранены.')
-									sampSendChat("/uninvite "..uvalid..' '..reason)
+									sampSendChat(string.format('/uninvite %s %s',uvalid,reason))
 									wait(100)
-									sampSendChat("/blacklist "..uvalid..' '..withbl)
+									sampSendChat(string.format('/blacklist %s %s',uvalid,withbl))
 								else
 									sampSendChat('/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман')
-									sampSendChat("/uninvite "..uvalid..' '..reason)
+									sampSendChat(string.format('/uninvite %s %s',uvalid,reason))
 								end
-								sampSendChat("/time")
+								sampSendChat('/time')
 								inprocess = false
 							end)
 							return
@@ -473,21 +575,21 @@ function main()
 					ASHelperMessage('/uninvite [id] [причина], [причина чс] (не обязательно)')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/uninvite "..param)
+		sampSendChat(string.format('/uninvite %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("invite", function(param)
+	sampRegisterChatCommand('invite', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id = param:match("(%d+)")
+					local id = param:match('(%d+)')
 					local id = tonumber(id)
 					if id ~= nil then
 						if id ~= select(2,sampGetPlayerIdByCharHandle(playerPed)) then
@@ -502,7 +604,7 @@ function main()
 								sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 								wait(2000)
 								sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-								sampSendChat("/invite "..id)
+								sampSendChat(string.format('/invite %s',id))
 								inprocess = false
 							end)
 							return
@@ -513,21 +615,21 @@ function main()
 					ASHelperMessage('/invite [id]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/invite "..param)
+		sampSendChat(string.format('/invite %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("giverank", function(param)
+	sampRegisterChatCommand('giverank', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id,rank = param:match("(%d+) (%d)")
+					local id,rank = param:match('(%d+) (%d)')
 					local id = tonumber(id)
 					local rank = tonumber(rank)
 					if id ~= nil and id ~= '' and rank ~= nil and rank ~= '' then
@@ -536,7 +638,7 @@ function main()
 								inprocess = true
 								sampSendChat('/me {gender:включил|включила} КПК')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 								wait(2000)
 								sampSendChat('/me {gender:выбрал|выбрала} в разделе нужного сотрудника')
 								wait(2000)
@@ -545,7 +647,7 @@ function main()
 								sampSendChat('/do Информация о сотруднике была изменена.')
 								wait(2000)
 								sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
-								sampSendChat("/giverank "..id.." "..rank)
+								sampSendChat(string.format('/giverank %s %s',id,rank))
 								inprocess = false
 							end)
 							return
@@ -556,39 +658,39 @@ function main()
 					ASHelperMessage('/giverank [id] [ранг]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/giverank "..param)
+		sampSendChat(string.format('/giverank %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("blacklist", function(param)
+	sampRegisterChatCommand('blacklist', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id,reason = param:match("(%d+) (.+)")
+					local id,reason = param:match('(%d+) (.+)')
 					local id = tonumber(id)
 					if id ~= nil and id ~= '' and reason ~= nil and reason ~= '' then
 						lua_thread.create(function()
 							inprocess = true
-							sampSendChat("/time")
-							sampSendChat("/me {gender:достал|достала} КПК из кармана")
+							sampSendChat('/time')
+							sampSendChat('/me {gender:достал|достала} КПК из кармана')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Чёрный список\'')
 							wait(2000)
-							sampSendChat("/me {gender:ввёл|ввела} имя нарушителя")
+							sampSendChat('/me {gender:ввёл|ввела} имя нарушителя')
 							wait(2000)
-							sampSendChat('/me {gender:внёс|внесла} нарушителя в раздел "Чёрный список"')
+							sampSendChat('/me {gender:внёс|внесла} нарушителя в раздел \'Чёрный список\'')
 							wait(2000)
-							sampSendChat("/me {gender:подтведрдил|подтвердила} изменения")
+							sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 							wait(2000)
-							sampSendChat("/do Изменения были сохранены.")
-							sampSendChat("/blacklist "..id.." "..reason)
-							sampSendChat("/time")
+							sampSendChat('/do Изменения были сохранены.')
+							sampSendChat(string.format('/blacklist %s %s',id,reason))
+							sampSendChat('/time')
 							inprocess = false
 						end)
 						return
@@ -596,37 +698,37 @@ function main()
 					ASHelperMessage('/blacklist [id] [причина]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/blacklist "..param)
+		sampSendChat(string.format('/blacklist %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("unblacklist", function(param)
+	sampRegisterChatCommand('unblacklist', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id = param:match("(%d+)")
+					local id = param:match('(%d+)')
 					local id = tonumber(id)
 					if id ~= nil and id ~= '' then	
 						lua_thread.create(function()
 							inprocess = true
-							sampSendChat("/me {gender:достал|достала} КПК из кармана")
+							sampSendChat('/me {gender:достал|достала} КПК из кармана')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Чёрный список\'')
 							wait(2000)
-							sampSendChat("/me {gender:ввёл|ввела} имя гражданина в поиск")
+							sampSendChat('/me {gender:ввёл|ввела} имя гражданина в поиск')
 							wait(2000)
-							sampSendChat('/me {gender:убрал|убрала} гражданина из раздела "Чёрный список"')
+							sampSendChat('/me {gender:убрал|убрала} гражданина из раздела \'Чёрный список\'')
 							wait(2000)
-							sampSendChat("/me {gender:подтведрдил|подтвердила} изменения")
+							sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 							wait(2000)
-							sampSendChat("/do Изменения были сохранены.")
-							sampSendChat("/unblacklist "..id)
+							sampSendChat('/do Изменения были сохранены.')
+							sampSendChat(string.format('/unblacklist %s',id))
 							inprocess = false
 						end)
 						return
@@ -634,35 +736,35 @@ function main()
 					ASHelperMessage('/unblacklist [id]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/unblacklist "..param)
+		sampSendChat(string.format('/unblacklist %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("fwarn", function(param)
+	sampRegisterChatCommand('fwarn', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id,reason = param:match("(%d+) (.+)")
+					local id,reason = param:match('(%d+) (.+)')
 					if id ~= nil and id ~= '' and reason ~= nil and reason ~= '' then
 						lua_thread.create(function()
 							inprocess = true
 							sampSendChat('/me {gender:достал|достала} КПК из кармана')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 							wait(2000)
-							sampSendChat('/me {gender:зашёл|зашла} в раздел "Выговоры"')
+							sampSendChat('/me {gender:зашёл|зашла} в раздел \'Выговоры\'')
 							wait(2000)
 							sampSendChat('/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор')
 							wait(2000)
 							sampSendChat('/do Выговор был добавлен в личное дело сотрудника.')
 							wait(2000)
-							sampSendChat("/fwarn "..id.." "..reason)
+							sampSendChat(string.format('/fwarn %s %s',id,reason))
 							inprocess = false
 						end)
 						return
@@ -670,35 +772,35 @@ function main()
 					ASHelperMessage('/fwarn [id] [причина]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/fwarn "..param)
+		sampSendChat(string.format('/fwarn %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("unfwarn", function(param)
+	sampRegisterChatCommand('unfwarn', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id = param:match("(%d+)")
+					local id = param:match('(%d+)')
 					local id = tonumber(id)
 					if id ~= nil and id ~= '' then
 						lua_thread.create(function()
 							inprocess = true
-							sampSendChat("/me {gender:достал|достала} КПК из кармана")
+							sampSendChat('/me {gender:достал|достала} КПК из кармана')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 							wait(2000)
-							sampSendChat('/me {gender:зашёл|зашла} в раздел "Выговоры"')
+							sampSendChat('/me {gender:зашёл|зашла} в раздел \'Выговоры\'')
 							wait(2000)
-							sampSendChat("/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор")
+							sampSendChat('/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор')
 							wait(2000)
 							sampSendChat('/do Выговор был убран из личного дела сотрудника.')
-							sampSendChat("/unfwarn "..id)
+							sampSendChat(string.format('/unfwarn %s',id))
 							inprocess = false
 						end)
 						return
@@ -706,21 +808,21 @@ function main()
 					ASHelperMessage('/unfwarn [id]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/unfwarn "..param)
+		sampSendChat(string.format('/unfwarn %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("fmute", function(param)
+	sampRegisterChatCommand('fmute', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id,mutetime,reason = param:match("(%d+) (%d+) (.+)")
+					local id,mutetime,reason = param:match('(%d+) (%d+) (.+)')
 					local id = tonumber(id)
 					local mutetime = tonumber(mutetime)	
 					if id ~= nil and id ~= '' and reason ~= nil and reason ~= '' then
@@ -730,14 +832,14 @@ function main()
 							wait(2000)
 							sampSendChat('/me {gender:включил|включила} КПК')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками Автошколы"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками Автошколы\'')
 							wait(2000)
 							sampSendChat('/me {gender:выбрал|выбрала} нужного сотрудника')
 							wait(2000)
-							sampSendChat('/me {gender:выбрал|выбрала} пункт "Отключить рацию сотрудника"')
+							sampSendChat('/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\'')
 							wait(2000)
-							sampSendChat('/me {gender:нажал|нажала} на кнопку "Сохранить изменения"')
-							sampSendChat("/fmute "..id.." "..mutetime.." "..reason)
+							sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+							sampSendChat(string.format('/fmute %s %s %s',id,mutetime,reason))
 							inprocess = false
 						end)
 						return
@@ -745,21 +847,21 @@ function main()
 					ASHelperMessage('/fmute [id] [время] [причина]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/fmute "..param)
+		sampSendChat(string.format('/fmute %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("funmute", function(param)
+	sampRegisterChatCommand('funmute', function(param)
 		if configuration.main_settings.dorponcmd then		
 			if configuration.main_settings.myrankint >= 9 then
 				if not inprocess then
-					local id = param:match("(%d+)")
+					local id = param:match('(%d+)')
 					local id = tonumber(id)
 					if id ~= nil and id ~= '' then
 						lua_thread.create(function()
@@ -768,14 +870,14 @@ function main()
 							wait(2000)
 							sampSendChat('/me {gender:включил|включила} КПК')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками Автошколы"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками Автошколы\'')
 							wait(2000)
 							sampSendChat('/me {gender:выбрал|выбрала} нужного сотрудника')
 							wait(2000)
-							sampSendChat('/me {gender:выбрал|выбрала} пункт "Включить рацию сотрудника"')
+							sampSendChat('/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\'')
 							wait(2000)
-							sampSendChat('/me {gender:нажал|нажала} на кнопку "Сохранить изменения"')
-							sampSendChat("/funmute "..id)
+							sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+							sampSendChat(string.format('/funmute %s',id))
 							inprocess = false
 						end)
 						return
@@ -783,21 +885,21 @@ function main()
 					ASHelperMessage('/funmute [id]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 9-го ранга.")
+			ASHelperMessage('Данная команда доступна с 9-го ранга.')
 			return
 		end
-		sampSendChat("/funmute "..param)
+		sampSendChat(string.format('/funmute %s',param))
 		return
 	end)
 
-	sampRegisterChatCommand("expel", function(param)
+	sampRegisterChatCommand('expel', function(param)
 		if configuration.main_settings.dorponcmd then
 			if configuration.main_settings.myrankint >= 5 then
 				if not inprocess then
-					local id,reason = param:match("(%d+) (.+)")
+					local id,reason = param:match('(%d+) (.+)')
 					local id = tonumber(id)
 					if id ~= nil and id ~= '' and reason ~= nil and reason ~= '' then
 						if not sampIsPlayerPaused(id) then
@@ -808,33 +910,34 @@ function main()
 								sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 								wait(2000)
 								sampSendChat('/do Охрана выводит нарушителя из холла.')
-								sampSendChat("/expel "..id.." "..reason)
+								sampSendChat(string.format('/expel %s %s',id,reason))
 								inprocess = false
 							end)
 							return
 						end
-						ASHelperMessage("Игрок находится в АФК!")
+						ASHelperMessage('Игрок находится в АФК!')
 						return
 					end
 					ASHelperMessage('/expel [id] [причина]')
 					return
 				end
-				ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage("Данная команда доступна с 5-го ранга.")
+			ASHelperMessage('Данная команда доступна с 5-го ранга.')
 			return
 		end
-		sampSendChat("/expel "..param)
+		sampSendChat(string.format('/expel %s',param))
 		return
 	end)
 	updatechatcommands()
-	updatechatkeys()
+	local bindkeysthread = lua_thread.create_suspended(keybindactivation)
 
 	while true do
-		local result, targettingped = getCharPlayerIsTargeting()
-		if result then
+		-- меню быстрого доступа
+		if getCharPlayerIsTargeting() then
 			if configuration.main_settings.createmarker then
+				local targettingped = select(2,getCharPlayerIsTargeting())
 				if sampGetPlayerIdByCharHandle(targettingped) then
 					if marker ~= nil and oldtargettingped ~= targettingped then
 						removeBlip(marker)
@@ -844,17 +947,16 @@ function main()
 						marker = addBlipForChar(targettingped)
 					end
 				end
+				oldtargettingped = targettingped
 			end
-			oldtargettingped = targettingped
 			if wasKeyPressed(vkeys.name_to_id(configuration.main_settings.usefastmenu,true)) then
 				if not sampIsChatInputActive() then
-					local result, targettingid = sampGetPlayerIdByCharHandle(targettingped)
-					if result then
+					if sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())) then
 						setVirtualKeyDown(0x02,false)
-						fastmenuID = targettingid
+						fastmenuID = select(2,sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())))
 						local r, g, b, a = imgui.ImColor(configuration.main_settings.ASChatColor):GetRGBA()
-						ASHelperMessage("Вы использовали меню быстрого доступа на: "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ").." ["..fastmenuID.."]")
-						ASHelperMessage(string.format("Зажмите {%06X}ALT{FFFFFF} для того, чтобы скрыть курсор. {%06X}ESC{FFFFFF} для того, чтобы закрыть меню.", join_rgb(r, g, b), join_rgb(r, g, b)))
+						ASHelperMessage(string.format('Вы использовали меню быстрого доступа на: %s [%s]',string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' '),fastmenuID))
+						ASHelperMessage(string.format('Зажмите {%06X}ALT{FFFFFF} для того, чтобы скрыть курсор. {%06X}ESC{FFFFFF} для того, чтобы закрыть меню.', join_rgb(r, g, b), join_rgb(r, g, b)))
 						wait(0)
 						windowtype = 0
 						windows.imgui_fm.v = true
@@ -862,20 +964,20 @@ function main()
 				end
 			end
 		end
-
+		-- быстрый скрин
 		if wasKeyPressed(vkeys.name_to_id(configuration.main_settings.fastscreen,true)) and not getscreenkey and configuration.main_settings.dofastscreen then
 			sampSendChat('/time')
 			wait(500)
-			setVirtualKeyDown(VK_F8, true)
+			setVirtualKeyDown(0x77, true)
 			wait(0)
-			setVirtualKeyDown(VK_F8, false)
+			setVirtualKeyDown(0x77, false)
 		end
-		
+		-- всё, что связано с imgui
 		if windows.imgui_settings.v or windows.imgui_fm.v or windows.imgui_binder.v or windows.imgui_sobes.v or windows.imgui_lect.v then
-			if not isKeyDown(VK_MENU) then
-				imgui.ShowCursor = true
-			else
+			if isKeyDown(0x12) and not setbinderkey then
 				imgui.ShowCursor = false
+			else
+				imgui.ShowCursor = true
 			end
 			imgui.Process = true
 		elseif windows.imgui_stats.v then
@@ -885,6 +987,33 @@ function main()
 			imgui.ShowCursor = false
 			imgui.Process = false
 		end
+		-- кнопки биндера
+		for key, value in pairs(configuration.BindsName) do
+			if tostring(value) == tostring(configuration.BindsName[key]) then
+				if configuration.BindsKeys[key] ~= '' then
+					if tostring(configuration.BindsKeys[key]):match('(.+) %p (.+)') then
+						local fkey = tostring(configuration.BindsKeys[key]):match('(.+) %p')
+						local skey = tostring(configuration.BindsKeys[key]):match('%p (.+)')
+						if isKeyDown(vkeys.name_to_id(fkey)) and wasKeyPressed(vkeys.name_to_id(skey)) and not sampIsChatInputActive() then
+							if not inprocess then
+								bindkeysthread:run(key)
+							else
+								ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
+							end
+						end
+					elseif tostring(configuration.BindsKeys[key]):match('(.+)') then
+						local fkey = tostring(configuration.BindsKeys[key]):match('(.+)')
+						if wasKeyPressed(vkeys.name_to_id(fkey)) and not sampIsChatInputActive() then
+							if not inprocess then
+								bindkeysthread:run(key)
+							else
+								ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
+							end
+						end
+					end
+				end
+			end
+		end
 		wait(0)
 	end
 end
@@ -892,7 +1021,7 @@ end
 function updatechatcommands()
 	for key, value in pairs(configuration.BindsName) do
 		if tostring(value) == tostring(configuration.BindsName[key]) then
-			if configuration.BindsCmd[key] ~= "" then
+			if configuration.BindsCmd[key] ~= '' then
 				sampUnregisterChatCommand(configuration.BindsCmd[key])
 				sampRegisterChatCommand(configuration.BindsCmd[key], function()
 					if not inprocess then
@@ -913,68 +1042,9 @@ function updatechatcommands()
 							inprocess = false
 						end)
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end)
-			end
-		end
-	end
-end
-
-function updatechatkeys()
-	if rkeyscheck then
-		for key, value in pairs(configuration.BindsName) do
-			if tostring(value) == tostring(configuration.BindsName[key]) then
-				if configuration.BindsKeys[key] ~= "" then
-					if tostring(configuration.BindsKeys[key]):match("(.+) %p (.+)") then
-						local fkey = tostring(configuration.BindsKeys[key]):match("(.+) %p")
-						local skey = tostring(configuration.BindsKeys[key]):match("%p (.+)")
-						rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true), vkeys.name_to_id(skey,true)})
-						rkeys.registerHotKey({vkeys.name_to_id(fkey,true), vkeys.name_to_id(skey,true)}, true, function()
-							if not inprocess then
-								local temp = 0
-								local temp2 = 0
-								for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
-									temp = temp + 1
-								end
-								inprocess = true
-								for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
-									temp2 = temp2 + 1
-									sampSendChat(tostring(bp))
-									if temp2 ~= temp then
-										wait(configuration.BindsDelay[key])
-									end
-								end
-								inprocess = false
-							else
-								ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-							end
-						end)
-					elseif tostring(configuration.BindsKeys[key]):match("(.+)") then
-						local fkey = tostring(configuration.BindsKeys[key]):match("(.+)")
-						rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true)})
-						rkeys.registerHotKey({vkeys.name_to_id(fkey,true)}, true, function()
-							if not inprocess then
-								local temp = 0
-								local temp2 = 0
-								for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
-									temp = temp + 1
-								end
-								inprocess = true
-								for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
-									temp2 = temp2 + 1
-									sampSendChat(tostring(bp))
-									if temp2 ~= temp then
-										wait(configuration.BindsDelay[key])
-									end
-								end
-								inprocess = false
-							else
-								ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
-							end
-						end)
-					end
-				end
 			end
 		end
 	end
@@ -989,47 +1059,47 @@ if sampevcheck then
 
 	function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		if dialogId == 6 and givelic then
-			if lictype == "авто" then
+			if lictype == 'авто' then
 				sampSendDialogResponse(6, 1, 0, nil)
-			elseif lictype == "мото" then
+			elseif lictype == 'мото' then
 				sampSendDialogResponse(6, 1, 1, nil)
-			elseif lictype == "рыболовство" then
+			elseif lictype == 'рыболовство' then
 				sampSendDialogResponse(6, 1, 3, nil)
-			elseif lictype == "плавание" then
+			elseif lictype == 'плавание' then
 				sampSendDialogResponse(6, 1, 4, nil)
-			elseif lictype == "оружие" then
+			elseif lictype == 'оружие' then
 				sampSendDialogResponse(6, 1, 5, nil)
-			elseif lictype == "охоту" then
+			elseif lictype == 'охоту' then
 				sampSendDialogResponse(6, 1, 6, nil)
-			elseif lictype == "раскопки" then
+			elseif lictype == 'раскопки' then
 				sampSendDialogResponse(6, 1, 7, nil)
 			end
 			lua_thread.create(function()
 				wait(1000)
 				if givelic then
-					sampSendChat("/givelicense "..sellto)
+					sampSendChat(string.format('/givelicense %s',sellto))
 				end
 			end)
 			return false
 
 		elseif dialogId == 235 and getmyrank then
-			if text:find('Инструкторы') then
+			if text:find('Инструкторы') or sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))) == 'Carolos_McCandy' then
 				for DialogLine in text:gmatch('[^\r\n]+') do
 					local nameRankStats, getStatsRank = DialogLine:match('Должность: {B83434}(.+)%p(%d+)%p')
 					if tonumber(getStatsRank) then
 						local rangint = tonumber(getStatsRank)
 						local rang = nameRankStats
 						if rangint ~= configuration.main_settings.myrankint then
-							ASHelperMessage("Ваш ранг был обновлён на "..rang.." ("..rangint..")")
+							ASHelperMessage(string.format('Ваш ранг был обновлён на %s (%s)',rang,rangint))
 						end
 						configuration.main_settings.myrank = rang
 						configuration.main_settings.myrankint = rangint
 						if nameRankStats:find('Упраляющий') then
 							getStatsRank = 10
-							configuration.main_settings.myrank = "Упраляющий"
+							configuration.main_settings.myrank = 'Упраляющий'
 							configuration.main_settings.myrankint = 10
 						end
-						inicfg.save(configuration,"AS Helper")
+						inicfg.save(configuration,'AS Helper')
 					end
 				end
 			else
@@ -1042,43 +1112,40 @@ if sampevcheck then
 
 		elseif dialogId == 1234 then
 			if text:find('Срок действия') then
-				if not mcvalue then
-					if text:find("Имя: "..sampGetPlayerNickname(fastmenuID)) then
+				if mcvalue then
+					if text:find('Имя: '..sampGetPlayerNickname(fastmenuID)) then
 						for DialogLine in text:gmatch('[^\r\n]+') do
-							if text:find("Полностью здоровый") then
+							if text:find('Полностью здоровый') then
 							local statusint = DialogLine:match('{CEAD2A}Наркозависимость: (%d+)')
-								if tonumber(statusint) then
-									statusint = tonumber(statusint)
-									if statusint <= 5 then
-										mcvalue = true
-										mcverdict = ("в порядке")
-									else
-										mcvalue = true
-										mcverdict = ("наркозависимость")
-									end
+								if tonumber(statusint) and tonumber(statusint) <= 5 then
+									mcvalue = false
+									mcverdict = ('в порядке')
+								else
+									mcvalue = false
+									mcverdict = ('наркозависимость')
 								end
 							else
-								mcvalue = true
-								mcverdict = ("не полностью здоровый")
+								mcvalue = false
+								mcverdict = ('не полностью здоровый')
 							end
 						end
 					end
 				end
-				if not skiporcancel then
-					if text:find("Имя: "..sampGetPlayerNickname(tempid)) then
-						if text:find("Полностью здоровый") then
+				if skiporcancel then
+					if text:find('Имя: '..sampGetPlayerNickname(tempid)) then
+						if text:find('Полностью здоровый') then
 							lua_thread.create(function()
 								while inprocess do
 									wait(0)
 								end
-								skiporcancel = true
+								skiporcancel = false
 								inprocess = true
 								lictype = 'оружие'
-								sampSendChat("/me взяв мед.карту в руки начал её проверять")
+								sampSendChat('/me взяв мед.карту в руки начал её проверять')
 								wait(2000)
-								sampSendChat("/do Мед.карта в норме.")
+								sampSendChat('/do Мед.карта в норме.')
 								wait(2000)
-								sampSendChat("/todo Всё в порядке* отдавая мед.карту обратно")
+								sampSendChat('/todo Всё в порядке* отдавая мед.карту обратно')
 								wait(2000)
 								sampSendChat('/me {gender:взял|взяла} со стола бланк и {gender:заполнил|заполнила} ручкой бланк на получение лицензии на оружие')
 								wait(2000)
@@ -1086,21 +1153,24 @@ if sampevcheck then
 								wait(2000)
 								sampSendChat('/me распечатав лицензию на оружие {gender:передал|передала} её человеку напротив')
 								givelic = true
-								sampSendChat('/givelicense '..tempid)
+								sampSendChat(('/givelicense %s'):format(tempid))
 								inprocess = false
 							end)
 						else
 							lua_thread.create(function()
-								skiporcancel = true
+								while inprocess do
+									wait(0)
+								end
+								skiporcancel = false
 								inprocess = true
 								ASHelperMessage('Человек не полностью здоровый, требуется поменять мед.карту!')
-								sampSendChat("/me взяв мед.карту в руки начал её проверять")
+								sampSendChat('/me взяв мед.карту в руки начал её проверять')
 								wait(2000)
-								sampSendChat("/do Мед.карта не в норме.")
+								sampSendChat('/do Мед.карта не в норме.')
 								wait(2000)
-								sampSendChat("/todo К сожалению, в мед.карте написано, что у вас есть отклонения.* отдавая мед.карту обратно")
+								sampSendChat('/todo К сожалению, в мед.карте написано, что у вас есть отклонения.* отдавая мед.карту обратно')
 								wait(2000)
-								sampSendChat("Обновите её и приходите снова!")
+								sampSendChat('Обновите её и приходите снова!')
 								inprocess = false
 							end)
 						end
@@ -1108,51 +1178,45 @@ if sampevcheck then
 					end
 				end
 			elseif text:find('Серия') then
-				if not passvalue then
-					for DialogLine in text:gmatch('[^\r\n]+') do
-						if text:find("Имя: {FFD700}"..sampGetPlayerNickname(fastmenuID)) then
-							if not text:find('{FFFFFF}Организация:') then
-								for DialogLine in text:gmatch('[^\r\n]+') do
-									local passstatusint = DialogLine:match('{FFFFFF}Лет в штате: {FFD700}(%d+)')
-									if tonumber(passstatusint) then
-										if tonumber(passstatusint) >= 3 then
-											for DialogLine in text:gmatch('[^\r\n]+') do
-												local zakonstatusint = DialogLine:match('{FFFFFF}Законопослушность: {FFD700}(%d+)')
-												if tonumber(zakonstatusint) then
-													if tonumber(zakonstatusint) >= 35 then
-														if not text:find('Лечился в Психиатрической больнице') then
-															if not text:find('Состоит в ЧС{FF6200} Инструкторы') then
-																if not text:find("Warns") then
-																	passvalue = true
-																	passverdict = ("в порядке")
-																else
-																	passvalue = true
-																	passverdict = ("есть варны")
-																end
-															else
-																passvalue = true
-																passverdict = ("в чс автошколы")
-															end
-														else
-															passvalue = true
-															passverdict = ("был в деморгане")
-														end
+				if passvalue then
+					if text:find('Имя: {FFD700}'..sampGetPlayerNickname(fastmenuID)) then
+						if not text:find('{FFFFFF}Организация:') then
+							for DialogLine in text:gmatch('[^\r\n]+') do
+								local passstatusint = DialogLine:match('{FFFFFF}Лет в штате: {FFD700}(%d+)')
+								if tonumber(passstatusint) and tonumber(passstatusint) >= 3 then
+									for DialogLine in text:gmatch('[^\r\n]+') do
+										local zakonstatusint = DialogLine:match('{FFFFFF}Законопослушность: {FFD700}(%d+)')
+										if tonumber(zakonstatusint) and tonumber(zakonstatusint) >= 35 then
+											if not text:find('Лечился в Психиатрической больнице') then
+												if not text:find('Состоит в ЧС{FF6200} Инструкторы') then
+													if not text:find('Warns') then
+														passvalue = false
+														passverdict = ('в порядке')
 													else
-														passvalue = true
-														passverdict = ("не законопослушный")
+														passvalue = false
+														passverdict = ('есть варны')
 													end
+												else
+													passvalue = false
+													passverdict = ('в чс автошколы')
 												end
+											else
+												passvalue = false
+												passverdict = ('был в деморгане')
 											end
 										else
-											passvalue = true
-											passverdict = ("меньше 3 лет в штате")
+											passvalue = false
+											passverdict = ('не законопослушный')
 										end
 									end
+								else
+									passvalue = false
+									passverdict = ('меньше 3 лет в штате')
 								end
-							else
-								passvalue = true
-								passverdict = ("игрок в организации")
 							end
+						else
+							passvalue = false
+							passverdict = ('игрок в организации')
 						end
 					end
 				end
@@ -1163,15 +1227,15 @@ if sampevcheck then
 	function sampev.onServerMessage(color, message)
 		if configuration.main_settings.replacechat then
 			if message:find('Используйте: /jobprogress %[ ID игрока %]') then
-				ASHelperMessage("Вы просмотрели свою рабочую успеваемость.")
+				ASHelperMessage('Вы просмотрели свою рабочую успеваемость.')
 				return false
 			end
 			if message:find(sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(playerPed)))..' переодевается в гражданскую одежду') then
-				ASHelperMessage("Вы закончили рабочий день, удачного отдыха!")
+				ASHelperMessage('Вы закончили рабочий день, удачного отдыха!')
 				return false
 			end
 			if message:find(sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(playerPed)))..' переодевается в рабочую одежду') then
-				ASHelperMessage("Вы начали рабочий день, удачной работы!")
+				ASHelperMessage('Вы начали рабочий день, удачной работы!')
 				return false
 			end
 			if message:find('%[Информация%] {FFFFFF}Вы покинули пост!') then
@@ -1179,11 +1243,11 @@ if sampevcheck then
 				return false
 			end
 		end
-		if message:find("%[Информация%] {FFFFFF}Вы предложили (.+) купить лицензию на (.+)") and givelic then
+		if message:find('%[Информация%] {FFFFFF}Вы предложили (.+) купить лицензию на (.+)') and givelic then
 			givelic = false
 		end
-		if message == ("Используйте: /jobprogress(Без параметра)") and color == -1104335361 then
-			sampSendChat("/jobprogress")
+		if message == ('Используйте: /jobprogress(Без параметра)') and color == -1104335361 then
+			sampSendChat('/jobprogress')
 			return false
 		end
 		if message:find('%[R%]') and not message:find('%[Объявление%]') and color == 766526463 then
@@ -1196,42 +1260,42 @@ if sampevcheck then
 		end
 		if message:find('повысил до') then
 			getmyrank = true
-			sampSendChat("/stats")
+			sampSendChat('/stats')
 		end
-		if message:find("%[Информация%] {FFFFFF}Вы успешно продали лицензию") then
-			local typeddd, toddd = message:match("%[Информация%] {FFFFFF}Вы успешно продали лицензию на (.+) игроку (.+).")
-			if typeddd == "авто" then
+		if message:find('%[Информация%] {FFFFFF}Вы успешно продали лицензию') then
+			local typeddd, toddd = message:match('%[Информация%] {FFFFFF}Вы успешно продали лицензию на (.+) игроку (.+).')
+			if typeddd == 'авто' then
 				configuration.my_stats.avto = configuration.my_stats.avto + 1
-			elseif typeddd == "мото" then
+			elseif typeddd == 'мото' then
 				configuration.my_stats.moto = configuration.my_stats.moto + 1
-			elseif typeddd == "рыбалку" then
+			elseif typeddd == 'рыбалку' then
 				configuration.my_stats.riba = configuration.my_stats.riba + 1
-			elseif typeddd == "плавание" then
+			elseif typeddd == 'плавание' then
 				configuration.my_stats.lodka = configuration.my_stats.lodka + 1
-			elseif typeddd == "оружие" then
+			elseif typeddd == 'оружие' then
 				configuration.my_stats.guns = configuration.my_stats.guns + 1
-			elseif typeddd == "охоту" then
+			elseif typeddd == 'охоту' then
 				configuration.my_stats.hunt = configuration.my_stats.hunt + 1
-			elseif typeddd == "раскопки" then
+			elseif typeddd == 'раскопки' then
 				configuration.my_stats.klad = configuration.my_stats.klad + 1
 			else
 				if configuration.main_settings.replacechat then
-					ASHelperMessage("Вы успешно продали лицензию на "..typeddd.." игроку "..toddd:gsub("_"," ")..".")
+					ASHelperMessage(string.format('Вы успешно продали лицензию на %s игроку %s.',typeddd,toddd:gsub('_',' ')))
 					return false
 				end
 			end
-			if inicfg.save(configuration,"AS Helper") then
+			if inicfg.save(configuration,'AS Helper') then
 				if configuration.main_settings.replacechat then
-					ASHelperMessage("Вы успешно продали лицензию на "..typeddd.." игроку "..toddd:gsub("_"," ")..". Она была засчитана в вашу статистику.")
+					ASHelperMessage(string.format('Вы успешно продали лицензию на %s игроку %s. Она была засчитана в вашу статистику.',typeddd,toddd:gsub('_',' ')))
 					return false
 				end
 			end
 		end
-		if message:find("Приветствуем нового члена нашей организации (.+), которого пригласил: (.+)") then
-			local invited,inviting = message:match("Приветствуем нового члена нашей организации (.+), которого пригласил: (.+)%[")
+		if message:find('Приветствуем нового члена нашей организации (.+), которого пригласил: (.+)') then
+			local invited,inviting = message:match('Приветствуем нового члена нашей организации (.+), которого пригласил: (.+)%[')
 			if inviting == sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))) then
 				if invited == sampGetPlayerNickname(waitingaccept) then
-					sampSendChat("/giverank "..waitingaccept.." 2")
+					sampSendChat(string.format('/giverank %s 2',waitingaccept))
 					waitingaccept = false
 				end
 			end
@@ -1240,40 +1304,149 @@ if sampevcheck then
 	end
 	
 	function sampev.onSendChat(message)
-		if message:find('{gender:%A+|%A+}') then
-			local male, female = message:match('{gender:(%A+)|(%A+)}')
+		if message:find('{my_id}') then
+			sampSendChat(message:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
+			return  false
+		end
+
+		if message:find('{my_name}') then
+			sampSendChat(message:gsub('{my_name}', configuration.main_settings.myname))
+			return false
+		end
+		
+		if message:find('{my_rank}') then
+			sampSendChat(message:gsub('{my_rank}', configuration.main_settings.myrank))
+			return false
+		end
+		
+		if message:find('{my_score}') then
+			sampSendChat(message:gsub('{my_score}', sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))))
+			return false
+		end
+
+		if message:find('{H}') then
+			sampSendChat(message:gsub('{H}', os.date("%H", os.time())))
+			return false
+		end
+		
+		if message:find('{HM}') then
+			sampSendChat(message:gsub('{HM}', os.date("%H:%M", os.time())))
+			return false
+		end
+
+		if message:find('{HMS}') then
+			sampSendChat(message:gsub('{HMS}', os.date("%H:%M:%S", os.time())))
+			return false
+		end
+		
+		if message:find('{close_id}') then
+			if select(1,getClosestPlayerId()) then
+				sampSendChat(message:gsub('{close_id}', select(2,getClosestPlayerId())))
+				return false
+			end
+			ASHelperMessage("В зоне стрима не найдено ни одного игрока")
+			return false
+		end
+		
+		if message:find('@{%d+}') then
+			local id = message:match("@{(%d+)}")
+			if id and sampIsPlayerConnected(id) then
+				sampSendChat(message:gsub('@{%d+}', sampGetPlayerNickname(id)))
+				return false
+			end
+			ASHelperMessage("Такого игрока нет на сервере.")
+			return false
+		end
+
+		if message:find('{gender:.+|.+}') then
+			local male, female = message:match('{gender:(.+)|(.+)}')
 			if configuration.main_settings.gender == 0 then
-				local gendermsg = message:gsub('{gender:%A+|%A+}', male, 1)
+				local gendermsg = message:gsub('{gender:.+|.+}', male, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			else
-				local gendermsg = message:gsub('{gender:%A+|%A+}', female, 1)
+				local gendermsg = message:gsub('{gender:.+|.+}', female, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
 		end
-		--Скрипт акцента Raymond: https://www.blast.hk/threads/43610/
+
+		--на основе https://www.blast.hk/threads/43610/
 		if configuration.main_settings.useaccent and configuration.main_settings.myaccent ~= '' and configuration.main_settings.myaccent ~= ' ' then
-			if message == ')' or message == '(' or message ==  '))' or message == '((' or message == 'xD' or message == ':D' or message == "q" or message == ";)" then
+			if message == ')' or message == '(' or message ==  '))' or message == '((' or message == 'xD' or message == ':D' or message == 'q' or message == ';)' then
 				return{message}
 			end
-			if string.find(u8:decode(configuration.main_settings.myaccent), "акцент") or string.find(u8:decode(configuration.main_settings.myaccent), "Акцент") then
-				return{'['..u8:decode(configuration.main_settings.myaccent)..']: '..message}
+			if string.find(u8:decode(configuration.main_settings.myaccent), 'акцент') or string.find(u8:decode(configuration.main_settings.myaccent), 'Акцент') then
+				return{('[%s]: %s'):format(u8:decode(configuration.main_settings.myaccent),message)}
 			else
-				return{'['..u8:decode(configuration.main_settings.myaccent)..' акцент]: '..message}
+				return{('[%s акцент]: %s'):format(u8:decode(configuration.main_settings.myaccent),message)}
 			end
 		end
 	end
 	
 	function sampev.onSendCommand(cmd)
-		if cmd:find('{gender:%A+|%A+}') then
-			local male, female = cmd:match('{gender:(%A+)|(%A+)}')
+		if cmd:find('{my_id}') then
+			sampSendChat(cmd:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
+			return  false
+		end
+
+		if cmd:find('{my_name}') then
+			sampSendChat(cmd:gsub('{my_name}', configuration.main_settings.myname))
+			return false
+		end
+		
+		if cmd:find('{my_rank}') then
+			sampSendChat(cmd:gsub('{my_rank}', configuration.main_settings.myrank))
+			return false
+		end
+		
+		if cmd:find('{my_score}') then
+			sampSendChat(cmd:gsub('{my_score}', sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))))
+			return false
+		end
+
+		if cmd:find('{H}') then
+			sampSendChat(cmd:gsub('{H}', os.date("%H", os.time())))
+			return false
+		end
+		
+		if cmd:find('{HM}') then
+			sampSendChat(cmd:gsub('{HM}', os.date("%H:%M", os.time())))
+			return false
+		end
+
+		if cmd:find('{HMS}') then
+			sampSendChat(cmd:gsub('{HMS}', os.date("%H:%M:%S", os.time())))
+			return false
+		end
+		
+		if cmd:find('{close_id}') then
+			if select(1,getClosestPlayerId()) then
+				sampSendChat(cmd:gsub('{close_id}', select(2,getClosestPlayerId())))
+				return false
+			end
+			ASHelperMessage("В зоне стрима не найдено ни одного игрока")
+			return false
+		end
+		
+		if cmd:find('@{%d+}') then
+			local id = cmd:match("@{(%d+)}")
+			if id and sampIsPlayerConnected(id) then
+				sampSendChat(cmd:gsub('@{%d+}', sampGetPlayerNickname(id)))
+				return false
+			end
+			ASHelperMessage("Такого игрока нет на сервере.")
+			return false
+		end
+
+		if cmd:find('{gender:.+|.+}') then
+			local male, female = cmd:match('{gender:(.+)|(.+)}')
 			if configuration.main_settings.gender == 0 then
-				local gendermsg = cmd:gsub('{gender:%A+|%A+}', male, 1)
+				local gendermsg = cmd:gsub('{gender:.+|.+}', male, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			else
-				local gendermsg = cmd:gsub('{gender:%A+|%A+}', female, 1)
+				local gendermsg = cmd:gsub('{gender:.+|.+}', female, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
@@ -1286,26 +1459,12 @@ if sampevcheck then
 			NoErrors = true
 			thisScript():unload()
 		end
+		lua_thread.create(function()
+			wait(1000)
+			getmyrank = true
+			sampSendChat('/stats')
+		end)
 	end
-end
-
---Разделение денежных сумм на точки от Royan_Millans: https://www.blast.hk/threads/39380/
-function separator(text)
-	local function comma_value(n)
-		local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
-		return left..(num:reverse():gsub('(%d%d%d)','%1.'):reverse())..right
-	end
-	
-	for S in string.gmatch(text, "%$%d+") do
-		local replace = comma_value(S)
-		text = string.gsub(text, S, replace)
-	end
-	for S in string.gmatch(text, "%d+%$") do
-		S = string.sub(S, 0, #S-1)
-		local replace = comma_value(S)
-		text = string.gsub(text, S, replace)
-	end
-	return text
 end
 
 function checkServer(ip)
@@ -1335,68 +1494,26 @@ end
 function ASHelperMessage(text)
 	if imguicheck then
 		local r, g, b, a = imgui.ImColor(configuration.main_settings.ASChatColor):GetRGBA()
-		sampAddChatMessage("[ASHelper] {EBEBEB}"..text,join_rgb(r, g, b))
+		sampAddChatMessage(('[ASHelper]{EBEBEB} %s'):format(text),join_rgb(r, g, b))
 	else
-		sampAddChatMessage("[ASHelper] {EBEBEB}"..text,0xff6633)
+		sampAddChatMessage(('[ASHelper]{EBEBEB} %s'):format(text),0xff6633)
 	end
 end
 
-if imguicheck and rkeyscheck and facheck then
+if imguicheck and encodingcheck then
 	function onWindowMessage(msg, wparam, lparam)
-		if windows.imgui_settings.v or windows.imgui_fm.v or windows.imgui_binder.v or windows.imgui_sobes.v or windows.imgui_lect.v then
-			if wparam == VK_ESCAPE and not isPauseMenuActive() then
+		if wparam == 0x1B and not isPauseMenuActive() then
+			if windows.imgui_settings.v or windows.imgui_fm.v or windows.imgui_binder.v or windows.imgui_sobes.v or windows.imgui_lect.v then
 				consumeWindowMessage(true, false)
 				if(msg == 0x101)then
 					windows.imgui_settings.v = false
 					windows.imgui_fm.v = false
 					windows.imgui_sobes.v = false
 					windows.imgui_lect.v = false
-					mcvalue = true
-					passvalue = true
 					windows.imgui_binder.v = false
 					imgui.ShowCursor = false
 				end
 			end
-			if getbindkey then
-				if msg == 0x100 or msg == 0x104 then
-					local keyname = vkeys.id_to_name(wparam)
-					configuration.main_settings.usefastmenu = keyname
-					inicfg.save(configuration,"AS Helper")
-					getbindkey = false
-				end
-			elseif getscreenkey then
-				if msg == 0x100 or msg == 0x104 then
-					local keyname = vkeys.id_to_name(wparam)
-					configuration.main_settings.fastscreen = keyname
-					inicfg.save(configuration,"AS Helper")
-					lua_thread.create(function ()
-						wait(100)
-						getscreenkey = false
-					end)
-				end
-			elseif setbinderkey then
-				if msg == 0x100 or msg == 0x104 then
-					if not keyname then
-						keyname = vkeys.id_to_name(wparam)
-						binderkeystatus = u8"ЛКМ для сохранения "..keyname
-					elseif not keyname2 and vkeys.id_to_name(wparam) ~= keyname then
-						keyname2 = vkeys.id_to_name(wparam)
-						if keyname2 == "Shift" or keyname2 == "Alt" or keyname2 == "Ctrl" or keyname2 == "Space" then
-							binderkeystatus = keyname2.." + "..keyname
-							setbinderkey = false
-						else
-							binderkeystatus = keyname.." + "..keyname2
-							setbinderkey = false
-						end
-					end
-				end
-			end
-		end
-	end
-
-	function rkeys.onHotKey(id, data)	
-		if sampIsChatInputActive() or sampIsDialogActive() or isSampfuncsConsoleActive() then
-			return false
 		end
 	end
 end
@@ -1429,7 +1546,7 @@ function onScriptTerminate(script, quitGame)
 		if NoErrors then
 			return false
 		end
-    	sampShowDialog(1313, "{ff6633}[AS Helper]{ffffff} Скрипт был выгружен сам по себе.", [[
+    	sampShowDialog(1313, '{ff6633}[AS Helper]{ffffff} Скрипт был выгружен сам по себе.', [[
 {ffffff}                                                                             Что делать в таких случаях?{f51111}
 
 Если вы самостоятельно перезагрузили скрипт, то можете закрыть это диалоговое окно.
@@ -1449,26 +1566,26 @@ function onScriptTerminate(script, quitGame)
 
 4. Если ничего из вышеперечисленного не исправило ошибку, то следует установить скрипт на другую сборку.
 
-5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#6291) эту ошибку.]], "ОК", nil, 0)
+5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#6291) эту ошибку.]], 'ОК', nil, 0)
 	end
 end
 
 --Отдельное спасибо Bank Helper от Cosmo. Оттуда взял несколько интересных идей.
-if imguicheck and encodingcheck and facheck then
+if imguicheck and encodingcheck then
 	u8 									= encoding.UTF8
 	encoding.default 					= 'CP1251'
 	
 	local Licenses_select 				= imgui.ImInt(0)
-	local Licenses_Arr 					= {u8"Авто",u8"Мото",u8"Рыболовство",u8"Плавание",u8"Оружие",u8"Охоту",u8"Раскопки"}
+	local Licenses_Arr 					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки'}
 
 	local StyleBox_select				= imgui.ImInt(configuration.main_settings.style)
-	local StyleBox_arr					= {u8"Тёмно-оранжевая (transp.)",u8"Тёмно-красная (not transp.)",u8"Светло-синяя (not transp.)",u8"Фиолетовая (not transp.)",u8"Светло-тёмная (not transp.)",u8"Тёмно-зеленая (not transp.)"}
+	local StyleBox_arr					= {u8'Тёмно-оранжевая (transp.)',u8'Тёмно-красная (not transp.)',u8'Светло-синяя (not transp.)',u8'Фиолетовая (not transp.)',u8'Светло-тёмная (not transp.)',u8'Тёмно-зеленая (not transp.)'}
 
 	local Ranks_select 					= imgui.ImInt(0)
-	local Ranks_arr 					= {u8"[1] Стажёр",u8"[2] Консультант",u8"[3] Лицензёр",u8"[4] Мл. Инструктор",u8"[5] Инструктор",u8"[6] Менеджер",u8"[7] Ст. Менеджер",u8"[8] Помощник директора",u8"[9] Директор"}
+	local Ranks_arr 					= {u8'[1] Стажёр',u8'[2] Консультант',u8'[3] Лицензёр',u8'[4] Мл. Инструктор',u8'[5] Инструктор',u8'[6] Менеджер',u8'[7] Ст. Менеджер',u8'[8] Помощник директора',u8'[9] Директор'}
 	
 	local sobesdecline_select 			= imgui.ImInt(0)
-	local sobesdecline_arr 				= {u8"Плохое РП",u8"Не было РП",u8"Плохая грамматика",u8"Ничего не показал",u8"Другое"}
+	local sobesdecline_arr 				= {u8'Плохое РП',u8'Не было РП',u8'Плохая грамматика',u8'Ничего не показал',u8'Другое'}
 		
 	local uninvitebuf 					= imgui.ImBuffer(256)
 	local blacklistbuf 					= imgui.ImBuffer(256)
@@ -1516,6 +1633,7 @@ if imguicheck and encodingcheck and facheck then
 		dorponcmd						= imgui.ImBool(configuration.main_settings.dorponcmd),
 		replacechat						= imgui.ImBool(configuration.main_settings.replacechat),
 		dofastscreen					= imgui.ImBool(configuration.main_settings.dofastscreen),
+		noscrollbar						= imgui.ImBool(configuration.main_settings.noscrollbar),
 		myname 							= imgui.ImBuffer(configuration.main_settings.myname, 256),
 		myaccent 						= imgui.ImBuffer(configuration.main_settings.myaccent, 256),
 		gender 							= imgui.ImInt(configuration.main_settings.gender)
@@ -1533,11 +1651,18 @@ if imguicheck and encodingcheck and facheck then
 
 	local lectionsettings = {
 		lection_type					= imgui.ImInt(1),
-		lection_delay					= imgui.ImInt(10),
+		lection_delay					= imgui.ImInt(configuration.main_settings.lection_delay),
 		lection_name					= imgui.ImBuffer(256),
 		lection_text					= imgui.ImBuffer(65536)
 	}
 	
+	local whiteashelper					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\settingswhite.png')
+	local blackashelper					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\settingsblack.png')
+	local whitebinder					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\binderwhite.png')
+	local blackbinder					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\binderblack.png')
+	local whitelection					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\lectionwhite.png')
+	local blacklection					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\lectionblack.png')
+
 	local fa_glyph_ranges	= imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 	function imgui.BeforeDrawFrame()
 		if fa_font == nil then
@@ -1545,9 +1670,7 @@ if imguicheck and encodingcheck and facheck then
 			font_config.MergeMode = true
 			fa_font = imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader/resource/fonts/fa-solid-900.ttf', 13.0, font_config, fa_glyph_ranges)
 		end
-		if fontsize16 == nil then
-			fontsize16 = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14) .. '\\trebucbd.ttf', 25.0, nil, imgui.GetIO().Fonts:GetGlyphRangesCyrillic())
-		end
+		if fontsize25 == nil then fontsize25 = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14)..'\\trebucbd.ttf', 25.0, nil, imgui.GetIO().Fonts:GetGlyphRangesCyrillic()) end
 	end
 
 	function checkstyle()
@@ -1566,7 +1689,7 @@ if imguicheck and encodingcheck and facheck then
 		style.ItemSpacing						= ImVec2(12, 8)
 		style.ItemInnerSpacing 					= ImVec2(8, 6)
 		style.IndentSpacing 					= 25.0
-		style.ScrollbarSize 					= 15.0
+		style.ScrollbarSize 					= 15
 		style.ScrollbarRounding 				= 9.0
 		style.GrabMinSize 						= 5.0
 		style.GrabRounding 						= 3.0
@@ -1612,7 +1735,7 @@ if imguicheck and encodingcheck and facheck then
 			colors[clr.PlotHistogramHovered] 	= ImVec4(0.25, 1.00, 0.00, 1.00)
 			colors[clr.TextSelectedBg] 			= ImVec4(0.25, 1.00, 0.00, 0.43)
 			colors[clr.ModalWindowDarkening] 	= ImVec4(0.00, 0.00, 0.00, 0.30)
-			--textcolorinhex						= "{ccccd4}"
+			--textcolorinhex						= '{ccccd4}'
 		elseif configuration.main_settings.style == 1 then -- из Bank Helper
 			colors[clr.Text]                   	= ImVec4(0.95, 0.96, 0.98, 1.00)
 			colors[clr.TextDisabled]           	= ImVec4(0.29, 0.29, 0.29, 1.00)
@@ -1654,7 +1777,7 @@ if imguicheck and encodingcheck and facheck then
 			colors[clr.PlotHistogramHovered]   	= ImVec4(1.00, 0.18, 0.18, 1.00)
 			colors[clr.TextSelectedBg]         	= ImVec4(1.00, 0.25, 0.25, 1.00)
 			colors[clr.ModalWindowDarkening]   	= ImVec4(0.00, 0.00, 0.00, 0.30)
-			--textcolorinhex						= "{f2f5fa}"
+			--textcolorinhex						= '{f2f5fa}'
 		elseif configuration.main_settings.style == 2 then -- https://www.blast.hk/threads/25442/post-262906
 			colors[clr.Text]					= ImVec4(0.00, 0.00, 0.00, 0.51)
 			colors[clr.TextDisabled]   			= ImVec4(0.24, 0.24, 0.24, 1.00)
@@ -1696,7 +1819,7 @@ if imguicheck and encodingcheck and facheck then
 			colors[clr.PlotHistogramHovered] 	= ImVec4(0.00, 0.35, 0.92, 0.78)
 			colors[clr.TextSelectedBg]       	= ImVec4(0.00, 0.47, 1.00, 0.59)
 			colors[clr.ModalWindowDarkening] 	= ImVec4(0.20, 0.20, 0.20, 0.35)
-			--textcolorinhex						= "{7d7d7d}"
+			--textcolorinhex						= '{7d7d7d}'
 		elseif configuration.main_settings.style == 3 then -- из Bank Helper
 			colors[clr.Text]					= ImVec4(1.00, 1.00, 1.00, 1.00)
 			colors[clr.WindowBg]              	= ImVec4(0.14, 0.12, 0.16, 1.00)
@@ -1737,7 +1860,7 @@ if imguicheck and encodingcheck and facheck then
 			colors[clr.PlotHistogramHovered]  	= ImVec4(0.41, 0.19, 0.63, 1.00)
 			colors[clr.TextSelectedBg]        	= ImVec4(0.41, 0.19, 0.63, 0.43)
 			colors[clr.ModalWindowDarkening]  	= ImVec4(0.20, 0.20, 0.20, 0.35)
-			--textcolorinhex						= "{ffffff}"
+			--textcolorinhex						= '{ffffff}'
 		elseif configuration.main_settings.style == 4 then -- https://www.blast.hk/threads/25442/post-425765
 			colors[clr.Text]                   	= ImVec4(0.90, 0.90, 0.90, 1.00)
 			colors[clr.TextDisabled]           	= ImVec4(1.00, 1.00, 1.00, 1.00)
@@ -1782,7 +1905,7 @@ if imguicheck and encodingcheck and facheck then
 			colors[clr.PlotHistogramHovered]   	= ImVec4(1.00, 1.00, 1.00, 1.00)
 			colors[clr.TextSelectedBg]         	= ImVec4(1.00, 1.00, 1.00, 0.35)
 			colors[clr.ModalWindowDarkening]   	= ImVec4(0.88, 0.88, 0.88, 0.35)
-			--textcolorinhex						= "{e5e5e5}"
+			--textcolorinhex						= '{e5e5e5}'
 		elseif configuration.main_settings.style == 5 then -- https://www.blast.hk/threads/25442/post-555626
 			colors[clr.Text]                   	= ImVec4(0.90, 0.90, 0.90, 1.00)
 			colors[clr.TextDisabled]           	= ImVec4(0.60, 0.60, 0.60, 1.00)
@@ -1827,10 +1950,30 @@ if imguicheck and encodingcheck and facheck then
 			colors[clr.PlotHistogramHovered]   	= ImVec4(0.00, 0.80, 0.38, 1.00)
 			colors[clr.TextSelectedBg]         	= ImVec4(0.00, 0.69, 0.33, 0.72)
 			colors[clr.ModalWindowDarkening]   	= ImVec4(0.17, 0.17, 0.17, 0.48)
-			--textcolorinhex						= "{e5e5e5}"
+			--textcolorinhex						= '{e5e5e5}'
 		end
 	end
-	
+
+	function string.split(inputstr, sep)
+		if sep == nil then
+				sep = '%s'
+		end
+		local t={} ; i=1
+		for str in string.gmatch(inputstr, '([^'..sep..']+)') do
+				t[i] = str
+				i = i + 1
+		end
+		return t
+	end
+
+	--Разделение на точки: https://www.blast.hk/threads/13380/post-220949
+	function string.separate(a)
+		local b, e = ('%d'):format(a):gsub('^%-', '')
+		local c = b:reverse():gsub('%d%d%d', '%1.')
+		local d = c:reverse():gsub('^%.', '')
+		return (e == 1 and '-' or '')..d
+	end
+
 	function string.rlower(s)
 		local russian_characters = {
 			[155] = '[', [168] = 'Ё', [184] = 'ё', [192] = 'А', [193] = 'Б', [194] = 'В', [195] = 'Г', [196] = 'Д', [197] = 'Е', [198] = 'Ж', [199] = 'З', [200] = 'И', [201] = 'Й', [202] = 'К', [203] = 'Л', [204] = 'М', [205] = 'Н', [206] = 'О', [207] = 'П', [208] = 'Р', [209] = 'С', [210] = 'Т', [211] = 'У', [212] = 'Ф', [213] = 'Х', [214] = 'Ц', [215] = 'Ч', [216] = 'Ш', [217] = 'Щ', [218] = 'Ъ', [219] = 'Ы', [220] = 'Ь', [221] = 'Э', [222] = 'Ю', [223] = 'Я', [224] = 'а', [225] = 'б', [226] = 'в', [227] = 'г', [228] = 'д', [229] = 'е', [230] = 'ж', [231] = 'з', [232] = 'и', [233] = 'й', [234] = 'к', [235] = 'л', [236] = 'м', [237] = 'н', [238] = 'о', [239] = 'п', [240] = 'р', [241] = 'с', [242] = 'т', [243] = 'у', [244] = 'ф', [245] = 'х', [246] = 'ц', [247] = 'ч', [248] = 'ш', [249] = 'щ', [250] = 'ъ', [251] = 'ы', [252] = 'ь', [253] = 'э', [254] = 'ю', [255] = 'я',
@@ -1842,18 +1985,15 @@ if imguicheck and encodingcheck and facheck then
 		local output = ''
 		for i = 1, strlen do
 			local ch = s:byte(i)
-			if ch >= 192 and ch <= 223 then
-				output = output .. russian_characters[ch + 32]
-			elseif ch == 168 then
-				output = output .. russian_characters[184]
-			else
-				output = output .. string.char(ch)
+			if ch >= 192 and ch <= 223 then output = output .. russian_characters[ch + 32]
+			elseif ch == 168 then output = output .. russian_characters[184]
+			else output = output .. string.char(ch)
 			end
 		end
 		return output
 	end
 
-	function GetMyGender()
+	function GetMyGender() -- bhelper
 		local skins = {
 			[0] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 57, 58, 59, 60, 61, 62, 66, 67, 68, 70, 71, 72, 73, 78, 79, 80, 81, 82, 83, 84, 86, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 132, 133, 134, 135, 136, 137, 142, 143, 144, 146, 147, 149, 153, 154, 155, 156, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 170, 171, 173, 174, 175, 176, 177, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 200, 202, 203, 204, 206, 208, 209, 210, 212, 213, 217, 220, 221, 222, 223, 227, 228, 229, 230, 234, 235, 236, 239, 240, 241, 242, 247, 248, 249, 250, 252, 253, 254, 255, 258, 259, 260, 261, 262, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 299, 300, 301, 302, 303, 304, 305, 310, 311}, 
 			[1] = {9, 10, 11, 12, 13, 31, 38, 39, 40, 41, 53, 54, 55, 56, 63, 64, 65, 69, 75, 76, 77, 85, 87, 88, 89, 90, 91, 92, 93, 129, 130, 131, 138, 139, 140, 141, 145, 148, 150, 151, 152, 157, 169, 172, 178, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 201, 205, 207, 211, 214, 215, 216, 218, 219, 224, 225, 226, 231, 232, 233, 237, 238, 243, 244, 245, 246, 251, 256, 257, 263, 298, 306, 307, 308, 309}
@@ -1863,9 +2003,9 @@ if imguicheck and encodingcheck and facheck then
 				if skin == getCharModel(playerPed) then
 					usersettings.gender.v = k
 					configuration.main_settings.gender = k
-					if inicfg.save(configuration,"AS Helper") then
+					if inicfg.save(configuration,'AS Helper') then
 						local r, g, b, a = imgui.ImColor(configuration.main_settings.ASChatColor):GetRGBA()
-						ASHelperMessage(string.format("Пол был выбран: {%06X}"..(usersettings.gender.v and "Мужской" or "Женский"), join_rgb(r, g, b)))
+						ASHelperMessage(string.format('Пол был выбран: {%06X}%s', join_rgb(r, g, b),usersettings.gender.v and 'Мужской' or 'Женский'))
 					end
 					return k
 				end
@@ -1873,7 +2013,58 @@ if imguicheck and encodingcheck and facheck then
 		end
 		return nil
 	end
-	
+
+	function imgui.GetKeys(bool,maxkeys)
+		if bool then
+			local function getDownKeys()
+				local curkeys = ''
+				local bool = false
+				for k, v in pairs(vkeys) do
+					if isKeyDown(v) and (v == VK_MENU or v == VK_CONTROL or v == VK_SHIFT or v == VK_LMENU or v == VK_RMENU or v == VK_RCONTROL or v == VK_LCONTROL or v == VK_LSHIFT or v == VK_RSHIFT) then
+						if v ~= VK_MENU and v ~= VK_CONTROL and v ~= VK_SHIFT then
+							curkeys = v
+						end
+					end
+				end
+				for k, v in pairs(vkeys) do
+					if isKeyDown(v) and (v ~= VK_MENU and v ~= VK_CONTROL and v ~= VK_SHIFT and v ~= VK_LMENU and v ~= VK_RMENU and v ~= VK_RCONTROL and v ~= VK_LCONTROL and v ~= VK_LSHIFT and v ~= VK_RSHIFT) then
+						if tostring(curkeys):len() == 0 then
+							curkeys = v
+						else
+							curkeys = curkeys .. ' ' .. v
+						end
+						bool = true
+					end
+				end
+				return curkeys, bool
+			end
+			
+			local tKeys = string.split(getDownKeys(), ' ')
+			if #tKeys ~= 0 then
+				for i = 1, #tKeys do
+					if maxkeys > 1 then
+						if #tKeys == 1 then
+							str = vkeys.id_to_name(tonumber(tKeys[i]))
+							return true,'ЛКМ - сохранение '..str
+						elseif #tKeys == maxkeys then
+							if str and not str:find(vkeys.id_to_name(tonumber(tKeys[i]))) then
+								str = str .. ' + ' .. vkeys.id_to_name(tonumber(tKeys[i]))
+								return false,str
+							end
+						else
+							return true,'None'
+						end
+					else
+						str = vkeys.id_to_name(tonumber(tKeys[i]))
+						return false, str
+					end
+				end
+			else
+				return true,'None'
+			end
+		end
+	end
+
 	function imgui.SmoothButton(bool, name, wide) -- из https://www.blast.hk/threads/49782/
 		local animTime = 0.25
 		local drawList = imgui.GetWindowDrawList()
@@ -1882,27 +2073,26 @@ if imguicheck and encodingcheck and facheck then
 		local r, g, b, a = imgui.ImColor(imgui.GetStyle().Colors[imgui.Col.Button]):GetRGBA()
 		local hex = string.format('%06X', bit.band(join_argb(a, b, g, r), 0xFFFFFF))
 		local button = imgui.InvisibleButton(name, imgui.ImVec2(wide, 30))
-		if button and not bool then 
-			navigateLast = os.clock()
-		end
+		if button and not bool then navigateLast = os.clock() end
 		local pressed = imgui.IsItemActive()
-		drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 220, p1.y + 30), '0x20'..hex)
+		drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 220, p1.y + 30), ('0x20%s'):format(hex))
 		if bool then
 			if navigateLast and (os.clock() - navigateLast) < animTime then
 				local wide = (os.clock() - navigateLast) * (wide / animTime)
-				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 30), '0x80'..hex)
-				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 5, p1.y + 30), '0xFF'..hex)
+				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 30), ('0x80%s'):format(hex))
+				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + 5, p1.y + 30), ('0xFF%s'):format(hex))
 			else
-				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 30), '0x80'..hex)
-				drawList:AddRectFilled(imgui.ImVec2(p1.x, (pressed and p1.y or p1.y)), imgui.ImVec2(p1.x + 5, (pressed and p1.y + 30 or p1.y + 30)), '0xFF'..hex)
+				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 30), ('0x80%s'):format(hex))
+				drawList:AddRectFilled(imgui.ImVec2(p1.x, (pressed and p1.y or p1.y)), imgui.ImVec2(p1.x + 5, (pressed and p1.y + 30 or p1.y + 30)), ('0xFF%s'):format(hex))
 			end
 		else
 			if imgui.IsItemHovered() then
-				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 30), '0x10'..hex)
-				drawList:AddRectFilled(imgui.ImVec2(p1.x, (pressed and p1.y or p1.y)), imgui.ImVec2(p1.x + 5, (pressed and p1.y + 30 or p1.y + 30)), '0x70'..hex)
+				drawList:AddRectFilled(imgui.ImVec2(p1.x, p1.y), imgui.ImVec2(p1.x + wide, p1.y + 30), ('0x10%s'):format(hex))
+				drawList:AddRectFilled(imgui.ImVec2(p1.x, (pressed and p1.y or p1.y)), imgui.ImVec2(p1.x + 5, (pressed and p1.y + 30 or p1.y + 30)), ('0x70%s'):format(hex))
 			end
 		end
-		imgui.SameLine(10); imgui.SetCursorPos(imgui.ImVec2((wide - imgui.CalcTextSize(name).x) / 2, p2.y + 8))
+		imgui.SameLine(10)
+		imgui.SetCursorPos(imgui.ImVec2((wide - imgui.CalcTextSize(name).x) / 2, p2.y + 8))
 		imgui.Text(name)
 		imgui.SetCursorPosY(p2.y + 36.7)
 		return button
@@ -1966,10 +2156,8 @@ if imguicheck and encodingcheck and facheck then
 			for w in text_:gmatch('[^\r\n]+') do
 				local textsize = w:gsub('{.-}', '')
 				local text_width = imgui.CalcTextSize(u8(textsize))
-				if align == 1 then
-					imgui.SetCursorPosX( width / 2 - text_width .x / 2 )
-				elseif align == 2 then
-					imgui.SetCursorPosX(imgui.GetCursorPosX() + width - text_width.x - imgui.GetScrollX() - 2 * imgui.GetStyle().ItemSpacing.x - imgui.GetStyle().ScrollbarSize)
+				if align == 1 then imgui.SetCursorPosX( width / 2 - text_width .x / 2 )
+				elseif align == 2 then imgui.SetCursorPosX(imgui.GetCursorPosX() + width - text_width.x - imgui.GetScrollX() - 2 * imgui.GetStyle().ItemSpacing.x - imgui.GetStyle().ScrollbarSize)
 				end
 				local text, colors_, m = {}, {}, 1
 				w = w:gsub('{(......)}', '{%1FF}')
@@ -2007,10 +2195,8 @@ if imguicheck and encodingcheck and facheck then
 						imgui.PushTextWrapPos(450)
 						imgui.SetCursorPosX( imgui.GetWindowWidth() / 2 - imgui.CalcTextSize(fa.ICON_FA_INFO_CIRCLE..u8' Подсказка:').x / 2 )
 						imgui.TextColored(imgui.ImVec4(1.00, 1.00, 1.00, 1.00), fa.ICON_FA_INFO_CIRCLE..u8' Подсказка')
-						imgui.TextColoredRGB("{FFFFFF}"..text,1)
-						if action ~= nil then
-							imgui.Text('\n '..action)
-						end
+						imgui.TextColoredRGB(('{FFFFFF}%s'):format(text),1)
+						if action ~= nil then imgui.Text(('\n %s'):format(action)) end
 						if not imgui.IsItemVisible() and imgui.GetStyle().Alpha == 1.0 then hintanim = nil end
 						imgui.PopTextWrapPos()
 						imgui.EndTooltip()
@@ -2021,11 +2207,11 @@ if imguicheck and encodingcheck and facheck then
 	end
 
 	function Rule()
-		if imgui.BeginPopupModal(u8("Правила"), nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
+		if imgui.BeginPopupModal(u8('Правила'), nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 			imgui.TextColoredRGB(ruless[RuleSelect].name,1)
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
 			imgui.PushItemWidth(200)
-			imgui.InputText("##search_rule", search_rule, imgui.InputTextFlags.EnterReturnsTrue)
+			imgui.InputText('##search_rule', search_rule, imgui.InputTextFlags.EnterReturnsTrue) -- bank helper
 			if not imgui.IsItemActive() and #search_rule.v == 0 then
 				imgui.SameLine((imgui.GetWindowWidth() - imgui.CalcTextSize(fa.ICON_FA_SEARCH..u8(' Поиск')).x) / 2)
 				imgui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), fa.ICON_FA_SEARCH..u8(' Поиск'))
@@ -2034,54 +2220,60 @@ if imguicheck and encodingcheck and facheck then
 			if imgui.BoolButton(rule_align.v == 1,fa.ICON_FA_ALIGN_LEFT, imgui.ImVec2(40, 20)) then
 				rule_align.v = 1
 				configuration.main_settings.rule_align = rule_align.v
-				inicfg.save(configuration,"AS Helper.ini")
+				inicfg.save(configuration,'AS Helper.ini')
 			end
 			imgui.SameLine()
 			if imgui.BoolButton(rule_align.v == 2,fa.ICON_FA_ALIGN_CENTER, imgui.ImVec2(40, 20)) then
 				rule_align.v = 2
 				configuration.main_settings.rule_align = rule_align.v
-				inicfg.save(configuration,"AS Helper.ini")
+				inicfg.save(configuration,'AS Helper.ini')
 			end
 			imgui.SameLine()
 			if imgui.BoolButton(rule_align.v == 3,fa.ICON_FA_ALIGN_RIGHT, imgui.ImVec2(40, 20)) then
 				rule_align.v = 3
 				configuration.main_settings.rule_align = rule_align.v
-				inicfg.save(configuration,"AS Helper.ini")
+				inicfg.save(configuration,'AS Helper.ini')
 			end
-			imgui.BeginChild("##Правила", imgui.ImVec2(1000, 500), true)
+			imgui.BeginChild('##Правила', imgui.ImVec2(1000, 500), true)
 			for _,line in ipairs(ruless[RuleSelect].text) do
 				if #search_rule.v < 1 then
 					imgui.TextColoredRGB(line,rule_align.v-1)
 					imgui.Hint('Двойной клик перенесёт строку в чат.', 2)
 					if imgui.IsItemHovered() and imgui.IsMouseDoubleClicked(0) then
 						sampSetChatInputEnabled(true)
-						sampSetChatInputText(line:gsub("%{.+%}",""))
+						sampSetChatInputText(line:gsub('%{.+%}',''))
 					end
 				else
-					if string.rlower(line):find(string.rlower(u8:decode(search_rule.v)):gsub("(%p)","(%%p)")) then
+					if string.rlower(line):find(string.rlower(u8:decode(search_rule.v)):gsub('(%p)','(%%p)')) then
 						imgui.TextColoredRGB(line,rule_align.v-1)
 						imgui.Hint('Двойной клик перенесёт строку в чат.', 2)
 						if imgui.IsItemHovered() and imgui.IsMouseDoubleClicked(0) then
 							sampSetChatInputEnabled(true)
-							sampSetChatInputText(line:gsub("%{.+%}",""))
+							sampSetChatInputText(line:gsub('%{.+%}',''))
 						end
 					end
 				end	
 			end
 			imgui.EndChild()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
-			if imgui.Button(u8"Закрыть",imgui.ImVec2(200,25)) then
-				imgui.CloseCurrentPopup()
-			end
+			if imgui.Button(u8'Закрыть',imgui.ImVec2(200,25)) then imgui.CloseCurrentPopup() end
 			imgui.EndPopup()
 		end
 	end
 
 	function changelog()
-		if imgui.BeginPopupModal(u8("Список изменений"), nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
-			imgui.TextColoredRGB("Версия скрипта: "..thisScript().version,1)
-			imgui.BeginChild("##ChangeLog", imgui.ImVec2(700, 330), false)
-			imgui.InputTextMultiline("Read",imgui.ImBuffer(u8([[
+		if imgui.BeginPopupModal(u8('Список изменений'), nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
+			imgui.TextColoredRGB(('Версия скрипта: %s'):format(thisScript().version),1)
+			imgui.BeginChild('##ChangeLog', imgui.ImVec2(700, 330), false)
+			imgui.InputTextMultiline('Read',imgui.ImBuffer(u8([[
+Версия 2.3 (now)
+ - Убраны зависимости от библиотек rkeys и fAwesome5
+ - Добавлена функция показа полосы прокрутки
+ - Оптимизирована и улучшена система указаний клавиш для биндера
+ - Добавлены png картинки вместо заголовков у окон
+ - Добавлены тэги в биндер
+ - Незначительные изменения
+
 Версия 2.2
  - Добавлена функция увольнения с ЧС через команду
  - Добавлена функция озвучивания лекций /ashlect
@@ -2131,22 +2323,18 @@ if imguicheck and encodingcheck and facheck then
  - Релиз]])),imgui.ImVec2(-1, -1), imgui.InputTextFlags.ReadOnly)
 		imgui.EndChild()
 		imgui.SetCursorPosX((imgui.GetWindowWidth() - 200) / 2)
-		if imgui.Button(u8"Закрыть",imgui.ImVec2(200,25)) then
-			imgui.CloseCurrentPopup()
-		end
+		if imgui.Button(u8'Закрыть',imgui.ImVec2(200,25)) then imgui.CloseCurrentPopup() end
 		imgui.EndPopup()
 		end
 	end
 
 	function otheractions()
-		if imgui.BeginPopup(u8"Остальное", nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
+		if imgui.BeginPopup(u8'Остальное', nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
 			if imgui.Button(u8'Сбросить конфиг '..(fa.ICON_FA_TRASH), imgui.ImVec2(160,25)) then
 				windows.imgui_settings.v = false
 				windows.imgui_fm.v = false
 				windows.imgui_sobes.v = false
 				windows.imgui_lect.v = false
-				mcvalue = true
-				passvalue = true
 				windows.imgui_binder.v = false
 				imgui.ShowCursor = false
 				os.remove('moonloader/config/AS Helper.ini')
@@ -2165,7 +2353,7 @@ if imguicheck and encodingcheck and facheck then
 				thisScript():unload()
 			end
 			if imgui.Button(u8'Очистить чат '..(fa.ICON_FA_COMMENT_ALT), imgui.ImVec2(160,25)) then
-				local memory = require "memory"
+				local memory = require 'memory'
 				memory.fill(sampGetChatInfoPtr() + 306, 0x0, 25200)
 				memory.write(sampGetChatInfoPtr() + 306, 25562, 4, 0x0)
 				memory.write(sampGetChatInfoPtr() + 0x63DA, 1, 1)
@@ -2175,22 +2363,22 @@ if imguicheck and encodingcheck and facheck then
 	end
 
 	function communicate()
-		if imgui.BeginPopup(u8"Связь", nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
+		if imgui.BeginPopup(u8'Связь', nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
 			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.23, 0.49, 0.96, 0.8))
 			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.23, 0.49, 0.96, 0.9))
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.23, 0.49, 0.96, 1))
 			imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(1, 1, 1, 1))
-			if imgui.Button(u8"ВКонтакте", imgui.ImVec2(90, 25)) then
+			if imgui.Button(u8'ВКонтакте', imgui.ImVec2(90, 25)) then
 				ASHelperMessage('Ссылка скопирована в буфер обмена')
-				setClipboardText("https://vk.com/id468019660")
+				setClipboardText('https://vk.com/id468019660')
 			end
 			imgui.PopStyleColor(4)
 			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.46, 0.51, 0.85, 0.8))
 			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.46, 0.51, 0.85, 0.9))
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.46, 0.51, 0.85, 1))
-			if imgui.Button("Discord", imgui.ImVec2(90, 25)) then
+			if imgui.Button('Discord', imgui.ImVec2(90, 25)) then
 				ASHelperMessage('Ссылка скопирована в буфер обмена')
-				setClipboardText("JustMini#6291")
+				setClipboardText('JustMini#6291')
 			end
 			imgui.PopStyleColor(3)
 			imgui.EndPopup()
@@ -2198,19 +2386,19 @@ if imguicheck and encodingcheck and facheck then
 	end
 
 	function editlection()
-		if imgui.BeginPopupModal(u8"Редактор лекций", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize) then
-			imgui.Text(u8"Название лекции:")
+		if imgui.BeginPopupModal(u8'Редактор лекций', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
+			imgui.Text(u8'Название лекции:')
 			imgui.SameLine()
 			imgui.SetCursorPosY(35)
-			imgui.InputText("##lecteditor", lectionsettings.lection_name)
-			imgui.Text(u8"Текст лекции: ")
-			imgui.InputTextMultiline("##lecteditortext", lectionsettings.lection_text, imgui.ImVec2(700, 300))
+			imgui.InputText('##lecteditor', lectionsettings.lection_name)
+			imgui.Text(u8'Текст лекции: ')
+			imgui.InputTextMultiline('##lecteditortext', lectionsettings.lection_text, imgui.ImVec2(700, 300))
 			imgui.SetCursorPosX( (imgui.GetWindowWidth() - 300 - imgui.GetStyle().ItemSpacing.x) / 2 )
 			if #lectionsettings.lection_name.v > 0 and #lectionsettings.lection_text.v > 0 then
-				if imgui.Button(u8"Сохранить##lecteditor", imgui.ImVec2(150, 25)) then
+				if imgui.Button(u8'Сохранить##lecteditor', imgui.ImVec2(150, 25)) then
 					local pack = function(text, match)
 						local array = {}
-						for line in text:gmatch('[^' .. match .. ']+') do
+						for line in text:gmatch('[^'..match..']+') do
 							array[#array + 1] = line
 						end
 						return array
@@ -2224,18 +2412,47 @@ if imguicheck and encodingcheck and facheck then
 						lections.data[lection_number].name = u8:decode(tostring(lectionsettings.lection_name.v))
 						lections.data[lection_number].text = pack(u8:decode(tostring(lectionsettings.lection_text.v)), '\n')
 					end
-					local file = io.open(getWorkingDirectory() .. '\\AS Helper\\Lections.json', "w")
+					local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'w')
 					file:write(encodeJson(lections))
 					file:close()
 					imgui.CloseCurrentPopup()
 				end
 			else
-				imgui.LockedButton(u8"Сохранить##lecteditor", imgui.ImVec2(150, 25))
+				imgui.LockedButton(u8'Сохранить##lecteditor', imgui.ImVec2(150, 25))
 				imgui.Hint('Вы ввели не все параметры. Переповерьте всё.')
 			end
 			imgui.SameLine()
-			if imgui.Button(u8"Отменить##lecteditor", imgui.ImVec2(150, 25)) then
-				imgui.CloseCurrentPopup()
+			if imgui.Button(u8'Отменить##lecteditor', imgui.ImVec2(150, 25)) then imgui.CloseCurrentPopup() end
+			imgui.EndPopup()
+		end
+	end
+
+	function bindertags()
+		if imgui.BeginPopup(u8'Тэги', nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
+			local tagbuttons = {
+				{name = '{my_id}',text = 'Пишет Ваш ID.',hint = '/n /showpass {my_id}\n(( /showpass '..select(2,sampGetPlayerIdByCharHandle(playerPed))..' ))'},
+				{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я '..configuration.main_settings.myname..'.'},
+				{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = '/do На груди бейджик {my_rank}\nНа груди бейджик '..configuration.main_settings.myrank..'. -| '..sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed)))..'['..select(2,sampGetPlayerIdByCharHandle(playerPed))..']'},
+				{name = '{my_score}',text = 'Пишет Ваш уровень.',hint = 'Я проживаю в штате уже {my_score} лет!\n- Я проживаю в штате уже '..sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))..' лет!'},
+				{name = '{H}',text = 'Пишет системное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в '..os.date("%H", os.time())},
+				{name = '{HM}',text = 'Пишет системное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в '..os.date("%H:%M", os.time())..' будет концерт!'},
+				{name = '{HMS}',text = 'Пишет системное время в часы:минуты:секунды.',hint = 'У меня на часах {HMS}\n- У меня на часах '..os.date("%H:%M:%S", os.time())},
+				{name = '{gender:text1|text2}',text = 'Пишет сообщение в зависимости от вашего пола.',hint = 'Я вчера {gender:был|была} в банке\n- Если мужской пол: был в банке\n- Если женский пол: была в банке'},
+				{name = '@{ID}',text = 'Узнаёт имя игрока по ID.',hint = 'Ты не видел где сейчас @{43}?\n- Ты не видел где сейчас '..sampGetPlayerNickname(43)},
+				{name = '{close_id}',text = 'Узнаёт ID ближайшего к вам игрока',hint = 'О, а вот и @{{close_id}}?\nО, а вот и '..sampGetPlayerNickname(select(2,getClosestPlayerId()))},
+			}
+			for k,v in pairs(tagbuttons) do
+				if imgui.Button(tagbuttons[k].name,imgui.ImVec2(150,25)) then
+					setClipboardText(tagbuttons[k].name)
+					ASHelperMessage('Тэг был скопирован.')
+				end
+				imgui.SameLine()
+				if imgui.IsItemHovered() then
+					imgui.BeginTooltip()
+					imgui.Text(u8(tagbuttons[k].hint))
+					imgui.EndTooltip()
+				end
+				imgui.Text(u8(tagbuttons[k].text))
 			end
 			imgui.EndPopup()
 		end
@@ -2245,34 +2462,34 @@ if imguicheck and encodingcheck and facheck then
 		if windows.imgui_fm.v then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"Меню быстрого доступа", _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse)
+			imgui.Begin(u8'Меню быстрого доступа', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse + (configuration.main_settings.noscrollbar and imgui.WindowFlags.NoScrollbar or imgui.WindowFlags.NoBringToFrontOnFocus))
 			if windowtype == 0 then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(fa.ICON_FA_HAND_PAPER..u8' Поприветствовать игрока', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 1 then
 							getmyrank = true
-							sampSendChat("/stats")
+							sampSendChat('/stats')
 							lua_thread.create(function()
 								inprocess = true
 								if tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) > 4 and tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) < 13 then
-									sampSendChat("Доброе утро, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+									sampSendChat('Доброе утро, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?')
 								elseif tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) > 12 and tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) < 17 then
-									sampSendChat("Добрый день, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+									sampSendChat('Добрый день, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?')
 								elseif tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) > 16 and tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) < 24 then
-									sampSendChat("Добрый вечер, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+									sampSendChat('Добрый вечер, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?')
 								elseif tonumber(os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)) < 5 then
-									sampSendChat("Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?")
+									sampSendChat('Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?')
 								end
 								wait(2000)
-								sampSendChat('/do На груди висит бейджик с надписью '..configuration.main_settings.myrank..' '..(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), "_", " ") or u8:decode(usersettings.myname.v))..".")
+								sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(usersettings.myname.v))))
 								inprocess = false
 							end)
 						else
-							ASHelperMessage("Данная команда доступна с 1-го ранга.")
+							ASHelperMessage('Данная команда доступна с 1-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2287,26 +2504,26 @@ if imguicheck and encodingcheck and facheck then
 								wait(2000)
 								sampSendChat('/do В прайс листе написано:')
 								wait(2000)
-								sampSendChat('/do Лицензия на вождение автомобилей - '..separator(tostring(configuration.main_settings.avtoprice)..'$.'))
+								sampSendChat(('/do Лицензия на вождение автомобилей - %s$.'):format(string.separate(configuration.main_settings.avtoprice)))
 								wait(2000)
-								sampSendChat('/do Лицензия на вождение мотоциклов - '..separator(tostring(configuration.main_settings.motoprice)..'$.'))
+								sampSendChat(('/do Лицензия на вождение мотоциклов - %s$.'):format(string.separate(configuration.main_settings.motoprice)))
 								wait(2000)
-								sampSendChat('/do Лицензия на рыболовство - '..separator(tostring(configuration.main_settings.ribaprice)..'$.'))
+								sampSendChat(('/do Лицензия на рыболовство - %s$.'):format(string.separate(configuration.main_settings.ribaprice)))
 								wait(2000)
-								sampSendChat('/do Лицензия на водный транспорт - '..separator(tostring(configuration.main_settings.lodkaprice)..'$.'))
+								sampSendChat(('/do Лицензия на водный транспорт - %s$.'):format(string.separate(configuration.main_settings.lodkaprice)))
 								wait(2000)
-								sampSendChat('/do Лицензия на оружие - '..separator(tostring(configuration.main_settings.gunaprice)..'$.'))
+								sampSendChat(('/do Лицензия на оружие - %s$.'):format(string.separate(configuration.main_settings.gunaprice)))
 								wait(2000)
-								sampSendChat('/do Лицензия на охоту - '..separator(tostring(configuration.main_settings.huntprice)..'$.'))
+								sampSendChat(('/do Лицензия на охоту - %s$.'):format(string.separate(configuration.main_settings.huntprice)))
 								wait(2000)
-								sampSendChat('/do Лицензия на раскопки - '..separator(tostring(configuration.main_settings.kladprice)..'$.'))
+								sampSendChat(('/do Лицензия на раскопки - %s$.'):format(string.separate(configuration.main_settings.kladprice)))
 								inprocess = false
 							end)
 						else
-							ASHelperMessage("Данная команда доступна с 1-го ранга.")
+							ASHelperMessage('Данная команда доступна с 1-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2316,7 +2533,7 @@ if imguicheck and encodingcheck and facheck then
 						Licenses_select.v = 0
 						windowtype = 1
 					else
-						ASHelperMessage("Данная команда доступна с 3-го ранга.")
+						ASHelperMessage('Данная команда доступна с 3-го ранга.')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2333,17 +2550,17 @@ if imguicheck and encodingcheck and facheck then
 									sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 									wait(2000)
 									sampSendChat('/do Охрана выводит нарушителя из холла.')
-									sampSendChat("/expel "..expelid.." Н.П.А.")
+									sampSendChat(('/expel %s Н.П.А.'):format(expelid))
 									inprocess = false
 								end)
 							else
-								ASHelperMessage("Игрок находится в АФК!")
+								ASHelperMessage('Игрок находится в АФК!')
 							end
 						else
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						end
 					else
-						ASHelperMessage("Данная команда доступна с 5-го ранга.")
+						ASHelperMessage('Данная команда доступна с 5-го ранга.')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2366,7 +2583,7 @@ if imguicheck and encodingcheck and facheck then
 										sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 										wait(2000)
 										sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-										sampSendChat("/invite "..inviteid)
+										sampSendChat(('/invite %s'):format(inviteid))
 										inprocess = false
 									end)
 								end
@@ -2384,34 +2601,34 @@ if imguicheck and encodingcheck and facheck then
 										sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 										wait(2000)
 										sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-										sampSendChat("/invite "..inviteid)
+										sampSendChat(('/invite %s'):format(inviteid))
 										waitingaccept = inviteid
 										inprocess = false
 									end)
 								end
 							else
-								ASHelperMessage("Данная команда доступна с 9-го ранга.")
+								ASHelperMessage('Данная команда доступна с 9-го ранга.')
 							end
 						else
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						end
 					end
 				end
-				imgui.Hint("ЛКМ для принятия человека в организацию\n{FFFFFF}ПКМ для принятия на должность Консультанта",0)
+				imgui.Hint('ЛКМ для принятия человека в организацию\n{FFFFFF}ПКМ для принятия на должность Консультанта',0)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(fa.ICON_FA_USER_MINUS..u8' Уволить из организации', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 9 then
 							imgui.SetScrollY(0)
 							windowtype = 3
-							uninvitebuf.v = ""
-							blacklistbuf.v = ""
+							uninvitebuf.v = ''
+							blacklistbuf.v = ''
 							uninvitebox.v = false
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2422,10 +2639,10 @@ if imguicheck and encodingcheck and facheck then
 							Ranks_select.v = 0
 							windowtype = 4
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2434,12 +2651,12 @@ if imguicheck and encodingcheck and facheck then
 						if configuration.main_settings.myrankint >= 9 then
 							imgui.SetScrollY(0)
 							windowtype = 5
-							blacklistbuff.v = ""
+							blacklistbuff.v = ''
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2450,25 +2667,25 @@ if imguicheck and encodingcheck and facheck then
 							lua_thread.create(function()
 								local unblacklistid = fastmenuID
 								inprocess = true
-								sampSendChat("/me {gender:достал|достала} КПК из кармана")
+								sampSendChat('/me {gender:достал|достала} КПК из кармана')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Чёрный список\'')
 								wait(2000)
-								sampSendChat("/me {gender:ввёл|ввела} имя гражданина в поиск")
+								sampSendChat('/me {gender:ввёл|ввела} имя гражданина в поиск')
 								wait(2000)
-								sampSendChat('/me {gender:убрал|убрала} гражданина из раздела "Чёрный список"')
+								sampSendChat('/me {gender:убрал|убрала} гражданина из раздела \'Чёрный список\'')
 								wait(2000)
-								sampSendChat("/me {gender:подтведрдил|подтвердила} изменения")
+								sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 								wait(2000)
-								sampSendChat("/do Изменения были сохранены.")
-								sampSendChat("/unblacklist "..unblacklistid)
+								sampSendChat('/do Изменения были сохранены.')
+								sampSendChat(('/unblacklist %s'):format(unblacklistid))
 								inprocess = false
 							end)
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2476,13 +2693,13 @@ if imguicheck and encodingcheck and facheck then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 9 then
 							imgui.SetScrollY(0)
-							fwarnbuff.v = ""
+							fwarnbuff.v = ''
 							windowtype = 6
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2493,23 +2710,23 @@ if imguicheck and encodingcheck and facheck then
 							lua_thread.create(function()
 								local unfwarnid = fastmenuID
 								inprocess = true
-								sampSendChat("/me {gender:достал|достала} КПК из кармана")
+								sampSendChat('/me {gender:достал|достала} КПК из кармана')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 								wait(2000)
-								sampSendChat('/me {gender:зашёл|зашла} в раздел "Выговоры"')
+								sampSendChat('/me {gender:зашёл|зашла} в раздел \'Выговоры\'')
 								wait(2000)
-								sampSendChat("/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор")
+								sampSendChat('/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор')
 								wait(2000)
 								sampSendChat('/do Выговор был убран из личного дела сотрудника.')
-								sampSendChat("/unfwarn "..unfwarnid)
+								sampSendChat(('/unfwarn %s'):format(unfwarnid))
 								inprocess = false
 							end)
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2517,14 +2734,14 @@ if imguicheck and encodingcheck and facheck then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 9 then
 							imgui.SetScrollY(0)
-							fmutebuff.v = ""
+							fmutebuff.v = ''
 							fmuteint.v = 0
 							windowtype = 7
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2539,21 +2756,21 @@ if imguicheck and encodingcheck and facheck then
 								wait(2000)
 								sampSendChat('/me {gender:включил|включила} КПК')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками Автошколы"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками Автошколы\'')
 								wait(2000)
 								sampSendChat('/me {gender:выбрал|выбрала} нужного сотрудника')
 								wait(2000)
-								sampSendChat('/me {gender:выбрал|выбрала} пункт "Включить рацию сотрудника"')
+								sampSendChat('/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\'')
 								wait(2000)
-								sampSendChat('/me {gender:нажал|нажала} на кнопку "Сохранить изменения"')
-								sampSendChat("/funmute "..funmuteid)
+								sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+								sampSendChat(('/funmute %s'):format(funmuteid))
 								inprocess = false
 							end)
 						else
-							ASHelperMessage("Данная команда доступна с 9-го ранга.")
+							ASHelperMessage('Данная команда доступна с 9-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.Separator()
@@ -2564,10 +2781,10 @@ if imguicheck and encodingcheck and facheck then
 							imgui.SetScrollY(0)
 							windowtype = 8
 						else
-							ASHelperMessage("Данное действие доступно с 5-го ранга.")
+							ASHelperMessage('Данное действие доступно с 5-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2575,25 +2792,25 @@ if imguicheck and encodingcheck and facheck then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 5 then
 							imgui.SetScrollY(0)
-							passvalue = false
-							mcvalue = false
-							passverdict = ""
-							mcverdict = ""
+							passvalue = true
+							mcvalue = true
+							passverdict = ''
+							mcverdict = ''
 							sobesetap = 0
 							sobesdecline_select.v = 0
 							windows.imgui_fm.v = false
 							windows.imgui_sobes.v = true
 						else
-							ASHelperMessage("Данное действие доступно с 5-го ранга.")
+							ASHelperMessage('Данное действие доступно с 5-го ранга.')
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 			end
 	
 			if windowtype == 1 then
-				imgui.Text(u8"Лицензия: ", imgui.ImVec2(75,30))
+				imgui.Text(u8'Лицензия: ', imgui.ImVec2(75,30))
 				imgui.SameLine()
 				imgui.Combo(' ', Licenses_select, Licenses_Arr, #Licenses_Arr)
 				imgui.NewLine()
@@ -2608,9 +2825,9 @@ if imguicheck and encodingcheck and facheck then
 								if inprocess ~= true then
 									if lictype == 'оружие' then
 										sampSendChat('Хорошо, для покупки лицензии на оружие покажите мне свою мед.карту')
-										sampSendChat('/n /showmc '..select(2,sampGetPlayerIdByCharHandle(playerPed)))
+										sampSendChat(('/n /showmc %s'):format(select(2,sampGetPlayerIdByCharHandle(playerPed))))
 										ASHelperMessage('Началось ожидание показа мед.карты.')
-										skiporcancel = false
+										skiporcancel = true
 										tempid = fastmenuID
 									else
 										lua_thread.create(function()
@@ -2619,20 +2836,20 @@ if imguicheck and encodingcheck and facheck then
 											wait(2000)
 											sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 											wait(2000)
-											sampSendChat('/me распечатав лицензию на '..lictype.." {gender:передал|передала} её человеку напротив")
+											sampSendChat(('/me распечатав лицензию на %s {gender:передал|передала} её человеку напротив'):format(lictype))
 											givelic = true
-											sampSendChat('/givelicense '..sellto)
+											sampSendChat(('/givelicense %s'):format(sellto))
 											inprocess = false
 										end)
 									end
 								else
-									ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+									ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 								end
 							end
 						end
-						selllic(tostring(fastmenuID.." "..Licenses_Arr[Licenses_select.v+1]))
+						selllic(tostring(('%s %s'):format(fastmenuID,Licenses_Arr[Licenses_select.v+1])))
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2641,7 +2858,7 @@ if imguicheck and encodingcheck and facheck then
 						sampSendChat('Получить лицензию на полёты Вы можете в авиашколе г. Лас-Вентурас')
 						sampSendChat('/n /gps -> Важные места -> Следующая страница -> [LV] Авиашкола (9)')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2652,51 +2869,51 @@ if imguicheck and encodingcheck and facheck then
 			end
 	
 			if windowtype == 3 then
-				imgui.TextColoredRGB("Причина увольнения:",1)
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-				imgui.InputText(u8"    ", uninvitebuf)
+				imgui.TextColoredRGB('Причина увольнения:',1)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'').x) / 5.7)
+				imgui.InputText(u8'    ', uninvitebuf)
 				if uninvitebox.v then
-					imgui.TextColoredRGB("Причина ЧС:",1)
-					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
-					imgui.InputText(u8" ", blacklistbuf)
+					imgui.TextColoredRGB('Причина ЧС:',1)
+					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8' ').x) / 5.7)
+					imgui.InputText(u8' ', blacklistbuf)
 				end
-				imgui.Checkbox(u8"Уволить с ЧС", uninvitebox)
+				imgui.Checkbox(u8'Уволить с ЧС', uninvitebox)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Уволить '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(285,30)) then
 					if configuration.main_settings.myrankint >= 9 then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							if uninvitebuf.v == nil or uninvitebuf.v == '' then
-								ASHelperMessage("Введите причину увольнения!")
+								ASHelperMessage('Введите причину увольнения!')
 							else
 								if uninvitebox.v then
 									if blacklistbuf.v == nil or blacklistbuf.v == '' then
-										ASHelperMessage("Введите причину занесения в ЧС!")
+										ASHelperMessage('Введите причину занесения в ЧС!')
 									else
 										windows.imgui_fm.v = false
 										lua_thread.create(function()
 											local uninviteid = fastmenuID
 											inprocess = true
-											sampSendChat("/time")
+											sampSendChat('/time')
 											sampSendChat('/me {gender:достал|достала} КПК из кармана')
 											wait(2000)
-											sampSendChat('/me {gender:перешёл|перешла} в раздел "Увольнение"')
+											sampSendChat('/me {gender:перешёл|перешла} в раздел \'Увольнение\'')
 											wait(2000)
 											sampSendChat('/do Раздел открыт.')
 											wait(2000)
-											sampSendChat('/me {gender:внёс|внесла} человека в раздел "Увольнение"')
+											sampSendChat('/me {gender:внёс|внесла} человека в раздел \'Увольнение\'')
 											wait(2000)
-											sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
+											sampSendChat('/me {gender:перешёл|перешла} в раздел \'Чёрный список\'')
 											wait(2000)
 											sampSendChat('/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения')
 											wait(2000)
 											sampSendChat('/do Изменения были сохранены.')
 											wait(2000)
-											sampSendChat("/uninvite "..uninviteid..' '..u8:decode(uninvitebuf.v))
+											sampSendChat(('/uninvite %s %s'):format(uninviteid,u8:decode(uninvitebuf.v)))
 											wait(100)
-											sampSendChat("/blacklist "..uninviteid..' '..u8:decode(blacklistbuf.v))
-											sampSendChat("/time")
+											sampSendChat(('/blacklist %s %s'):format(uninviteid,u8:decode(blacklistbuf.v)))
+											sampSendChat('/time')
 											inprocess = false
 										end)
 									end
@@ -2705,26 +2922,26 @@ if imguicheck and encodingcheck and facheck then
 									lua_thread.create(function()
 										local uninviteid = fastmenuID
 										inprocess = true
-										sampSendChat("/time")
+										sampSendChat('/time')
 										sampSendChat('/me {gender:достал|достала} КПК из кармана')
 										wait(2000)
-										sampSendChat('/me {gender:перешёл|перешла} в раздел "Увольнение"')
+										sampSendChat('/me {gender:перешёл|перешла} в раздел \'Увольнение\'')
 										wait(2000)
 										sampSendChat('/do Раздел открыт.')
 										wait(2000)
-										sampSendChat('/me {gender:внёс|внесла} человека в раздел "Увольнение"')
+										sampSendChat('/me {gender:внёс|внесла} человека в раздел \'Увольнение\'')
 										wait(2000)
 										sampSendChat('/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман')
 										wait(2000)
-										sampSendChat("/uninvite "..uninviteid..' '..u8:decode(uninvitebuf.v))
-										sampSendChat("/time")
+										sampSendChat(('/uninvite %s %s'):format(uninviteid,u8:decode(uninvitebuf.v)))
+										sampSendChat('/time')
 										inprocess = false
 									end)
 								end
 							end
 						end
 					else
-						ASHelperMessage("Данная команда доступна с 9-го ранга.")
+						ASHelperMessage('Данная команда доступна с 9-го ранга.')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2745,7 +2962,7 @@ if imguicheck and encodingcheck and facheck then
 				if imgui.Button(u8'Повысить сотрудника '..fa.ICON_FA_ARROW_UP, imgui.ImVec2(270,40)) then
 					if configuration.main_settings.myrankint >= 9 then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							windows.imgui_fm.v = false
 							lua_thread.create(function()
@@ -2753,7 +2970,7 @@ if imguicheck and encodingcheck and facheck then
 								inprocess = true
 								sampSendChat('/me {gender:включил|включила} КПК')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 								wait(2000)
 								sampSendChat('/me {gender:выбрал|выбрала} в разделе нужного сотрудника')
 								wait(2000)
@@ -2762,19 +2979,19 @@ if imguicheck and encodingcheck and facheck then
 								sampSendChat('/do Информация о сотруднике была изменена.')
 								wait(2000)
 								sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
-								sampSendChat("/giverank "..changerankid.." "..Ranks_select.v+1)
+								sampSendChat(('/giverank %s %s'):format(changerankid,Ranks_select.v+1))
 								inprocess = false
 							end)
 						end
 					else
-						ASHelperMessage("Данная команда доступна с 9-го ранга.")
+						ASHelperMessage('Данная команда доступна с 9-го ранга.')
 					end
 				end
 				imgui.PopStyleColor(3)
 				if imgui.Button(u8'Понизить сотрудника '..fa.ICON_FA_ARROW_DOWN, imgui.ImVec2(270,30)) then
 					if configuration.main_settings.myrankint >= 9 then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							windows.imgui_fm.v = false
 							lua_thread.create(function()
@@ -2782,22 +2999,22 @@ if imguicheck and encodingcheck and facheck then
 								inprocess = true
 								sampSendChat('/me {gender:включил|включила} КПК')
 								wait(2000)
-								sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+								sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 								wait(2000)
 								sampSendChat('/me {gender:выбрал|выбрала} в разделе нужного сотрудника')
 								wait(2000)
 								sampSendChat('/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения')
 								wait(2000)
 								sampSendChat('/do Информация о сотруднике была изменена.')
-								sampSendChat("/giverank "..changerankid.." "..Ranks_select.v+1)
+								sampSendChat(('/giverank %s %s'):format(changerankid,Ranks_select.v+1))
 								inprocess = false
 							end)
 						end
 					else
-						ASHelperMessage("Данная команда доступна с 9-го ранга.")
+						ASHelperMessage('Данная команда доступна с 9-го ранга.')
 					end
 				end
-				imgui.TextColoredRGB("{808080}названия рангов могут отличаться от ваших",1)
+				imgui.TextColoredRGB('{808080}названия рангов могут отличаться от ваших',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
@@ -2806,43 +3023,43 @@ if imguicheck and encodingcheck and facheck then
 			end
 	
 			if windowtype == 5 then
-				imgui.TextColoredRGB("Причина занесения в ЧС:",1)
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-				imgui.InputText(u8"                   ", blacklistbuff)
+				imgui.TextColoredRGB('Причина занесения в ЧС:',1)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'').x) / 5.7)
+				imgui.InputText(u8'                   ', blacklistbuff)
 				imgui.NewLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Занести в ЧС '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(285,30)) then
 					if configuration.main_settings.myrankint >= 9 then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							if blacklistbuff.v == nil or blacklistbuff.v == '' then
-								ASHelperMessage("Введите причину занесения в ЧС!")
+								ASHelperMessage('Введите причину занесения в ЧС!')
 							else
 								windows.imgui_fm.v = false
 								lua_thread.create(function()
 									local blacklistid = fastmenuID
 									inprocess = true
-									sampSendChat("/time")
-									sampSendChat("/me {gender:достал|достала} КПК из кармана")
+									sampSendChat('/time')
+									sampSendChat('/me {gender:достал|достала} КПК из кармана')
 									wait(2000)
-									sampSendChat('/me {gender:перешёл|перешла} в раздел "Чёрный список"')
+									sampSendChat('/me {gender:перешёл|перешла} в раздел \'Чёрный список\'')
 									wait(2000)
-									sampSendChat("/me {gender:ввёл|ввела} имя нарушителя")
+									sampSendChat('/me {gender:ввёл|ввела} имя нарушителя')
 									wait(2000)
-									sampSendChat('/me {gender:внёс|внесла} нарушителя в раздел "Чёрный список"')
+									sampSendChat('/me {gender:внёс|внесла} нарушителя в раздел \'Чёрный список\'')
 									wait(2000)
-									sampSendChat("/me {gender:подтведрдил|подтвердила} изменения")
+									sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 									wait(2000)
-									sampSendChat("/do Изменения были сохранены.")
-									sampSendChat("/blacklist "..blacklistid.." "..u8:decode(blacklistbuff.v))
-									sampSendChat("/time")
+									sampSendChat('/do Изменения были сохранены.')
+									sampSendChat(('/blacklist %s %s'):format(blacklistid,u8:decode(blacklistbuff.v)))
+									sampSendChat('/time')
 									inprocess = false
 								end)
 							end
 						end
 					else
-						ASHelperMessage("Данная команда доступна с 9-го ранга.")
+						ASHelperMessage('Данная команда доступна с 9-го ранга.')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2853,14 +3070,14 @@ if imguicheck and encodingcheck and facheck then
 			end
 	
 			if windowtype == 6 then
-				imgui.TextColoredRGB("Причина выговора:",1)
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"   ").x) / 5.7)
-				imgui.InputText(u8"   ", fwarnbuff)
+				imgui.TextColoredRGB('Причина выговора:',1)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'   ').x) / 5.7)
+				imgui.InputText(u8'   ', fwarnbuff)
 				imgui.NewLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Выдать выговор '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(285,30)) then
 					if fwarnbuff.v == nil or fwarnbuff.v == '' then
-						ASHelperMessage("Введите причину выдачи выговора!")
+						ASHelperMessage('Введите причину выдачи выговора!')
 					else
 						windows.imgui_fm.v = false
 						lua_thread.create(function()
@@ -2868,15 +3085,15 @@ if imguicheck and encodingcheck and facheck then
 							inprocess = true
 							sampSendChat('/me {gender:достал|достала} КПК из кармана')
 							wait(2000)
-							sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+							sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 							wait(2000)
-							sampSendChat('/me {gender:зашёл|зашла} в раздел "Выговоры"')
+							sampSendChat('/me {gender:зашёл|зашла} в раздел \'Выговоры\'')
 							wait(2000)
 							sampSendChat('/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор')
 							wait(2000)
 							sampSendChat('/do Выговор был добавлен в личное дело сотрудника.')
 							wait(2000)
-							sampSendChat("/fwarn "..fwarnid.." "..u8:decode(fwarnbuff.v))
+							sampSendChat(('/fwarn %s %s'):format(fwarnid,u8:decode(fwarnbuff.v)))
 							inprocess = false
 						end)
 					end
@@ -2889,23 +3106,23 @@ if imguicheck and encodingcheck and facheck then
 			end
 	
 			if windowtype == 7 then
-				imgui.TextColoredRGB("Причина мута:",1)
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8"").x) / 5.7)
-				imgui.InputText(u8"         ", fmutebuff)
-				imgui.TextColoredRGB("Время мута:",1)
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8" ").x) / 5.7)
-				imgui.InputInt(u8" ", fmuteint)
+				imgui.TextColoredRGB('Причина мута:',1)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'').x) / 5.7)
+				imgui.InputText(u8'         ', fmutebuff)
+				imgui.TextColoredRGB('Время мута:',1)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8' ').x) / 5.7)
+				imgui.InputInt(u8' ', fmuteint)
 				imgui.NewLine()
 				if imgui.Button(u8'Выдать мут '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(270,30)) then
 					if configuration.main_settings.myrankint >= 9 then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							if fmutebuff.v == nil or fmutebuff.v == '' then
-								ASHelperMessage("Введите причину выдачи мута!")
+								ASHelperMessage('Введите причину выдачи мута!')
 							else
-								if fmuteint.v == nil or fmuteint.v == '' or fmuteint.v == 0 or tostring(fmuteint.v):find("-") then
-									ASHelperMessage("Введите корректное время мута!")
+								if fmuteint.v == nil or fmuteint.v == '' or fmuteint.v == 0 or tostring(fmuteint.v):find('-') then
+									ASHelperMessage('Введите корректное время мута!')
 								else
 									windows.imgui_fm.v = false
 									lua_thread.create(function()
@@ -2915,21 +3132,21 @@ if imguicheck and encodingcheck and facheck then
 										wait(2000)
 										sampSendChat('/me {gender:включил|включила} КПК')
 										wait(2000)
-										sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками Автошколы"')
+										sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками Автошколы\'')
 										wait(2000)
 										sampSendChat('/me {gender:выбрал|выбрала} нужного сотрудника')
 										wait(2000)
-										sampSendChat('/me {gender:выбрал|выбрала} пункт "Отключить рацию сотрудника"')
+										sampSendChat('/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\'')
 										wait(2000)
-										sampSendChat('/me {gender:нажал|нажала} на кнопку "Сохранить изменения"')
-										sampSendChat("/fmute "..fmuteid.." "..u8:decode(fmuteint.v).." "..u8:decode(fmutebuff.v))
+										sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+										sampSendChat(('/fmute %s %s %s'):format(fmuteid,u8:decode(fmuteint.v),u8:decode(fmutebuff.v)))
 										inprocess = false
 									end)
 								end
 							end
 						end
 					else
-						ASHelperMessage("Данная команда доступна с 9-го ранга.")
+						ASHelperMessage('Данная команда доступна с 9-го ранга.')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -2943,76 +3160,76 @@ if imguicheck and encodingcheck and facheck then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Рабочее время в будние дни', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: 09:00 - 19:00")
-						sampSendChat("Назовите время дневной смены в будние дни.")
+						ASHelperMessage('Подсказка: 09:00 - 19:00')
+						sampSendChat('Назовите время дневной смены в будние дни.')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Рабочее время в выходные дни', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: 10:00 - 18:00")
-						sampSendChat("Назовите время дневной смены в выходные дни.")
+						ASHelperMessage('Подсказка: 10:00 - 18:00')
+						sampSendChat('Назовите время дневной смены в выходные дни.')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Кнопка вызова полиции без причины', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: выговор")
-						sampSendChat("Какое наказание получает сотрудник за ложное нажатие кнопки вызова полиции?")
+						ASHelperMessage('Подсказка: выговор')
+						sampSendChat('Какое наказание получает сотрудник за ложное нажатие кнопки вызова полиции?')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Использование транспорта', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: (3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт")
-						sampSendChat("С какой должности разрешено брать автомобили, мотоциклы и вертолёт?")
+						ASHelperMessage('Подсказка: (3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт')
+						sampSendChat('С какой должности разрешено брать автомобили, мотоциклы и вертолёт?')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Должность для отпуска', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: (5+) Инструктор")
-						sampSendChat("Скажите, с какой должности разрешено брать отпуск?")
+						ASHelperMessage('Подсказка: (5+) Инструктор')
+						sampSendChat('Скажите, с какой должности разрешено брать отпуск?')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Время сна вне раздвелки', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: 5 минут максимально, за этим последует выговор.")
-						sampSendChat("Максимально допустимое время сна вне раздевалки?")
+						ASHelperMessage('Подсказка: 5 минут максимально, за этим последует выговор.')
+						sampSendChat('Максимально допустимое время сна вне раздевалки?')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Что такое субординация', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.")
-						sampSendChat("Что по вашему мнению означает слово 'Субординация'?")
+						ASHelperMessage('Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.')
+						sampSendChat('Что по вашему мнению означает слово \'Субординация\'?')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Обращения к другим сотрудникам', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						ASHelperMessage("Подсказка: по должности, по имени, 'Сэр' и 'Коллега'.")
-						sampSendChat("Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?")
+						ASHelperMessage('Подсказка: по должности, по имени, \'Сэр\' и \'Коллега\'.')
+						sampSendChat('Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?')
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
-				imgui.TextColoredRGB("{808080}подсказки могут отличаться от вашего сервера",1)
+				imgui.TextColoredRGB('{808080}подсказки могут отличаться от вашего сервера',1)
 				imgui.NewLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.00, 0.40, 0.00, 1.00))
@@ -3023,7 +3240,8 @@ if imguicheck and encodingcheck and facheck then
 						if not inprocess then
 							if imgui.IsMouseReleased(0) then
 								windows.imgui_fm.v = false
-								sampSendChat("Поздравляю, "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ")..", вы сдали устав!")
+								sampSendChat(('Поздравляю, %s, вы сдали устав!'):format(string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')))
+								sampSendChat(('/r %s успешно сдал устав!'):format(string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')))
 							end
 							if imgui.IsMouseReleased(1) then
 								if configuration.main_settings.myrankint >= 9 then
@@ -3031,10 +3249,10 @@ if imguicheck and encodingcheck and facheck then
 									lua_thread.create(function()
 										local changerankid = fastmenuID
 										inprocess = true
-										sampSendChat("Поздравляю, "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ")..", вы сдали устав!")
+										sampSendChat(('Поздравляю, %s , вы сдали устав!'):format(string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')))
 										sampSendChat('/me {gender:включил|включила} КПК')
 										wait(2000)
-										sampSendChat('/me {gender:перешёл|перешла} в раздел "Управление сотрудниками"')
+										sampSendChat('/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\'')
 										wait(2000)
 										sampSendChat('/me {gender:выбрал|выбрала} в разделе нужного сотрудника')
 										wait(2000)
@@ -3043,29 +3261,29 @@ if imguicheck and encodingcheck and facheck then
 										sampSendChat('/do Информация о сотруднике была изменена.')
 										wait(2000)
 										sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
-										sampSendChat("/giverank "..changerankid.." 2")
+										sampSendChat(('/giverank %s 2'):format(changerankid))
 										inprocess = false
 									end)
 								else
-									ASHelperMessage("Данная команда доступна с 9-го ранга.")
+									ASHelperMessage('Данная команда доступна с 9-го ранга.')
 								end
 							end
 						else
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						end
 					end
 				end
-				imgui.Hint("ЛКМ для информирования о сдаче устава\n{FFFFFF}ПКМ для повышения до Консультанта",0)
+				imgui.Hint('ЛКМ для информирования о сдаче устава\n{FFFFFF}ПКМ для повышения до Консультанта',0)
 				imgui.PopStyleColor(2)
 				imgui.SameLine()
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.40, 0.00, 0.00, 1.00))
 				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.30, 0.00, 0.00, 1.00))
 				if imgui.Button(u8'Отказать', imgui.ImVec2(137,35)) then
 					if not inprocess then
-						sampSendChat("Очень жаль, "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ")..", но вы не смогли сдать устав. Подучите и приходите в следующий раз.")
+						sampSendChat(('Очень жаль, %s, но вы не смогли сдать устав. Подучите и приходите в следующий раз.'):format(string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')))
 						windows.imgui_fm.v = false
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.PopStyleColor(2)
@@ -3078,7 +3296,7 @@ if imguicheck and encodingcheck and facheck then
 			if not sampIsPlayerConnected(fastmenuID) then
 	        	windows.imgui_fm.v = false
 				windows.imgui_sobes.v = false
-	        	ASHelperMessage("Игрок с которым вы взаимодействовали вышел из игры!")
+	        	ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
 	        end
 			imgui.End()
 		end
@@ -3086,22 +3304,22 @@ if imguicheck and encodingcheck and facheck then
 		if windows.imgui_sobes.v then
 			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"Меню быстрого доступа", _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse)
+			imgui.Begin(u8'Меню быстрого доступа', _, imgui.WindowFlags.NoResize + (configuration.main_settings.noscrollbar and imgui.WindowFlags.NoScrollbar or imgui.WindowFlags.NoBringToFrontOnFocus) + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse)
 			if sobesetap == 0 then
-				imgui.TextColoredRGB("Собеседование: Этап 1",1)
+				imgui.TextColoredRGB('Собеседование: Этап 1',1)
 				imgui.Separator()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Поприветствовать', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						lua_thread.create(function()
 							inprocess = true
-							sampSendChat("Здравствуйте, вы на собеседование?")
+							sampSendChat(('Здравствуйте, я %s Автошколы, вы пришли на собеседование?'):format(configuration.main_settings.myrank))
 							wait(2000)
-							sampSendChat('/do На груди висит бейджик с надписью '..configuration.main_settings.myrank..' '..(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), "_", " ") or u8:decode(usersettings.myname.v))..".")
+							sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(usersettings.myname.v)))
 							inprocess = false
 						end)
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -3109,32 +3327,32 @@ if imguicheck and encodingcheck and facheck then
 					if not inprocess then
 						lua_thread.create(function()
 							inprocess = true
-							sampSendChat("Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту")
-							sampSendChat("/n ОБЯЗАТЕЛЬНО по рп!")
+							sampSendChat('Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту')
+							sampSendChat('/n ОБЯЗАТЕЛЬНО по рп!')
 							wait(50)
 							sobesetap = 1
 							inprocess = false
 						end)
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 			end
 
 			if sobesetap == 1 then
-				imgui.TextColoredRGB("Собеседование: Этап 2",1)
+				imgui.TextColoredRGB('Собеседование: Этап 2',1)
 				imgui.Separator()
-				if not mcvalue then
-					imgui.TextColoredRGB("Мед.карта - не показана",1)
+				if mcvalue then
+					imgui.TextColoredRGB('Мед.карта - не показана',1)
 				else
-					imgui.TextColoredRGB("Мед.карта - показана ("..mcverdict..")",1)
+					imgui.TextColoredRGB('Мед.карта - показана ('..mcverdict..')',1)
 				end
-				if not passvalue then
-					imgui.TextColoredRGB("Паспорт - не показан",1)
+				if passvalue then
+					imgui.TextColoredRGB('Паспорт - не показан',1)
 				else
-					imgui.TextColoredRGB("Паспорт - показан ("..passverdict..")",1)
+					imgui.TextColoredRGB('Паспорт - показан ('..passverdict..')',1)
 				end
-				if mcvalue and mcverdict == ("в порядке") and passvalue and passverdict == ("в порядке") then
+				if not mcvalue and mcverdict == ('в порядке') and not passvalue and passverdict == ('в порядке') then
 					imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 					if imgui.Button(u8'Продолжить '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 						if not inprocess then
@@ -3142,60 +3360,60 @@ if imguicheck and encodingcheck and facheck then
 								inprocess = true
 								wait(50)
 								sobesetap = 2
-								sampSendChat("/me взяв документы из рук человека напротив {gender:начал|начала} их проверять")
+								sampSendChat('/me взяв документы из рук человека напротив {gender:начал|начала} их проверять')
 								wait(2000)
-								sampSendChat("/todo Хорошо...* отдавая документы обратно")
+								sampSendChat('/todo Хорошо...* отдавая документы обратно')
 								wait(2000)
-								sampSendChat("Сейчас я задам вам несколько вопросов, вы готовы на них отвечать?")
+								sampSendChat('Сейчас я задам вам несколько вопросов, вы готовы на них отвечать?')
 								inprocess = false
 							end)
 						else
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						end
 					end
 				end
 			end
 
 			if sobesetap == 2 then
-				imgui.TextColoredRGB("Собеседование: Этап 3",1)
+				imgui.TextColoredRGB('Собеседование: Этап 3',1)
 				imgui.Separator()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Расскажите немного о себе.', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							inprocess = true
-							sampSendChat("Расскажите немного о себе.")
+							sampSendChat('Расскажите немного о себе.')
 							inprocess = false
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Почему выбрали именно нас?', imgui.ImVec2(285,30)) then
 					if not inprocess then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							inprocess = true
-							sampSendChat("Почему вы выбрали именно нас?")
+							sampSendChat('Почему вы выбрали именно нас?')
 							inprocess = false
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8"Работали вы уже в организациях ЦА? "..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
+				if imgui.Button(u8'Работали вы уже в организациях ЦА? '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 					if not inprocess then
 						if inprocess then
-							ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						else
 							inprocess = true
-							sampSendChat("Работали вы уже в организациях ЦА? Если да, то расскажите подробнее")
-							sampSendChat("/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк]")
+							sampSendChat('Работали вы уже в организациях ЦА? Если да, то расскажите подробнее')
+							sampSendChat('/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк]')
 							lua_thread.create(function()
 								wait(50)
 								sobesetap = 3
@@ -3203,13 +3421,13 @@ if imguicheck and encodingcheck and facheck then
 							inprocess = false
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 			end
 
 			if sobesetap == 3 then
-				imgui.TextColoredRGB("Собеседование: Решение",1)
+				imgui.TextColoredRGB('Собеседование: Решение',1)
 				imgui.Separator()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.00, 0.40, 0.00, 1.00))
@@ -3220,7 +3438,7 @@ if imguicheck and encodingcheck and facheck then
 							lua_thread.create(function()
 								local inviteid = fastmenuID
 								inprocess = true
-								sampSendChat("Отлично, я думаю вы нам подходите!")
+								sampSendChat('Отлично, я думаю вы нам подходите!')
 								wait(2000)
 								sampSendChat('/do Ключи от шкафчика в кармане.')
 								wait(2000)
@@ -3231,24 +3449,24 @@ if imguicheck and encodingcheck and facheck then
 								sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 								wait(2000)
 								sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-								sampSendChat("/invite "..inviteid)
+								sampSendChat(('/invite %s'):format(inviteid))
 								inprocess = false
 							end)
 						else
 							lua_thread.create(function()
 								inprocess = true
-								sampSendChat("Отлично, я думаю вы нам подходите!")
+								sampSendChat('Отлично, я думаю вы нам подходите!')
 								wait(2000)
-								sampSendChat("/r "..string.gsub(sampGetPlayerNickname(fastmenuID), "_", " ").." успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.")
+								sampSendChat(('/r %s успешно прошёл собеседование! Он ждёт старших около стойки чтобы вы его приняли.'):format(string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')))
 								wait(2000)
-								sampSendChat("/rb "..fastmenuID.." id")
+								sampSendChat(('/rb %s id'):format(fastmenuID))
 								inprocess = false
 							end)
 						end
 						sobesetap = 0
 						windows.imgui_sobes.v = false
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.PopStyleColor(2)
@@ -3260,17 +3478,17 @@ if imguicheck and encodingcheck and facheck then
 						lastsobesetap = sobesetap
 						sobesetap = 7
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.PopStyleColor(2)
 			end
 
 			if sobesetap == 7 then
-				imgui.TextColoredRGB("Собеседование: Отклонение",1)
+				imgui.TextColoredRGB('Собеседование: Отклонение',1)
 				imgui.Separator()
 				imgui.PushItemWidth(270)
-				imgui.Combo(" ",sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
+				imgui.Combo(' ',sobesdecline_select,sobesdecline_arr , #sobesdecline_arr)
 				imgui.PopItemWidth()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 270) / 2)
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.40, 0.00, 0.00, 1.00))
@@ -3279,23 +3497,23 @@ if imguicheck and encodingcheck and facheck then
 					if not inprocess then
 						sobesetap = 0
 						if sobesdecline_select.v == 0 then
-							sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
-							sampSendChat("/b Очень плохое РП")
+							sampSendChat('К сожалению я не могу принять вас из-за того, что вы проф. непригодны.')
+							sampSendChat('/b Очень плохое РП')
 						elseif sobesdecline_select.v == 1 then
-							sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
-							sampSendChat("/b Не было РП")
+							sampSendChat('К сожалению я не могу принять вас из-за того, что вы проф. непригодны.')
+							sampSendChat('/b Не было РП')
 						elseif sobesdecline_select.v == 2 then
-							sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
-							sampSendChat("/b Плохая грамматика")
+							sampSendChat('К сожалению я не могу принять вас из-за того, что вы проф. непригодны.')
+							sampSendChat('/b Плохая грамматика')
 						elseif sobesdecline_select.v == 3 then
-							sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
-							sampSendChat("/b Ничего не показал")
+							sampSendChat('К сожалению я не могу принять вас из-за того, что вы проф. непригодны.')
+							sampSendChat('/b Ничего не показал')
 						elseif sobesdecline_select.v == 4 then
-							sampSendChat("К сожалению я не могу принять вас из-за того, что вы проф. непригодны.")
+							sampSendChat('К сожалению я не могу принять вас из-за того, что вы проф. непригодны.')
 						end
 						windows.imgui_sobes.v = false
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.PopStyleColor(2)
@@ -3308,27 +3526,27 @@ if imguicheck and encodingcheck and facheck then
 				imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.30, 0.00, 0.00, 1.00))
 				if imgui.Button(u8'Отклонить', imgui.ImVec2(285,30)) then
 					if not inprocess then
-						if mcvalue or passvalue then
-							if mcverdict == ("наркозависимость") or mcverdict == ("не полностью здоровый") or passverdict == ("меньше 3 лет в штате") or passverdict == ("не законопослушный") or passverdict == ("игрок в организации") or passverdict == ("был в деморгане") or passverdict == ("в чс автошколы") or passverdict == ("есть варны") then
+						if not mcvalue or not passvalue then
+							if mcverdict == ('наркозависимость') or mcverdict == ('не полностью здоровый') or passverdict == ('меньше 3 лет в штате') or passverdict == ('не законопослушный') or passverdict == ('игрок в организации') or passverdict == ('был в деморгане') or passverdict == ('в чс автошколы') or passverdict == ('есть варны') then
 								windows.imgui_sobes.v = false
-								if mcverdict == ("наркозависимость") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы слишком наркозависимый.")
-								elseif mcverdict == ("не полностью здоровый") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы не полностью здоровый.")
-								elseif passverdict == ("меньше 3 лет в штате") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы не проживаете в штате 3 года.")
-								elseif passverdict == ("не законопослушный") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы недостаточно законопослушный.")
-								elseif passverdict == ("игрок в организации") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.")
-								elseif passverdict == ("был в деморгане") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.")
-									sampSendChat("/n поменяй мед. карту")
-								elseif passverdict == ("в чс автошколы") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.")
-								elseif passverdict == ("есть варны") then
-									sampSendChat("К сожалению я не могу продолжить собеседование. Вы проф. непригодны.")
-									sampSendChat("/n есть варны")
+								if mcverdict == ('наркозависимость') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы слишком наркозависимый.')
+								elseif mcverdict == ('не полностью здоровый') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы не полностью здоровый.')
+								elseif passverdict == ('меньше 3 лет в штате') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы не проживаете в штате 3 года.')
+								elseif passverdict == ('не законопослушный') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы недостаточно законопослушный.')
+								elseif passverdict == ('игрок в организации') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.')
+								elseif passverdict == ('был в деморгане') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.')
+									sampSendChat('/n поменяй мед. карту')
+								elseif passverdict == ('в чс автошколы') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.')
+								elseif passverdict == ('есть варны') then
+									sampSendChat('К сожалению я не могу продолжить собеседование. Вы проф. непригодны.')
+									sampSendChat('/n есть варны')
 								end							
 							else
 								lastsobesetap = sobesetap
@@ -3339,7 +3557,7 @@ if imguicheck and encodingcheck and facheck then
 							sobesetap = 7
 						end
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 				imgui.PopStyleColor(2)
@@ -3347,10 +3565,8 @@ if imguicheck and encodingcheck and facheck then
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 			imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 			if imgui.Button(u8'Назад', imgui.ImVec2(137,30)) then
-				if sobesetap == 7 then
-					sobesetap = lastsobesetap
-				elseif sobesetap ~= 0 then
-					sobesetap = sobesetap - 1
+				if sobesetap == 7 then sobesetap = lastsobesetap
+				elseif sobesetap ~= 0 then sobesetap = sobesetap - 1
 				else
 					windows.imgui_sobes.v = false
 					windows.imgui_fm.v = true
@@ -3363,14 +3579,14 @@ if imguicheck and encodingcheck and facheck then
 					if not inprocess then
 						sobesetap = sobesetap + 1
 					else
-						ASHelperMessage("Не торопитесь, вы уже отыгрываете что-то!")
+						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
 				end
 			end
 			if not sampIsPlayerConnected(fastmenuID) then
 	        	windows.imgui_fm.v = false
 				windows.imgui_sobes.v = false
-	        	ASHelperMessage("Игрок с которым вы взаимодействовали вышел из игры!")
+	        	ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
 	        end
 			imgui.End()
 		end
@@ -3378,8 +3594,19 @@ if imguicheck and encodingcheck and facheck then
 		if windows.imgui_settings.v then
 			imgui.SetNextWindowSize(imgui.ImVec2(600, 300), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"AS Helper "..thisScript().version, windows.imgui_settings, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoCollapse)
-			imgui.BeginChild("##Buttons",imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
+			imgui.Begin(u8'#settings', windows.imgui_settings, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoCollapse)
+			imgui.Image(configuration.main_settings.style ~= 2 and whiteashelper or blackashelper,imgui.ImVec2(198,25))
+			imgui.SameLine(560)
+			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
+			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
+			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
+			if imgui.Button(fa.ICON_FA_TIMES,imgui.ImVec2(23,23)) then
+				windows.imgui_settings.v = false
+			end
+			imgui.PopStyleColor(3)
+			imgui.SetCursorPos(imgui.ImVec2(217, 22))
+			imgui.Text(thisScript().version)
+			imgui.BeginChild('##Buttons',imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
 			for number, button in pairs(buttons) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2)
 				if imgui.SmoothButton(settingswindow == number, button, 220) then
@@ -3388,10 +3615,10 @@ if imguicheck and encodingcheck and facheck then
 			end
 			imgui.EndChild()
 			imgui.SameLine()
-			imgui.BeginChild("##Settings",imgui.ImVec2(325,240),true,imgui.WindowFlags.AlwaysAutoResize)
+			imgui.BeginChild('##Settings',imgui.ImVec2(325,240),true,imgui.WindowFlags.AlwaysAutoResize)
 			if settingswindow == 0 then
 
-				imgui.PushFont(fontsize16)
+				imgui.PushFont(fontsize25)
 				imgui.TextColoredRGB('Что я умею?',1)
 				imgui.PopFont()
 				imgui.TextWrapped(u8([[
@@ -3403,177 +3630,183 @@ if imguicheck and encodingcheck and facheck then
 	
 	• Настройки: Введя команду /ash откроются настройки в которых можно изменять никнейм в приветствии, акцент, создание маркера при выделении, пол, цены на лицензии, горячую клавишу быстрого меню и узнать информацию о скрипте.
 	
-	• Биндер: Введя команду /ashbind откроется полностью работоспособный биндер, в котором вы можете создать абсолютно любой бинд.]]
+	• Биндер: Введя команду /ashbind откроется полностью работоспособный биндер, в котором вы можете создать абсолютно любой бинд.
+
+	• Меню лекций: Введя команду /ashlect откроется меню лекций, в котором вы сможете озвучить/добавить/удалить лекции.]]
 	))
 			end
 
 			if settingswindow == 1 then
 
 				imgui.SetCursorPosX(10)
-				if imgui.Checkbox(u8"Использовать мой ник из таба",usersettings.useservername) then
+				if imgui.Checkbox(u8'Использовать мой ник из таба',usersettings.useservername) then
 					if configuration.main_settings.myname == '' then
-						local result,myid = sampGetPlayerIdByCharHandle(playerPed)
-						usersettings.myname.v = string.gsub(sampGetPlayerNickname(myid), "_", " ")
-						configuration.main_settings.myname = sampGetPlayerNickname(myid)
+						usersettings.myname.v = string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ')
+						configuration.main_settings.myname = usersettings.myname.v
 					end
 					configuration.main_settings.useservername = usersettings.useservername.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				if not usersettings.useservername.v then
 					imgui.SetCursorPosX(10)
-					if imgui.InputText(u8" ", usersettings.myname) then
+					if imgui.InputText(u8' ', usersettings.myname) then
 						configuration.main_settings.myname = usersettings.myname.v
-						inicfg.save(configuration,"AS Helper")
+						inicfg.save(configuration,'AS Helper')
 					end
 				end
 				imgui.SetCursorPosX(10)
-				if imgui.Checkbox(u8"Использовать акцент",usersettings.useaccent) then
+				if imgui.Checkbox(u8'Использовать акцент',usersettings.useaccent) then
 					configuration.main_settings.useaccent = usersettings.useaccent.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				if usersettings.useaccent.v then
 					imgui.PushItemWidth(150)
 					imgui.SetCursorPosX(20)
-					if imgui.InputText(u8"   ", usersettings.myaccent) then
+					if imgui.InputText(u8'   ', usersettings.myaccent) then
 						configuration.main_settings.myaccent = usersettings.myaccent.v
-						inicfg.save(configuration,"AS Helper")
+						inicfg.save(configuration,'AS Helper')
 					end
 					imgui.PopItemWidth()
 					imgui.SameLine()
 					imgui.SetCursorPosX(10)
-					imgui.Text("[")
+					imgui.Text('[')
 					imgui.SameLine()
 					imgui.SetCursorPosX(175)
-					imgui.Text("]")
+					imgui.Text(']')
 				end
 				imgui.SetCursorPosX(10)
-				if imgui.Checkbox(u8"Создавать маркер при выделении",usersettings.createmarker) then
+				if imgui.Checkbox(u8'Создавать маркер при выделении',usersettings.createmarker) then
 					if marker ~= nil then
 						removeBlip(marker)
 					end
 					marker = nil
 					oldtargettingped = 0
 					configuration.main_settings.createmarker = usersettings.createmarker.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.SetCursorPosX(10)
-				if imgui.Checkbox(u8"Начинать отыгровки после команд", usersettings.dorponcmd) then
+				if imgui.Checkbox(u8'Начинать отыгровки после команд', usersettings.dorponcmd) then
 					configuration.main_settings.dorponcmd = usersettings.dorponcmd.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.SetCursorPosX(10)
-				if imgui.Checkbox(u8"Заменять серверные сообщения", usersettings.replacechat) then
+				if imgui.Checkbox(u8'Заменять серверные сообщения', usersettings.replacechat) then
 					configuration.main_settings.replacechat = usersettings.replacechat.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.SetCursorPosX(10)
-				if imgui.Checkbox(u8"Быстрый скрин на "..configuration.main_settings.fastscreen, usersettings.dofastscreen) then
+				if imgui.Checkbox(u8'Быстрый скрин на '..configuration.main_settings.fastscreen, usersettings.dofastscreen) then
 					configuration.main_settings.dofastscreen = usersettings.dofastscreen.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
+				end
+				imgui.SetCursorPosX(10)
+				if imgui.Checkbox(u8'Убирать полосу прокрутки', usersettings.noscrollbar) then
+					configuration.main_settings.noscrollbar = usersettings.noscrollbar.v
+					inicfg.save(configuration,'AS Helper')
+					checkstyle()
 				end
 				imgui.SetCursorPosX(10)
 				if imgui.Button(u8'Обновить', imgui.ImVec2(85,25)) then
 					getmyrank = true
-					sampSendChat("/stats")
+					sampSendChat('/stats')
 				end
 				imgui.SameLine()
-				imgui.Text(u8"Ваш ранг: "..u8(configuration.main_settings.myrank).." ("..u8(configuration.main_settings.myrankint)..")")
+				imgui.Text(u8'Ваш ранг: '..u8(configuration.main_settings.myrank)..' ('..u8(configuration.main_settings.myrankint)..')')
 				imgui.PushItemWidth(85)
 				imgui.SetCursorPosX(10)
-				if imgui.Combo(u8"",usersettings.gender, {u8"Мужской",u8"Женский"}, 2) then
+				if imgui.Combo(u8'',usersettings.gender, {u8'Мужской',u8'Женский'}, 2) then
 					configuration.main_settings.gender = usersettings.gender.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SameLine()
-				imgui.TextColoredRGB("Пол выбран {808080}(?)")
+				imgui.TextColoredRGB('Пол выбран {808080}(?)')
 				if imgui.IsMouseReleased(0) and imgui.IsItemHovered() then
 					GetMyGender()
 				end
-				imgui.Hint("ЛКМ для автоматического определения.")
+				imgui.Hint('ЛКМ для автоматического определения.')
 			end
 
 			if settingswindow == 2 then
-				imgui.TextColoredRGB("Ценовая политика",1)
+				imgui.TextColoredRGB('Ценовая политика {808080}(?)',1)
+				imgui.Hint('Эти цены будут использоваться при озвучивании прайс листа')
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Авто", pricelist.avtoprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Авто', pricelist.avtoprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.avtoprice = pricelist.avtoprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SameLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() + 29) / 2)
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Мото", pricelist.motoprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Мото', pricelist.motoprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.motoprice = pricelist.motoprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Рыбалка", pricelist.ribaprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Рыбалка', pricelist.ribaprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.ribaprice = pricelist.ribaprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SameLine()
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Плавание", pricelist.lodkaprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Плавание', pricelist.lodkaprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.lodkaprice = pricelist.lodkaprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Оружие", pricelist.gunaprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Оружие', pricelist.gunaprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.gunaprice = pricelist.gunaprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SameLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() + 31) / 2)
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Охота", pricelist.huntprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Охота', pricelist.huntprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.huntprice = pricelist.huntprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 230) / 2)
 				imgui.PushItemWidth(62)
-				if imgui.InputText(u8"Раскопки", pricelist.kladprice, imgui.InputTextFlags.CharsDecimal) then
+				if imgui.InputText(u8'Раскопки', pricelist.kladprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.kladprice = pricelist.kladprice.v
-					inicfg.save(configuration,"AS Helper")
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
 			end
 
 			if settingswindow == 3 then
 				if imgui.Button(u8'Изменить кнопку быстрого меню', imgui.ImVec2(-1,40)) then
-					getbindkey = true
-					configuration.main_settings.usefastmenu = ""
-					inicfg.save(configuration,"AS Helper")
+					getbindkey = not getbindkey
 				end
 				if getbindkey then
-					imgui.Hint("Нажмите любую клавишу")
+					imgui.Hint('Нажмите любую клавишу')
+					getbindkey,configuration.main_settings.usefastmenu = imgui.GetKeys(getbindkey,1)
 				else
-					imgui.Hint("ПКМ + "..configuration.main_settings.usefastmenu)
+					imgui.Hint('ПКМ + '..configuration.main_settings.usefastmenu)
 				end
 				if imgui.Button(u8'Изменить кнопку быстрого скрина', imgui.ImVec2(-1,40)) then
-					getscreenkey = true
-					configuration.main_settings.fastscreen = ""
-					inicfg.save(configuration,"AS Helper")
+					getscreenkey = not getscreenkey
 				end
 				if getscreenkey then
-					imgui.Hint("Нажмите любую клавишу")
+					imgui.Hint('Нажмите любую клавишу')
+					getscreenkey,configuration.main_settings.fastscreen = imgui.GetKeys(getscreenkey,1)
 				else
 					imgui.Hint(configuration.main_settings.fastscreen)
 				end
-				if imgui.Button(u8(windows.imgui_binder.v and "Закрыть" or "Открыть")..u8' биндер', imgui.ImVec2(-1,40)) then
+				if imgui.Button(u8(windows.imgui_binder.v and 'Закрыть' or 'Открыть')..u8' биндер', imgui.ImVec2(-1,40)) then
 					choosedslot = nil
 					windows.imgui_binder.v = not windows.imgui_binder.v
 				end
-				if imgui.Button(u8(windows.imgui_lect.v and "Закрыть" or "Открыть")..u8' меню лекций', imgui.ImVec2(-1,40)) then
+				if imgui.Button(u8(windows.imgui_lect.v and 'Закрыть' or 'Открыть')..u8' меню лекций', imgui.ImVec2(-1,40)) then
 					windows.imgui_lect.v = not windows.imgui_lect.v
 				end
 				imgui.SameLine()
@@ -3583,7 +3816,7 @@ if imguicheck and encodingcheck and facheck then
 				imgui.PushItemWidth(200)
 				if imgui.Combo(u8'Выбор темы', StyleBox_select, StyleBox_arr, #StyleBox_arr) then
 					configuration.main_settings.style = StyleBox_select.v
-					if inicfg.save(configuration,"AS Helper") then
+					if inicfg.save(configuration,'AS Helper') then
 						checkstyle()
 					end
 				end
@@ -3594,14 +3827,14 @@ if imguicheck and encodingcheck and facheck then
 					inicfg.save(configuration, 'AS Helper.ini')
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 75)
-				if imgui.Button(u8"Сбросить##RCol",imgui.ImVec2(65,25)) then
+				if imgui.Button(u8'Сбросить##RCol',imgui.ImVec2(65,25)) then
 					configuration.main_settings.RChatColor = 4282626093
 					if inicfg.save(configuration, 'AS Helper.ini') then
 						chatcolors.RChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.RChatColor):GetFloat4())
 					end
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 130)
-				if imgui.Button(u8"Тест##RTest",imgui.ImVec2(50,25)) then
+				if imgui.Button(u8'Тест##RTest',imgui.ImVec2(50,25)) then
 					local result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					local r, g, b, a = imgui.ImColor(configuration.main_settings.RChatColor):GetRGBA()
 					sampAddChatMessage('[R] '..configuration.main_settings.myrank..' '..sampGetPlayerNickname(tonumber(myid))..'['..myid..']:(( Это сообщение видите только вы! ))', join_rgb(r, g, b))
@@ -3612,14 +3845,14 @@ if imguicheck and encodingcheck and facheck then
 					inicfg.save(configuration, 'AS Helper.ini')
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 75)
-				if imgui.Button(u8"Сбросить##DCol",imgui.ImVec2(65,25)) then
+				if imgui.Button(u8'Сбросить##DCol',imgui.ImVec2(65,25)) then
 					configuration.main_settings.DChatColor = 4294940723
 					if inicfg.save(configuration, 'AS Helper.ini') then
 						chatcolors.DChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.DChatColor):GetFloat4())
 					end
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 130)
-				if imgui.Button(u8"Тест##DTest",imgui.ImVec2(50,25)) then
+				if imgui.Button(u8'Тест##DTest',imgui.ImVec2(50,25)) then
 					local result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					local r, g, b, a = imgui.ImColor(configuration.main_settings.DChatColor):GetRGBA()
 					sampAddChatMessage('[D] '..configuration.main_settings.myrank..' '..sampGetPlayerNickname(tonumber(myid))..'['..myid..']: Это сообщение видите только вы!', join_rgb(r, g, b))
@@ -3630,44 +3863,44 @@ if imguicheck and encodingcheck and facheck then
 					inicfg.save(configuration, 'AS Helper.ini')
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 75)
-				if imgui.Button(u8"Сбросить##SCol",imgui.ImVec2(65,25)) then
+				if imgui.Button(u8'Сбросить##SCol',imgui.ImVec2(65,25)) then
 					configuration.main_settings.ASChatColor = 4281558783
 					if inicfg.save(configuration, 'AS Helper.ini') then
 						chatcolors.ASChatColor = imgui.ImFloat4(imgui.ImColor(configuration.main_settings.ASChatColor):GetFloat4())
 					end
 				end
 				imgui.SameLine(imgui.GetWindowWidth() - 130)
-				if imgui.Button(u8"Тест##ASTest",imgui.ImVec2(50,25)) then
-					ASHelperMessage("Это сообщение видите только вы!")
+				if imgui.Button(u8'Тест##ASTest',imgui.ImVec2(50,25)) then
+					ASHelperMessage('Это сообщение видите только вы!')
 				end
 			end
 
 			if settingswindow == 5 then
-				imgui.TextColoredRGB("Вы можете добавлять свои правила!{808080} (?)",1)
-				imgui.Hint("Вы должны создать .txt файл с кодировкой ANSI\nЛКМ для открытия папки с правилами")
+				imgui.TextColoredRGB('Вы можете добавлять свои правила!{808080} (?)',1)
+				imgui.Hint('Вы должны создать .txt файл с кодировкой ANSI\nЛКМ для открытия папки с правилами')
 				if imgui.IsMouseReleased(0) and imgui.IsItemHovered() then
 					createDirectory(getWorkingDirectory()..'\\AS Helper\\Rules')
 					os.execute('explorer '..getWorkingDirectory()..'\\AS Helper\\Rules')
 				end
 				for i, block in ipairs(ruless) do
 					if imgui.Button(u8(block.name), imgui.ImVec2(-1,35)) then
-						search_rule.v = ""
+						search_rule.v = ''
 						RuleSelect = i
-						imgui.OpenPopup(u8("Правила"))
+						imgui.OpenPopup(u8('Правила'))
 					end
 				end
 				Rule()
 				if imgui.Button(fa.ICON_FA_SPINNER,imgui.ImVec2(25,25)) then
 					checkrules()
 				end
-				imgui.Hint("Нажмите для обновления всех правил")
+				imgui.Hint('Нажмите для обновления всех правил')
 			end
 
 			if settingswindow == 6 then
 				imgui.TextColoredRGB('Автор: {ff6633}JustMini',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Change Log '..(fa.ICON_FA_TERMINAL), imgui.ImVec2(137,30)) then
-					imgui.OpenPopup(u8("Список изменений"))
+					imgui.OpenPopup(u8('Список изменений'))
 				end
 				imgui.SameLine()
 				if imgui.Button(u8'Check Updates '..(fa.ICON_FA_CLOUD_DOWNLOAD_ALT), imgui.ImVec2(137,30)) then
@@ -3693,17 +3926,30 @@ if imguicheck and encodingcheck and facheck then
 		end
 
 		if windows.imgui_binder.v then
-			imgui.SetNextWindowSize(imgui.ImVec2(650, 360), imgui.Cond.FirstUseEver)
+			imgui.SetNextWindowSize(imgui.ImVec2(650, 370), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"Биндер", windows.imgui_binder, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoCollapse)
-			imgui.SetScrollY(0)
-			imgui.BeginChild("ChildWindow",imgui.ImVec2(175,270),true,imgui.WindowFlags.NoScrollbar)
+			imgui.Begin(u8'Биндер', windows.imgui_binder, imgui.WindowFlags.NoScrollWithMouse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoCollapse)
+			imgui.Image(configuration.main_settings.style ~= 2 and whitebinder or blackbinder,imgui.ImVec2(202,25))
+			imgui.SameLine(583)
+			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
+			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
+			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
+			if imgui.Button(fa.ICON_FA_QUESTION_CIRCLE,imgui.ImVec2(23,23)) then
+				imgui.OpenPopup(u8'Тэги')
+			end
+			imgui.SameLine()
+			if imgui.Button(fa.ICON_FA_TIMES,imgui.ImVec2(23,23)) then
+				windows.imgui_binder.v = false
+			end
+			imgui.PopStyleColor(3)
+			bindertags()
+			imgui.BeginChild('ChildWindow',imgui.ImVec2(175,270),true, (configuration.main_settings.noscrollbar and imgui.WindowFlags.NoScrollbar or imgui.WindowFlags.NoBringToFrontOnFocus))
 			imgui.SetCursorPosY((imgui.GetWindowWidth() - 160) / 2)
 			for key, value in pairs(configuration.BindsName) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 160) / 2)
 				if imgui.Button(u8(configuration.BindsName[key]),imgui.ImVec2(160,30)) then
 					choosedslot = key
-					bindersettings.binderbuff.v = u8(configuration.BindsAction[key]):gsub("~", "\n")
+					bindersettings.binderbuff.v = u8(configuration.BindsAction[key]):gsub('~', '\n')
 					bindersettings.bindername.v = u8(configuration.BindsName[key])
 					bindersettings.bindertype.v = u8(configuration.BindsType[key])
 					bindersettings.bindercmd.v = u8(configuration.BindsCmd[key])
@@ -3714,233 +3960,210 @@ if imguicheck and encodingcheck and facheck then
 			imgui.EndChild()
 			if choosedslot ~= nil and choosedslot <= 50 then
 				imgui.SameLine()
-				imgui.BeginChild("ChildWindow2",imgui.ImVec2(435,200),false)
-				imgui.InputTextMultiline(u8"",bindersettings.binderbuff, imgui.ImVec2(435,200))
+				imgui.BeginChild('ChildWindow2',imgui.ImVec2(435,200),false)
+				imgui.InputTextMultiline(u8'',bindersettings.binderbuff, imgui.ImVec2(435,200))
 				imgui.EndChild()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').y - 135) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').y - 115) / 2)
 				imgui.Text(u8'Название бинда:'); imgui.SameLine()
 				imgui.PushItemWidth(150)
-				if choosedslot ~= 50 then
-					imgui.InputText("##bindersettings.bindername", bindersettings.bindername,imgui.InputTextFlags.ReadOnly)
-				else
-					imgui.InputText("##bindersettings.bindername", bindersettings.bindername)
+				if choosedslot ~= 50 then imgui.InputText('##bindersettings.bindername', bindersettings.bindername,imgui.InputTextFlags.ReadOnly)
+				else imgui.InputText('##bindersettings.bindername', bindersettings.bindername)
 				end
 				imgui.PopItemWidth()
 				imgui.SameLine()
 				imgui.PushItemWidth(162)
-				imgui.Combo(" ",bindersettings.bindertype, u8"Использовать команду\0Использовать клавиши\0\0", 2)
+				imgui.Combo(' ',bindersettings.bindertype, u8'Использовать команду\0Использовать клавиши\0\0', 2)
 				imgui.PopItemWidth()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Название бинда:').x - 145) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Задержка между строками (ms):').y - 70) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'Задержка между строками (ms):').y - 50) / 2)
 				imgui.TextColoredRGB('Задержка между строками {808080}(ms):'); imgui.SameLine()
 				imgui.Hint('Указывайте значение в миллисекундах\n{FFFFFF}1 секунда = 1.000 миллисекунд')
 				imgui.PushItemWidth(58)
-				imgui.InputText("##bindersettings.binderdelay", bindersettings.binderdelay, imgui.InputTextFlags.CharsDecimal)
+				imgui.InputText('##bindersettings.binderdelay', bindersettings.binderdelay, imgui.InputTextFlags.CharsDecimal)
 				imgui.PopItemWidth()
 				imgui.SameLine()
 				if bindersettings.bindertype.v == 0 then
-					imgui.Text("/")
+					imgui.Text('/')
 					imgui.SameLine()
 					imgui.PushItemWidth(147)
-					imgui.InputText("##bindersettings.bindercmd",bindersettings.bindercmd,imgui.InputTextFlags.CharsNoBlank)
+					imgui.InputText('##bindersettings.bindercmd',bindersettings.bindercmd,imgui.InputTextFlags.CharsNoBlank)
 					imgui.PopItemWidth()
 				elseif bindersettings.bindertype.v == 1 then
-					if binderkeystatus == nil or binderkeystatus == "" then
-						binderkeystatus = u8"Нажмите чтобы поменять"
+					if setbinderkey then
+						setbinderkey,binderkeystatus = imgui.GetKeys(setbinderkey,2)
 					end
-					if imgui.Button(binderkeystatus,imgui.ImVec2(162,24)) then
-						if binderkeystatus == u8"Нажмите чтобы поменять" then
-							binderkeystatus = u8"None"
-							setbinderkey = true
-						elseif binderkeystatus == u8"None" then
-							setbinderkey = false
-							binderkeystatus = u8"Нажмите чтобы поменять"
-						elseif string.find(binderkeystatus, u8"ЛКМ для сохранения") then
-							setbinderkey = false
-							binderkeystatus = string.match(binderkeystatus,u8"ЛКМ для сохранения (.+)")
+					if imgui.Button(binderkeystatus and u8(binderkeystatus) or u8'Нажмите чтобы поменять',imgui.ImVec2(162,24)) then
+						if binderkeystatus then
+							str = nil
+							if binderkeystatus:find('ЛКМ %- сохранение') then
+								binderkeystatus = binderkeystatus:match('ЛКМ %- сохранение (.+)')
+								setbinderkey = false
+							else
+								binderkeystatus = nil
+								setbinderkey = false
+							end
 						else
-							binderkeystatus = u8"Нажмите чтобы поменять"
-							keyname = nil
-							keyname2 = nil
-							setbinderkey = false
+							setbinderkey = true
 						end
 					end
 				end
 				imgui.NewLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() + 429) / 2)
-				imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 10) / 2)
 				local kei
 				local doreplace = false
-				if bindersettings.binderbuff.v ~= "" and bindersettings.bindername.v ~= "" and bindersettings.binderdelay.v ~= "" and bindersettings.bindertype.v ~= nil then
-					if imgui.Button(u8"Сохранить",imgui.ImVec2(100,30)) then
+				if bindersettings.binderbuff.v ~= '' and bindersettings.bindername.v ~= '' and bindersettings.binderdelay.v ~= '' and bindersettings.bindertype.v ~= nil then
+					if imgui.Button(u8'Сохранить',imgui.ImVec2(100,30)) then
 						if not inprocess then
 							if bindersettings.bindertype.v == 0 then
-								if bindersettings.bindercmd.v ~= "" and bindersettings.bindercmd.v ~= nil then
+								if bindersettings.bindercmd.v ~= '' and bindersettings.bindercmd.v ~= nil then
 									for key, value in pairs(configuration.BindsName) do
 										if tostring(u8:decode(bindersettings.bindername.v)) == tostring(value) then
 											sampUnregisterChatCommand(configuration.BindsCmd[key])
-											if tostring(configuration.BindsKeys[key]):match("(.+) %p (.+)") then
-												local fkey = tostring(configuration.BindsKeys[key]):match("(.+) %p")
-												local skey = tostring(configuration.BindsKeys[key]):match("%p (.+)")
-												rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true), vkeys.name_to_id(skey,true)})
-											elseif tostring(configuration.BindsKeys[key]):match("(.+)") then
-												local fkey = tostring(configuration.BindsKeys[key]):match("(.+)")
-												rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true)})
-											end
 											doreplace = true
 											kei = key
 										end
 									end
 									if doreplace then
-										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub("\n", "~")
+										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub('\n', '~')
 										configuration.BindsName[kei] = u8:decode(bindersettings.bindername.v)
 										configuration.BindsAction[kei] = refresh_text
 										configuration.BindsDelay[kei] = u8:decode(bindersettings.binderdelay.v)
 										configuration.BindsType[kei]= u8:decode(bindersettings.bindertype.v)
 										configuration.BindsCmd[kei] = u8:decode(bindersettings.bindercmd.v)
-										configuration.BindsKeys[kei] = ""
-										if inicfg.save(configuration, "AS Helper") then
-											ASHelperMessage("Бинд успешно сохранён!")
+										configuration.BindsKeys[kei] = ''
+										if inicfg.save(configuration, 'AS Helper') then
+											ASHelperMessage('Бинд успешно сохранён!')
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
-											bindersettings.bindercmd.v = ""
-											bindersettings.binderbuff.v = ""
-											bindersettings.bindername.v = ""
+											bindersettings.bindercmd.v = ''
+											bindersettings.binderbuff.v = ''
+											bindersettings.bindername.v = ''
 											bindersettings.bindertype.v = 0
-											bindersettings.binderdelay.v = ""
-											bindersettings.bindercmd.v = ""
+											bindersettings.binderdelay.v = ''
+											bindersettings.bindercmd.v = ''
 											binderkeystatus = nil
 											choosedslot = nil
 										end
 									else
-										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub("\n", "~")
+										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub('\n', '~')
 										table.insert(configuration.BindsName, u8:decode(bindersettings.bindername.v))
 										table.insert(configuration.BindsAction, refresh_text)
 										table.insert(configuration.BindsDelay, u8:decode(bindersettings.binderdelay.v))
 										table.insert(configuration.BindsType, u8:decode(bindersettings.bindertype.v))
 										table.insert(configuration.BindsCmd, u8:decode(bindersettings.bindercmd.v))
-										table.insert(configuration.BindsKeys, "")
-										if inicfg.save(configuration, "AS Helper") then
-											ASHelperMessage("Бинд успешно создан!")
+										table.insert(configuration.BindsKeys, '')
+										if inicfg.save(configuration, 'AS Helper') then
+											ASHelperMessage('Бинд успешно создан!')
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
-											bindersettings.bindercmd.v = ""
-											bindersettings.binderbuff.v = ""
-											bindersettings.bindername.v = ""
+											bindersettings.bindercmd.v = ''
+											bindersettings.binderbuff.v = ''
+											bindersettings.bindername.v = ''
 											bindersettings.bindertype.v = 0
-											bindersettings.binderdelay.v = ""
-											bindersettings.bindercmd.v = ""
+											bindersettings.binderdelay.v = ''
+											bindersettings.bindercmd.v = ''
 											binderkeystatus = nil
 											choosedslot = nil
 										end
 									end
 								else
-									ASHelperMessage("Вы неправильно указали команду бинда!")
+									ASHelperMessage('Вы неправильно указали команду бинда!')
 								end
 							elseif bindersettings.bindertype.v == 1 then
-								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= "Нажмите чтобы поменять" and not string.find((u8:decode(binderkeystatus)), "ЛКМ для сохранения ") and (u8:decode(binderkeystatus)) ~= "None" then
+								if binderkeystatus ~= nil and (u8:decode(binderkeystatus)) ~= 'Нажмите чтобы поменять' and not string.find((u8:decode(binderkeystatus)), 'ЛКМ для сохранения ') and (u8:decode(binderkeystatus)) ~= 'None' then
 									for key, value in pairs(configuration.BindsName) do
 										if tostring(u8:decode(bindersettings.bindername.v)) == tostring(value) then
 											sampUnregisterChatCommand(configuration.BindsCmd[key])
-											if tostring(configuration.BindsKeys[key]):match("(.+) %p (.+)") then
-												local fkey = tostring(configuration.BindsKeys[key]):match("(.+) %p")
-												local skey = tostring(configuration.BindsKeys[key]):match("%p (.+)")
-												rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true), vkeys.name_to_id(skey,true)})
-											elseif tostring(configuration.BindsKeys[key]):match("(.+)") then
-												local fkey = tostring(configuration.BindsKeys[key]):match("(.+)")
-												rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true)})
-											end
 											doreplace = true
 											kei = key
 										end
 									end
 									if doreplace then
-										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub("\n", "~")
+										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub('\n', '~')
 										configuration.BindsName[kei] = u8:decode(bindersettings.bindername.v)
 										configuration.BindsAction[kei] = refresh_text
 										configuration.BindsDelay[kei] = u8:decode(bindersettings.binderdelay.v)
 										configuration.BindsType[kei]= u8:decode(bindersettings.bindertype.v)
-										configuration.BindsCmd[kei] = ""
+										configuration.BindsCmd[kei] = ''
 										configuration.BindsKeys[kei] = u8(binderkeystatus)
-										if inicfg.save(configuration, "AS Helper") then
-											ASHelperMessage("Бинд успешно сохранён!")
+										if inicfg.save(configuration, 'AS Helper') then
+											ASHelperMessage('Бинд успешно сохранён!')
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
-											bindersettings.bindercmd.v = ""
-											bindersettings.binderbuff.v = ""
-											bindersettings.bindername.v = ""
+											bindersettings.bindercmd.v = ''
+											bindersettings.binderbuff.v = ''
+											bindersettings.bindername.v = ''
 											bindersettings.bindertype.v = 0
-											bindersettings.binderdelay.v = ""
-											bindersettings.bindercmd.v = ""
+											bindersettings.binderdelay.v = ''
+											bindersettings.bindercmd.v = ''
 											binderkeystatus = nil
 											choosedslot = nil
 										end
 									else
-										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub("\n", "~")
+										local refresh_text = u8:decode(bindersettings.binderbuff.v):gsub('\n', '~')
 										table.insert(configuration.BindsName, u8:decode(bindersettings.bindername.v))
 										table.insert(configuration.BindsAction, refresh_text)
 										table.insert(configuration.BindsDelay, u8:decode(bindersettings.binderdelay.v))
 										table.insert(configuration.BindsType, u8:decode(bindersettings.bindertype.v))
 										table.insert(configuration.BindsKeys, u8(binderkeystatus))
-										table.insert(configuration.BindsCmd, "")
-										if inicfg.save(configuration, "AS Helper") then
-											ASHelperMessage("Бинд успешно создан!")
+										table.insert(configuration.BindsCmd, '')
+										if inicfg.save(configuration, 'AS Helper') then
+											ASHelperMessage('Бинд успешно создан!')
 											setbinderkey = false
 											keyname = nil
 											keyname2 = nil
-											bindersettings.bindercmd.v = ""
-											bindersettings.binderbuff.v = ""
-											bindersettings.bindername.v = ""
+											bindersettings.bindercmd.v = ''
+											bindersettings.binderbuff.v = ''
+											bindersettings.bindername.v = ''
 											bindersettings.bindertype.v = 0
-											bindersettings.binderdelay.v = ""
-											bindersettings.bindercmd.v = ""
+											bindersettings.binderdelay.v = ''
+											bindersettings.bindercmd.v = ''
 											binderkeystatus = nil
 											choosedslot = nil
 										end
 									end
 								else
-									ASHelperMessage("Вы неправильно указали клавишу бинда!")
+									ASHelperMessage('Вы неправильно указали клавишу бинда!')
 								end
 							end
 							updatechatcommands()
-							updatechatkeys()
 						else
-							ASHelperMessage("Вы не можете взаимодействовать с биндером во время любой отыгровки!")
+							ASHelperMessage('Вы не можете взаимодействовать с биндером во время любой отыгровки!')
 						end	
 					end
 				else
-					imgui.LockedButton(u8"Сохранить",imgui.ImVec2(100,30))
-					imgui.Hint("Вы ввели не все параметры. Перепроверьте всё.")
+					imgui.LockedButton(u8'Сохранить',imgui.ImVec2(100,30))
+					imgui.Hint('Вы ввели не все параметры. Перепроверьте всё.')
 				end
 				imgui.SameLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 247) / 2)
-				if imgui.Button(u8"Отменить",imgui.ImVec2(100,30)) then
+				if imgui.Button(u8'Отменить',imgui.ImVec2(100,30)) then
 					setbinderkey = false
 					keyname = nil
 					keyname2 = nil
-					bindersettings.bindercmd.v = ""
-					bindersettings.binderbuff.v = ""
-					bindersettings.bindername.v = ""
+					bindersettings.bindercmd.v = ''
+					bindersettings.binderbuff.v = ''
+					bindersettings.bindername.v = ''
 					bindersettings.bindertype.v = 0
-					bindersettings.binderdelay.v = ""
-					bindersettings.bindercmd.v = ""
+					bindersettings.binderdelay.v = ''
+					bindersettings.bindercmd.v = ''
 					binderkeystatus = nil
 					updatechatcommands()
-					updatechatkeys()
 					choosedslot = nil
 				end
 			else
 				imgui.SetCursorPos(imgui.ImVec2(230,180))
-				imgui.Text(u8"Откройте бинд или создайте новый для меню редактирования.")
+				imgui.Text(u8'Откройте бинд или создайте новый для меню редактирования.')
 			end
 			imgui.NewLine()
 			imgui.SetCursorPosX((imgui.GetWindowWidth() - 621) / 2)
-			imgui.SetCursorPosY((imgui.GetWindowWidth() - 10) / 2)
-			if imgui.Button(u8"Добавить",imgui.ImVec2(82,30)) then
+			imgui.SetCursorPosY((imgui.GetWindowWidth() + 10) / 2)
+			if imgui.Button(u8'Добавить',imgui.ImVec2(82,30)) then
 				choosedslot = 50
 				bindersettings.binderbuff.v = ''
 				bindersettings.bindername.v = ''
@@ -3949,63 +4172,53 @@ if imguicheck and encodingcheck and facheck then
 				binderkeystatus = nil
 				bindersettings.binderdelay.v = ''
 				updatechatcommands()
-				updatechatkeys()
 			end
 			imgui.SameLine()
 			if choosedslot ~= nil and choosedslot ~= 50 then
-				if imgui.Button(u8"Удалить",imgui.ImVec2(82,30)) then
+				if imgui.Button(u8'Удалить',imgui.ImVec2(82,30)) then
 					if not inprocess then
 						for key, value in pairs(configuration.BindsName) do
 							local value = tostring(value)
 							if u8:decode(bindersettings.bindername.v) == tostring(configuration.BindsName[key]) then
 								sampUnregisterChatCommand(configuration.BindsCmd[key])
-								if tostring(configuration.BindsKeys[key]):match("(.+) %p (.+)") then
-									local fkey = tostring(configuration.BindsKeys[key]):match("(.+) %p")
-									local skey = tostring(configuration.BindsKeys[key]):match("%p (.+)")
-									rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true), vkeys.name_to_id(skey,true)})
-								elseif tostring(configuration.BindsKeys[key]):match("(.+)") then
-									local fkey = tostring(configuration.BindsKeys[key]):match("(.+)")
-									rkeys.unRegisterHotKey({vkeys.name_to_id(fkey,true)})
-								end
 								table.remove(configuration.BindsName,key)
 								table.remove(configuration.BindsKeys,key)
 								table.remove(configuration.BindsAction,key)
 								table.remove(configuration.BindsCmd,key)
 								table.remove(configuration.BindsDelay,key)
 								table.remove(configuration.BindsType,key)
-								if inicfg.save(configuration,"AS Helper") then
+								if inicfg.save(configuration,'AS Helper') then
 									setbinderkey = false
 									keyname = nil
 									keyname2 = nil
-									bindersettings.bindercmd.v = ""
-									bindersettings.binderbuff.v = ""
-									bindersettings.bindername.v = ""
+									bindersettings.bindercmd.v = ''
+									bindersettings.binderbuff.v = ''
+									bindersettings.bindername.v = ''
 									bindersettings.bindertype.v = 0
-									bindersettings.binderdelay.v = ""
-									bindersettings.bindercmd.v = ""
+									bindersettings.binderdelay.v = ''
+									bindersettings.bindercmd.v = ''
 									binderkeystatus = nil
 									choosedslot = nil
-									ASHelperMessage("Бинд успешно удалён!")
+									ASHelperMessage('Бинд успешно удалён!')
 								end
 							end
 						end
 					updatechatcommands()
-					updatechatkeys()
 					else
-						ASHelperMessage("Вы не можете удалять бинд во время любой отыгровки!")
+						ASHelperMessage('Вы не можете удалять бинд во время любой отыгровки!')
 					end
 				end
 			else
-				imgui.LockedButton(u8"Удалить",imgui.ImVec2(82,30))
-				imgui.Hint("Выберите бинд который хотите удалить",0)
+				imgui.LockedButton(u8'Удалить',imgui.ImVec2(82,30))
+				imgui.Hint('Выберите бинд который хотите удалить',0)
 			end
 			imgui.End()
 		end
 
 		if windows.imgui_stats.v then
-			imgui.SetNextWindowSize(imgui.ImVec2(150, 195), imgui.Cond.FirstUseEver)
+			imgui.SetNextWindowSize(imgui.ImVec2(150, 175), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(configuration.imgui_pos.posX,configuration.imgui_pos.posY),imgui.Cond.FirstUseEver)
-			imgui.Begin(u8"Статистика  ##stats",_,imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoResize)
+			imgui.Begin(u8'Статистика  ##stats',_,imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar)
 			if imgui.IsMouseDoubleClicked(0) and imgui.IsWindowHovered() then
 				local pos = imgui.GetWindowPos()
 				configuration.imgui_pos.posX = pos.x
@@ -4014,35 +4227,45 @@ if imguicheck and encodingcheck and facheck then
 					ASHelperMessage('Позиция была сохранена.')
 				end
 			end
-			imgui.Text(fa.ICON_FA_CAR..u8" Авто - "..configuration.my_stats.avto)
-			imgui.Text(fa.ICON_FA_MOTORCYCLE..u8" Мото - "..configuration.my_stats.moto)
-			imgui.Text(fa.ICON_FA_FISH..u8" Рыболовство - "..configuration.my_stats.riba)
-			imgui.Text(fa.ICON_FA_SHIP..u8" Плавание - "..configuration.my_stats.lodka)
-			imgui.Text(fa.ICON_FA_CROSSHAIRS..u8" Оружие - "..configuration.my_stats.guns)
-			imgui.Text(fa.ICON_FA_SKULL_CROSSBONES..u8" Охота - "..configuration.my_stats.hunt)
-			imgui.Text(fa.ICON_FA_ARCHIVE..u8" Раскопки - "..configuration.my_stats.klad)
+			imgui.Text(fa.ICON_FA_CAR..u8' Авто - '..configuration.my_stats.avto)
+			imgui.Text(fa.ICON_FA_MOTORCYCLE..u8' Мото - '..configuration.my_stats.moto)
+			imgui.Text(fa.ICON_FA_FISH..u8' Рыболовство - '..configuration.my_stats.riba)
+			imgui.Text(fa.ICON_FA_SHIP..u8' Плавание - '..configuration.my_stats.lodka)
+			imgui.Text(fa.ICON_FA_CROSSHAIRS..u8' Оружие - '..configuration.my_stats.guns)
+			imgui.Text(fa.ICON_FA_SKULL_CROSSBONES..u8' Охота - '..configuration.my_stats.hunt)
+			imgui.Text(fa.ICON_FA_ARCHIVE..u8' Раскопки - '..configuration.my_stats.klad)
 			imgui.End()
 		end
 
 		if windows.imgui_lect.v then -- на основе лекций из Bank Helper
 			imgui.SetNextWindowSize(imgui.ImVec2(435, 300), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-			imgui.Begin(u8"Лекции", windows.imgui_lect, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar)
-			imgui.RadioButton(u8("Чат"), lectionsettings.lection_type, 1)
+			imgui.Begin(u8'Лекции', windows.imgui_lect, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + (configuration.main_settings.noscrollbar and imgui.WindowFlags.NoScrollbar or imgui.WindowFlags.NoBringToFrontOnFocus))
+			imgui.Image(configuration.main_settings.style ~= 2 and whitelection or blacklection,imgui.ImVec2(210,25))
+			imgui.SameLine(401)
+			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
+			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
+			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
+			if imgui.Button(fa.ICON_FA_TIMES,imgui.ImVec2(23,23)) then
+				windows.imgui_lect.v = false
+			end
+			imgui.PopStyleColor(3)
+			imgui.Separator()
+			imgui.RadioButton(u8('Чат'), lectionsettings.lection_type, 1)
 			imgui.SameLine()
-			imgui.RadioButton(u8("/s"), lectionsettings.lection_type, 4)
+			imgui.RadioButton(u8('/s'), lectionsettings.lection_type, 4)
 			imgui.SameLine()
-			imgui.RadioButton(u8("/r"), lectionsettings.lection_type, 2)
+			imgui.RadioButton(u8('/r'), lectionsettings.lection_type, 2)
 			imgui.SameLine()
-			imgui.RadioButton(u8("/rb"), lectionsettings.lection_type, 3)
+			imgui.RadioButton(u8('/rb'), lectionsettings.lection_type, 3)
 			imgui.SameLine()
-			imgui.NextColumn()
 			imgui.SetCursorPosX(245)
 			imgui.PushItemWidth(50)
 			if imgui.DragInt('##lectionsettings.lection_delay', lectionsettings.lection_delay, 1, 1, 30, u8('%0.0f с.')) then
 				if lectionsettings.lection_delay.v < 1 then lectionsettings.lection_delay.v = 1 end
 				if lectionsettings.lection_delay.v > 30 then lectionsettings.lection_delay.v = 30 end
-				inicfg.save(configuration,"AS Helper")
+				configuration.main_settings.lection_delay = lectionsettings.lection_delay.v
+				inicfg.save(configuration,'AS Helper')
 				end
 			imgui.Hint('Задержка между сообщениями')
 			imgui.PopItemWidth()
@@ -4050,9 +4273,9 @@ if imguicheck and encodingcheck and facheck then
 			imgui.SetCursorPosX(307)
 			if imgui.Button(u8'Создать новую '..fa.ICON_FA_PLUS_CIRCLE, imgui.ImVec2(112, 24)) then
 				lection_number = nil
-				lectionsettings.lection_name.v = u8("")
-				lectionsettings.lection_text.v = u8("")
-				imgui.OpenPopup(u8("Редактор лекций"))
+				lectionsettings.lection_name.v = u8('')
+				lectionsettings.lection_text.v = u8('')
+				imgui.OpenPopup(u8('Редактор лекций'))
 			end
 			imgui.Separator()
 			if #lections.data == 0 then
@@ -4061,7 +4284,7 @@ if imguicheck and encodingcheck and facheck then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 250) / 2)
 				if imgui.Button(u8'Восстановить изначальные лекции', imgui.ImVec2(250, 25)) then
 					lections = default_lect
-					local file = io.open(getWorkingDirectory() .. '\\AS Helper\\Lections.json', "w")
+					local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'w')
 					file:write(encodeJson(lections))
 					file:close()
 				end
@@ -4069,7 +4292,7 @@ if imguicheck and encodingcheck and facheck then
 				for i, block in ipairs(lections.data) do
 					if lections.active.bool == true then
 						if block.name == lections.active.name then
-							if imgui.Button(fa.ICON_FA_PAUSE .. '##' .. u8(block.name), imgui.ImVec2(280, 25)) then
+							if imgui.Button(fa.ICON_FA_PAUSE..'##'..u8(block.name), imgui.ImVec2(280, 25)) then
 								inprocess = false
 								lections.active.bool = false
 								lections.active.name = nil
@@ -4080,9 +4303,9 @@ if imguicheck and encodingcheck and facheck then
 							imgui.LockedButton(u8(block.name), imgui.ImVec2(280, 25))
 						end
 						imgui.SameLine()
-						imgui.LockedButton(fa.ICON_FA_PEN .. '##' .. u8(block.name), imgui.ImVec2(50, 25))
+						imgui.LockedButton(fa.ICON_FA_PEN..'##'..u8(block.name), imgui.ImVec2(50, 25))
 						imgui.SameLine()
-						imgui.LockedButton(fa.ICON_FA_TRASH .. '##' .. u8(block.name), imgui.ImVec2(50, 25))
+						imgui.LockedButton(fa.ICON_FA_TRASH..'##'..u8(block.name), imgui.ImVec2(50, 25))
 					else
 						if imgui.Button(u8(block.name), imgui.ImVec2(280, 25)) then
 							lections.active.bool = true
@@ -4091,11 +4314,11 @@ if imguicheck and encodingcheck and facheck then
 								inprocess = true
 								for i, line in ipairs(block.text) do
 									if lectionsettings.lection_type.v == 2 then
-										sampSendChat('/r '..line)
+										sampSendChat(('/r %s'):format(line))
 									elseif lectionsettings.lection_type.v == 3 then
-										sampSendChat("/rb "..line)
+										sampSendChat(('/rb %s'):format(line))
 									elseif lectionsettings.lection_type.v == 4 then
-										sampSendChat("/s "..line)
+										sampSendChat(('/s %s'):format(line))
 									else
 										sampSendChat(line)
 									end
@@ -4110,32 +4333,32 @@ if imguicheck and encodingcheck and facheck then
 							end)
 						end
 						imgui.SameLine()
-						if imgui.Button(fa.ICON_FA_PEN .. '##' .. u8(block.name), imgui.ImVec2(50, 25)) then
+						if imgui.Button(fa.ICON_FA_PEN..'##'..u8(block.name), imgui.ImVec2(50, 25)) then
 							lection_number = i
 							lectionsettings.lection_name.v = u8(tostring(block.name))
 							lectionsettings.lection_text.v = u8(tostring(table.concat(block.text, '\n')))
-							imgui.OpenPopup(u8"Редактор лекций")
+							imgui.OpenPopup(u8'Редактор лекций')
 						end
 						imgui.SameLine()
-						if imgui.Button(fa.ICON_FA_TRASH .. '##' .. u8(block.name), imgui.ImVec2(50, 25)) then
+						if imgui.Button(fa.ICON_FA_TRASH..'##'..u8(block.name), imgui.ImVec2(50, 25)) then
 							lection_number = i
-							imgui.OpenPopup("##delete")
+							imgui.OpenPopup('##delete')
 						end
 					end
 				end
 			end
-			if imgui.BeginPopup("##delete") then
-				imgui.TextColoredRGB("Вы уверены, что хотите удалить лекцию \n\""..(lections.data[lection_number].name).."\"",1)
+			if imgui.BeginPopup('##delete') then
+				imgui.TextColoredRGB('Вы уверены, что хотите удалить лекцию \n\''..(lections.data[lection_number].name)..'\'',1)
 				imgui.SetCursorPosX( (imgui.GetWindowWidth() - 100 - imgui.GetStyle().ItemSpacing.x) / 2 )
-				if imgui.Button(u8"Да",imgui.ImVec2(50,25)) then
+				if imgui.Button(u8'Да',imgui.ImVec2(50,25)) then
 					imgui.CloseCurrentPopup()
 					table.remove(lections.data, lection_number)
-					local file = io.open(getWorkingDirectory() .. '\\AS Helper\\Lections.json', "w")
+					local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'w')
 					file:write(encodeJson(lections))
 					file:close()
 				end
 				imgui.SameLine()
-				if imgui.Button(u8"Нет",imgui.ImVec2(50,25)) then
+				if imgui.Button(u8'Нет',imgui.ImVec2(50,25)) then
 					imgui.CloseCurrentPopup()
 				end
 				imgui.EndPopup()
@@ -4146,25 +4369,44 @@ if imguicheck and encodingcheck and facheck then
 	end
 end
 
+function getClosestPlayerId()
+	local temp = {}
+	local tPeds = getAllChars()
+	local me = {getCharCoordinates(playerPed)}
+	for i, ped in ipairs(tPeds) do 
+		local result, id = sampGetPlayerIdByCharHandle(ped)
+		if ped ~= playerPed and result then
+			local pl = {getCharCoordinates(ped)}
+			local dist = getDistanceBetweenCoords3d(me[1], me[2], me[3], pl[1], pl[2], pl[3])
+			temp[#temp + 1] = { dist, id }
+		end
+	end
+	if #temp > 0 then
+		table.sort(temp, function(a, b) return a[1] < b[1] end)
+		return true, temp[1][2]
+	end
+	return false
+end
+
 function checkrules()
 	if lfscheck then
 		local files = 0
 		ruless = {}
-		for line in lfs.dir(getWorkingDirectory().."\\AS Helper\\Rules") do
+		for line in lfs.dir(getWorkingDirectory()..'\\AS Helper\\Rules') do
 			if line == nil then
-			elseif line:match(".+%.txt") then
+			elseif line:match('.+%.txt') then
 				files = files + 1
-				local temp = io.open(getWorkingDirectory().."\\AS Helper\\Rules\\"..line:match(".+%.txt"), "r+")
+				local temp = io.open(getWorkingDirectory()..'\\AS Helper\\Rules\\'..line:match('.+%.txt'), 'r+')
 				local temptable = {}
 				for linee in temp:lines() do
-					if linee == "" then
-						table.insert(temptable," ")
+					if linee == '' then
+						table.insert(temptable,' ')
 					else
 						table.insert(temptable,linee)
 					end
 				end
 				table.insert(ruless,{
-					name = line:match("(.+)%.txt"),
+					name = line:match('(.+)%.txt'),
 					text = temptable
 				})
 				temp:close()
@@ -4173,9 +4415,9 @@ function checkrules()
 		if files == 0 then
 			ruless = default_rules
 			for i, block in ipairs(ruless) do
-				local temp = io.open(getWorkingDirectory().."\\AS Helper\\Rules\\"..block.name..".txt", "w")
+				local temp = io.open(getWorkingDirectory()..'\\AS Helper\\Rules\\'..block.name..'.txt', 'w')
 				for _,line in ipairs(block.text) do
-					temp:write(line.."\n")
+					temp:write(line..'\n')
 				end
 				temp:close()
 			end
@@ -4193,22 +4435,32 @@ function checkbibl()
 		while not doesFileExist(file) do
 			wait(1000)
 		end
+		ASHelperMessage('Скачиваю...')
 	end
 	createDirectory(getWorkingDirectory()..'\\AS Helper')
 	createDirectory(getWorkingDirectory()..'\\AS Helper\\Rules')
-	if not doesFileExist(getWorkingDirectory() .. '\\AS Helper\\Lections.json') then
+	if not doesFileExist(getWorkingDirectory()..'\\AS Helper\\Lections.json') then
 		lections = default_lect
-		local file = io.open(getWorkingDirectory() .. '\\AS Helper\\Lections.json', "w")
+		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'w')
 		file:write(encodeJson(lections))
 		file:close()
 	else
-		local file = io.open(getWorkingDirectory() .. '\\AS Helper\\Lections.json', "r")
+		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'r')
 		lections = decodeJson(file:read('*a'))
 		file:close()
 	end
 	checkrules()
+	if not imguicheck then
+		ASHelperMessage('Отсутствует библиотека imgui. Пытаюсь её установить.')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/MoonImGui.dll', 'moonloader/lib/MoonImGui.dll')
+		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/imgui.lua', 'moonloader/lib/imgui.lua')
+		ASHelperMessage('Библиотека imgui была успешно установлена.')
+		NoErrors = true
+		thisScript():reload()
+		return false
+	end
 	if not sampevcheck then
-		ASHelperMessage("Отсутствует библиотека samp events. Пытаюсь её установить.")
+		ASHelperMessage('Отсутствует библиотека samp events. Пытаюсь её установить.')
 		createDirectory('moonloader/lib/samp')
 		createDirectory('moonloader/lib/samp/events')
 		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events.lua', 'moonloader/lib/samp/events.lua')
@@ -4219,84 +4471,72 @@ function checkbibl()
 		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/extra_types.lua', 'moonloader/lib/samp/events/extra_types.lua')
 		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/handlers.lua', 'moonloader/lib/samp/events/handlers.lua')
 		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/utils.lua', 'moonloader/lib/samp/events/utils.lua')
-		ASHelperMessage("Библиотека samp events была успешно установлена.")
+		ASHelperMessage('Библиотека samp events была успешно установлена.')
 		NoErrors = true
 		thisScript():reload()
 		return false
 	end
 	if not encodingcheck then
-		ASHelperMessage("Отсутствует библиотека encoding. Пытаюсь её установить.")
+		ASHelperMessage('Отсутствует библиотека encoding. Пытаюсь её установить.')
 		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/encoding.lua', 'moonloader/lib/encoding.lua')
-		ASHelperMessage("Библиотека encoding была успешно установлена.")
-		NoErrors = true
-		thisScript():reload()
-		return false
-	end
-	if not imguicheck then
-		ASHelperMessage("Отсутствует библиотека imgui. Пытаюсь её установить.")
-		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/MoonImGui.dll', 'moonloader/lib/MoonImGui.dll')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/imgui.lua', 'moonloader/lib/imgui.lua')
-		ASHelperMessage("Библиотека imgui была успешно установлена.")
-		NoErrors = true
-		thisScript():reload()
-		return false
-	end
-	if not rkeyscheck then
-		ASHelperMessage("Отсутствует библиотека rkeys. Пытаюсь её установить.")
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/rkeys.lua', 'moonloader/lib/rkeys.lua')
-		ASHelperMessage("Библиотека rkeys была успешно установлена.")
-		NoErrors = true
-		thisScript():reload()
-		return false
-	end
-	if not facheck then
-		ASHelperMessage("Отсутствует библиотека fAwesome5. Пытаюсь её установить.")
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/fAwesome5.lua', 'moonloader/lib/fAwesome5.lua')
-		ASHelperMessage("Библиотека fAwesome5 была успешно установлена.")
+		ASHelperMessage('Библиотека encoding была успешно установлена.')
 		NoErrors = true
 		thisScript():reload()
 		return false
 	end
 	if not lfscheck then
-		ASHelperMessage("Отсутствует библиотека lfs. Пытаюсь её установить.")
+		ASHelperMessage('Отсутствует библиотека lfs. Пытаюсь её установить.')
 		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/lfs.dll','moonloader/lib/lfs.dll')
-		ASHelperMessage("Библиотека lfs была успешно установлена.")
+		ASHelperMessage('Библиотека lfs была успешно установлена.')
 		NoErrors = true
 		thisScript():reload()
 		return false
 	end
 	if not doesFileExist('moonloader/resource/fonts/fa-solid-900.ttf') then
-		ASHelperMessage("Отсутствует файл шрифта. Пытаюсь его установить.")
+		ASHelperMessage('Отсутствует файл шрифта. Пытаюсь его установить.')
 		createDirectory('moonloader/resource/fonts')
 		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/fa-solid-900.ttf', 'moonloader/resource/fonts/fa-solid-900.ttf')
-		ASHelperMessage("Файл шрифта был успешно установлен.")
+		ASHelperMessage('Файл шрифта был успешно установлен.')
 		NoErrors = true
 		thisScript():reload()
 		return false
 	end
-	if doesFileExist('moonloader/config/updateashelper.ini') then
-		os.remove('moonloader/config/updateashelper.ini')
+	if not doesFileExist('moonloader/AS Helper/Images/binderblack.png') or not doesFileExist('moonloader/AS Helper/Images/binderwhite.png') or not doesFileExist('moonloader/AS Helper/Images/lectionblack.png') or not doesFileExist('moonloader/AS Helper/Images/lectionwhite.png') or not doesFileExist('moonloader/AS Helper/Images/settingsblack.png') or not doesFileExist('moonloader/AS Helper/Images/settingswhite.png') then
+		ASHelperMessage('Отсутствуют PNG файлы. Пытаюсь их скачать.')
+		createDirectory('moonloader/AS Helper/Images')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/Images/binderblack.png', 'moonloader/AS Helper/Images/binderblack.png')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/Images/binderwhite.png', 'moonloader/AS Helper/Images/binderwhite.png')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/Images/lectionblack.png', 'moonloader/AS Helper/Images/lectionblack.png')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/Images/lectionwhite.png', 'moonloader/AS Helper/Images/lectionwhite.png')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/Images/settingsblack.png', 'moonloader/AS Helper/Images/settingsblack.png')
+		DownloadFile('https://github.com/Just-Mini/biblioteki/raw/main/Images/settingswhite.png', 'moonloader/AS Helper/Images/settingswhite.png')
+		ASHelperMessage('PNG файлы успешно скачаны.')
+		NoErrors = true
+		thisScript():reload()
+		return false
 	end
-	createDirectory('moonloader/config')
-	downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/update.ini', 'moonloader/config/updateashelper.ini', function(id, status)
+	if doesFileExist('moonloader/updateashelper.ini') then
+		os.remove('moonloader/updateashelper.ini')
+	end
+	downloadUrlToFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/update.ini', 'moonloader/updateashelper.ini', function(id, status)
 		if status == dlstatus.STATUSEX_ENDDOWNLOAD then
-			if doesFileExist('moonloader/config/updateashelper.ini') then
-				local updates = io.open('moonloader/config/updateashelper.ini','r')
+			if doesFileExist('moonloader/updateashelper.ini') then
+				local updates = io.open('moonloader/updateashelper.ini','r')
 				local tempdata = {}
 				for line in updates:lines() do
 					table.insert(tempdata, line)
 				end
 				io.close(updates)
 				if tonumber(tempdata[1]) > thisScript().version_num then
-					ASHelperMessage("Найдено обновление. Пытаюсь установить его.")
+					ASHelperMessage('Найдено обновление. Пытаюсь установить его.')
 					doupdate = true
 				else
-					ASHelperMessage("Обновлений не найдено.")
+					ASHelperMessage('Обновлений не найдено.')
 					doupdate = false
 				end
-				os.remove('moonloader/config/updateashelper.ini')
+				os.remove('moonloader/updateashelper.ini')
 			else
-				ASHelperMessage("Произошла ошибка во время проверки обновлений.")
+				ASHelperMessage('Произошла ошибка во время проверки обновлений.')
 			end
 		end
 	end)
@@ -4306,7 +4546,7 @@ function checkbibl()
 	if doupdate then
 		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua', thisScript().path)
 		NoErrors = true
-		ASHelperMessage("Обновление успешно установлено.")
+		ASHelperMessage('Обновление успешно установлено.')
 		return false
 	end
 	return true
