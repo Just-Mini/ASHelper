@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(25)
+script_version_number(26)
 script_version('2.3')
 script_dependencies('imgui; samp events; lfs')
 
@@ -1083,7 +1083,7 @@ if sampevcheck then
 			return false
 
 		elseif dialogId == 235 and getmyrank then
-			if text:find('Инструкторы') or sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))) == 'Carolos_McCandy' then
+			if text:find('Инструкторы') then
 				for DialogLine in text:gmatch('[^\r\n]+') do
 					local nameRankStats, getStatsRank = DialogLine:match('Должность: {B83434}(.+)%p(%d+)%p')
 					if tonumber(getStatsRank) then
@@ -1117,12 +1117,14 @@ if sampevcheck then
 						for DialogLine in text:gmatch('[^\r\n]+') do
 							if text:find('Полностью здоровый') then
 							local statusint = DialogLine:match('{CEAD2A}Наркозависимость: (%d+)')
-								if tonumber(statusint) and tonumber(statusint) <= 5 then
-									mcvalue = false
-									mcverdict = ('в порядке')
-								else
-									mcvalue = false
-									mcverdict = ('наркозависимость')
+								if tonumber(statusint) then
+									if tonumber(statusint) <= 5 then
+										mcvalue = false
+										mcverdict = ('в порядке')
+									else
+										mcvalue = false
+										mcverdict = ('наркозависимость')
+									end
 								end
 							else
 								mcvalue = false
@@ -1180,38 +1182,42 @@ if sampevcheck then
 			elseif text:find('Серия') then
 				if passvalue then
 					if text:find('Имя: {FFD700}'..sampGetPlayerNickname(fastmenuID)) then
-						if not text:find('{FFFFFF}Организация:') then
+						if text:find('{FFFFFF}Организация:') then
 							for DialogLine in text:gmatch('[^\r\n]+') do
 								local passstatusint = DialogLine:match('{FFFFFF}Лет в штате: {FFD700}(%d+)')
-								if tonumber(passstatusint) and tonumber(passstatusint) >= 3 then
-									for DialogLine in text:gmatch('[^\r\n]+') do
-										local zakonstatusint = DialogLine:match('{FFFFFF}Законопослушность: {FFD700}(%d+)')
-										if tonumber(zakonstatusint) and tonumber(zakonstatusint) >= 35 then
-											if not text:find('Лечился в Психиатрической больнице') then
-												if not text:find('Состоит в ЧС{FF6200} Инструкторы') then
-													if not text:find('Warns') then
-														passvalue = false
-														passverdict = ('в порядке')
+								if tonumber(passstatusint) then
+									if tonumber(passstatusint) >= 3 then
+										for DialogLine in text:gmatch('[^\r\n]+') do
+											local zakonstatusint = DialogLine:match('{FFFFFF}Законопослушность: {FFD700}(%d+)')
+											if tonumber(zakonstatusint) then
+												if tonumber(zakonstatusint) >= 35 then
+													if not text:find('Лечился в Психиатрической больнице') then
+														if not text:find('Состоит в ЧС{FF6200} Инструкторы') then
+															if not text:find('Warns') then
+																passvalue = false
+																passverdict = ('в порядке')
+															else
+																passvalue = false
+																passverdict = ('есть варны')
+															end
+														else
+															passvalue = false
+															passverdict = ('в чс автошколы')
+														end
 													else
 														passvalue = false
-														passverdict = ('есть варны')
+														passverdict = ('был в деморгане')
 													end
 												else
 													passvalue = false
-													passverdict = ('в чс автошколы')
+													passverdict = ('не законопослушный')
 												end
-											else
-												passvalue = false
-												passverdict = ('был в деморгане')
 											end
-										else
-											passvalue = false
-											passverdict = ('не законопослушный')
 										end
+									else
+										passvalue = false
+										passverdict = ('меньше 3 лет в штате')
 									end
-								else
-									passvalue = false
-									passverdict = ('меньше 3 лет в штате')
 								end
 							end
 						else
@@ -2790,7 +2796,7 @@ if imguicheck and encodingcheck then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
 					if not inprocess then
-						if configuration.main_settings.myrankint >= 5 then
+						if configuration.main_settings.myrankint <= 5 then
 							imgui.SetScrollY(0)
 							passvalue = true
 							mcvalue = true
