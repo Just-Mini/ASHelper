@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(29)
+script_version_number(30)
 script_version('2.3')
 script_dependencies('imgui; samp events; lfs')
 
@@ -1312,10 +1312,10 @@ if sampevcheck then
 	function sampev.onSendChat(message)
 		if message:find('{my_id}') then
 			sampSendChat(message:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
-			return  false
+			return false
 		end
 		if message:find('{my_name}') then
-			sampSendChat(message:gsub('{my_name}', configuration.main_settings.myname))
+			sampSendChat(message:gsub('{my_name}', (configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname))))
 			return false
 		end
 		if message:find('{my_rank}') then
@@ -1386,7 +1386,7 @@ if sampevcheck then
 			return  false
 		end
 		if cmd:find('{my_name}') then
-			sampSendChat(cmd:gsub('{my_name}', configuration.main_settings.myname))
+			sampSendChat(cmd:gsub('{my_name}', (configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname))))
 			return false
 		end
 		if cmd:find('{my_rank}') then
@@ -1562,6 +1562,25 @@ if imguicheck and encodingcheck then
 	u8 									= encoding.UTF8
 	encoding.default 					= 'CP1251'
 	
+	function getClosestPlayerId()
+		local temp = {}
+		local tPeds = getAllChars()
+		local me = {getCharCoordinates(playerPed)}
+		for i, ped in ipairs(tPeds) do 
+			local result, id = sampGetPlayerIdByCharHandle(ped)
+			if ped ~= playerPed and result then
+				local pl = {getCharCoordinates(ped)}
+				local dist = getDistanceBetweenCoords3d(me[1], me[2], me[3], pl[1], pl[2], pl[3])
+				temp[#temp + 1] = { dist, id }
+			end
+		end
+		if #temp > 0 then
+			table.sort(temp, function(a, b) return a[1] < b[1] end)
+			return true, temp[1][2]
+		end
+		return false
+	end
+	
 	local Licenses_select 				= imgui.ImInt(0)
 	local Licenses_Arr 					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки'}
 
@@ -1586,10 +1605,11 @@ if imguicheck and encodingcheck then
 	local fmuteint 						= imgui.ImInt(0)
 
 	local buttons 						= {fa.ICON_FA_USER_COG..u8' Настройки пользователя',fa.ICON_FA_FILE_ALT..u8' Ценовая политика',fa.ICON_FA_KEYBOARD..u8' Горячие клавиши',fa.ICON_FA_PALETTE..u8' Настройки цветов',fa.ICON_FA_BOOK_OPEN..u8' Правила автошколы',fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте'}
+
 	
 	local search_rule				 	= imgui.ImBuffer(256)
 	local rule_align					= imgui.ImInt(configuration.main_settings.rule_align)
-
+	
 	windows = {
 		imgui_settings 					= imgui.ImBool(false),
 		imgui_fm 						= imgui.ImBool(false),
@@ -1598,7 +1618,7 @@ if imguicheck and encodingcheck then
 		imgui_stats						= imgui.ImBool(false),
 		imgui_lect						= imgui.ImBool(false)
 	}
-
+	
 	local bindersettings = {
 		binderbuff 						= imgui.ImBuffer(4096),
 		bindername 						= imgui.ImBuffer(40),
@@ -1606,13 +1626,13 @@ if imguicheck and encodingcheck then
 		bindertype 						= imgui.ImInt(0),
 		bindercmd 						= imgui.ImBuffer(15)
 	}
-
+	
 	local chatcolors = {
 		RChatColor 						= imgui.ImFloat4(imgui.ImColor(configuration.main_settings.RChatColor):GetFloat4()),
 		DChatColor 						= imgui.ImFloat4(imgui.ImColor(configuration.main_settings.DChatColor):GetFloat4()),
 		ASChatColor 					= imgui.ImFloat4(imgui.ImColor(configuration.main_settings.ASChatColor):GetFloat4())
 	}
-
+	
 	local usersettings = {
 		useaccent 						= imgui.ImBool(configuration.main_settings.useaccent),
 		createmarker 					= imgui.ImBool(configuration.main_settings.createmarker),
@@ -1625,7 +1645,7 @@ if imguicheck and encodingcheck then
 		myaccent 						= imgui.ImBuffer(configuration.main_settings.myaccent, 256),
 		gender 							= imgui.ImInt(configuration.main_settings.gender)
 	}
-
+	
 	local pricelist = {
 		avtoprice 						= imgui.ImBuffer(tostring(configuration.main_settings.avtoprice), 7),
 		motoprice 						= imgui.ImBuffer(tostring(configuration.main_settings.motoprice), 7),
@@ -1635,7 +1655,7 @@ if imguicheck and encodingcheck then
 		huntprice 						= imgui.ImBuffer(tostring(configuration.main_settings.huntprice), 7),
 		kladprice						= imgui.ImBuffer(tostring(configuration.main_settings.kladprice), 7)
 	}
-
+	
 	local lectionsettings = {
 		lection_type					= imgui.ImInt(1),
 		lection_delay					= imgui.ImInt(configuration.main_settings.lection_delay),
@@ -1649,6 +1669,19 @@ if imguicheck and encodingcheck then
 	local blackbinder					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\binderblack.png')
 	local whitelection					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\lectionwhite.png')
 	local blacklection					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\lectionblack.png')
+	
+	local tagbuttons = {
+		{name = '{my_id}',text = 'Пишет Ваш ID.',hint = '/n /showpass {my_id}\n(( /showpass "Ваш ID" ))'},
+		{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я '..u8:decode(configuration.main_settings.myname)..'.'},
+		{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = '/do На груди бейджик {my_rank}\nНа груди бейджик '..configuration.main_settings.myrank..'. -| '..sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed)))..'['..select(2,sampGetPlayerIdByCharHandle(playerPed))..']'},
+		{name = '{my_score}',text = 'Пишет Ваш уровень.',hint = 'Я проживаю в штате уже {my_score} лет!\n- Я проживаю в штате уже '..sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))..' лет!'},
+		{name = '{H}',text = 'Пишет системное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в чч'},
+		{name = '{HM}',text = 'Пишет системное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в чч:мм будет концерт!'},
+		{name = '{HMS}',text = 'Пишет системное время в часы:минуты:секунды.',hint = 'У меня на часах {HMS}\n- У меня на часах "чч:мм:сс"'},
+		{name = '{gender:Текст1|Текст2}',text = 'Пишет сообщение в зависимости от вашего пола.',hint = 'Я вчера {gender:был|была} в банке\n- Если мужской пол: был в банке\n- Если женский пол: была в банке'},
+		{name = '@{ID}',text = 'Узнаёт имя игрока по ID.',hint = 'Ты не видел где сейчас @{43}?\n- Ты не видел где сейчас "Имя 43 ида"'},
+		{name = '{close_id}',text = 'Узнаёт ID ближайшего к вам игрока',hint = 'О, а вот и @{{close_id}}?\nО, а вот и "Имя ближайшего ида"'},
+	}
 
 	local fa_glyph_ranges	= imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 	function imgui.BeforeDrawFrame()
@@ -2200,8 +2233,8 @@ if imguicheck and encodingcheck then
 			imgui.PushItemWidth(200)
 			imgui.InputText('##search_rule', search_rule, imgui.InputTextFlags.EnterReturnsTrue) -- bank helper
 			if not imgui.IsItemActive() and #search_rule.v == 0 then
-				imgui.SameLine((imgui.GetWindowWidth() - imgui.CalcTextSize(fa.ICON_FA_SEARCH..u8(' Поиск')).x) / 2)
-				imgui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), fa.ICON_FA_SEARCH..u8(' Поиск'))
+				imgui.SameLine((imgui.GetWindowWidth() - imgui.CalcTextSize(fa.ICON_FA_SEARCH..u8(' Искать')).x) / 2)
+				imgui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), fa.ICON_FA_SEARCH..u8(' Искать'))
 			end
 			imgui.SameLine(928)
 			if imgui.BoolButton(rule_align.v == 1,fa.ICON_FA_ALIGN_LEFT, imgui.ImVec2(40, 20)) then
@@ -2416,21 +2449,9 @@ if imguicheck and encodingcheck then
 
 	function bindertags()
 		if imgui.BeginPopup(u8'Тэги', nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
-			local tagbuttons = {
-				{name = '{my_id}',text = 'Пишет Ваш ID.',hint = '/n /showpass {my_id}\n(( /showpass '..select(2,sampGetPlayerIdByCharHandle(playerPed))..' ))'},
-				{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я '..configuration.main_settings.myname..'.'},
-				{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = '/do На груди бейджик {my_rank}\nНа груди бейджик '..configuration.main_settings.myrank..'. -| '..sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed)))..'['..select(2,sampGetPlayerIdByCharHandle(playerPed))..']'},
-				{name = '{my_score}',text = 'Пишет Ваш уровень.',hint = 'Я проживаю в штате уже {my_score} лет!\n- Я проживаю в штате уже '..sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))..' лет!'},
-				{name = '{H}',text = 'Пишет системное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в '..os.date("%H", os.time())},
-				{name = '{HM}',text = 'Пишет системное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в '..os.date("%H:%M", os.time())..' будет концерт!'},
-				{name = '{HMS}',text = 'Пишет системное время в часы:минуты:секунды.',hint = 'У меня на часах {HMS}\n- У меня на часах '..os.date("%H:%M:%S", os.time())},
-				{name = '{gender:text1|text2}',text = 'Пишет сообщение в зависимости от вашего пола.',hint = 'Я вчера {gender:был|была} в банке\n- Если мужской пол: был в банке\n- Если женский пол: была в банке'},
-				{name = '@{ID}',text = 'Узнаёт имя игрока по ID.',hint = 'Ты не видел где сейчас @{43}?\n- Ты не видел где сейчас '..sampGetPlayerNickname(43)},
-				{name = '{close_id}',text = 'Узнаёт ID ближайшего к вам игрока',hint = 'О, а вот и @{{close_id}}?\nО, а вот и '..sampGetPlayerNickname(select(2,getClosestPlayerId()))},
-			}
 			for k,v in pairs(tagbuttons) do
-				if imgui.Button(tagbuttons[k].name,imgui.ImVec2(150,25)) then
-					setClipboardText(tagbuttons[k].name)
+				if imgui.Button(u8(tagbuttons[k].name),imgui.ImVec2(150,25)) then
+					bindersettings.binderbuff.v = bindersettings.binderbuff.v..""..u8(tagbuttons[k].name)
 					ASHelperMessage('Тэг был скопирован.')
 				end
 				imgui.SameLine()
@@ -2469,7 +2490,7 @@ if imguicheck and encodingcheck then
 									sampSendChat('Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?')
 								end
 								wait(2000)
-								sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(usersettings.myname.v))))
+								sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname))))
 								inprocess = false
 							end)
 						else
@@ -3302,7 +3323,7 @@ if imguicheck and encodingcheck then
 							inprocess = true
 							sampSendChat(('Здравствуйте, я %s Автошколы, вы пришли на собеседование?'):format(configuration.main_settings.myrank))
 							wait(2000)
-							sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(usersettings.myname.v)))
+							sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname)))
 							inprocess = false
 						end)
 					else
@@ -3921,10 +3942,12 @@ if imguicheck and encodingcheck then
 			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
-			if imgui.Button(fa.ICON_FA_QUESTION_CIRCLE,imgui.ImVec2(23,23)) then
-				imgui.OpenPopup(u8'Тэги')
+			if choosedslot then
+				if imgui.Button(fa.ICON_FA_QUESTION_CIRCLE,imgui.ImVec2(23,23)) then
+					imgui.OpenPopup(u8'Тэги')
+				end
 			end
-			imgui.SameLine()
+			imgui.SameLine(606)
 			if imgui.Button(fa.ICON_FA_TIMES,imgui.ImVec2(23,23)) then
 				windows.imgui_binder.v = false
 			end
@@ -4354,25 +4377,6 @@ if imguicheck and encodingcheck then
 			imgui.End()
 		end
 	end
-end
-
-function getClosestPlayerId()
-	local temp = {}
-	local tPeds = getAllChars()
-	local me = {getCharCoordinates(playerPed)}
-	for i, ped in ipairs(tPeds) do 
-		local result, id = sampGetPlayerIdByCharHandle(ped)
-		if ped ~= playerPed and result then
-			local pl = {getCharCoordinates(ped)}
-			local dist = getDistanceBetweenCoords3d(me[1], me[2], me[3], pl[1], pl[2], pl[3])
-			temp[#temp + 1] = { dist, id }
-		end
-	end
-	if #temp > 0 then
-		table.sort(temp, function(a, b) return a[1] < b[1] end)
-		return true, temp[1][2]
-	end
-	return false
 end
 
 function checkrules()
