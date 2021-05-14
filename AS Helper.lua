@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(28)
+script_version_number(29)
 script_version('2.3')
 script_dependencies('imgui; samp events; lfs')
 
@@ -1314,37 +1314,30 @@ if sampevcheck then
 			sampSendChat(message:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
 			return  false
 		end
-
 		if message:find('{my_name}') then
 			sampSendChat(message:gsub('{my_name}', configuration.main_settings.myname))
 			return false
 		end
-		
 		if message:find('{my_rank}') then
 			sampSendChat(message:gsub('{my_rank}', configuration.main_settings.myrank))
 			return false
 		end
-		
 		if message:find('{my_score}') then
 			sampSendChat(message:gsub('{my_score}', sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))))
 			return false
 		end
-
 		if message:find('{H}') then
 			sampSendChat(message:gsub('{H}', os.date("%H", os.time())))
 			return false
 		end
-		
 		if message:find('{HM}') then
 			sampSendChat(message:gsub('{HM}', os.date("%H:%M", os.time())))
 			return false
 		end
-
 		if message:find('{HMS}') then
 			sampSendChat(message:gsub('{HMS}', os.date("%H:%M:%S", os.time())))
 			return false
 		end
-		
 		if message:find('{close_id}') then
 			if select(1,getClosestPlayerId()) then
 				sampSendChat(message:gsub('{close_id}', select(2,getClosestPlayerId())))
@@ -1353,7 +1346,6 @@ if sampevcheck then
 			ASHelperMessage("В зоне стрима не найдено ни одного игрока")
 			return false
 		end
-		
 		if message:find('@{%d+}') then
 			local id = message:match("@{(%d+)}")
 			if id and sampIsPlayerConnected(id) then
@@ -1363,20 +1355,18 @@ if sampevcheck then
 			ASHelperMessage("Такого игрока нет на сервере.")
 			return false
 		end
-
-		if message:find('{gender:.+|.+}') then
-			local male, female = message:match('{gender:(.+)|(.+)}')
+		if message:find('{gender:%A+|%A+}') then
+			local male, female = message:match('{gender:(%A+)|(%A+)}')
 			if configuration.main_settings.gender == 0 then
-				local gendermsg = message:gsub('{gender:.+|.+}', male, 1)
+				local gendermsg = message:gsub('{gender:%A+|%A+}', male, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			else
-				local gendermsg = message:gsub('{gender:.+|.+}', female, 1)
+				local gendermsg = message:gsub('{gender:%A+|%A+}', female, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
 		end
-
 		--на основе https://www.blast.hk/threads/43610/
 		if configuration.main_settings.useaccent and configuration.main_settings.myaccent ~= '' and configuration.main_settings.myaccent ~= ' ' then
 			if message == ')' or message == '(' or message ==  '))' or message == '((' or message == 'xD' or message == ':D' or message == 'q' or message == ';)' then
@@ -1395,37 +1385,30 @@ if sampevcheck then
 			sampSendChat(cmd:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
 			return  false
 		end
-
 		if cmd:find('{my_name}') then
 			sampSendChat(cmd:gsub('{my_name}', configuration.main_settings.myname))
 			return false
 		end
-		
 		if cmd:find('{my_rank}') then
 			sampSendChat(cmd:gsub('{my_rank}', configuration.main_settings.myrank))
 			return false
 		end
-		
 		if cmd:find('{my_score}') then
 			sampSendChat(cmd:gsub('{my_score}', sampGetPlayerScore(select(2,sampGetPlayerIdByCharHandle(playerPed)))))
 			return false
 		end
-
 		if cmd:find('{H}') then
 			sampSendChat(cmd:gsub('{H}', os.date("%H", os.time())))
 			return false
 		end
-		
 		if cmd:find('{HM}') then
 			sampSendChat(cmd:gsub('{HM}', os.date("%H:%M", os.time())))
 			return false
 		end
-
 		if cmd:find('{HMS}') then
 			sampSendChat(cmd:gsub('{HMS}', os.date("%H:%M:%S", os.time())))
 			return false
 		end
-		
 		if cmd:find('{close_id}') then
 			if select(1,getClosestPlayerId()) then
 				sampSendChat(cmd:gsub('{close_id}', select(2,getClosestPlayerId())))
@@ -1434,7 +1417,6 @@ if sampevcheck then
 			ASHelperMessage("В зоне стрима не найдено ни одного игрока")
 			return false
 		end
-		
 		if cmd:find('@{%d+}') then
 			local id = cmd:match("@{(%d+)}")
 			if id and sampIsPlayerConnected(id) then
@@ -1444,21 +1426,20 @@ if sampevcheck then
 			ASHelperMessage("Такого игрока нет на сервере.")
 			return false
 		end
-
-		if cmd:find('{gender:.+|.+}') then
-			local male, female = cmd:match('{gender:(.+)|(.+)}')
+		if cmd:find('{gender:%A+|%A+}') then
+			local male, female = cmd:match('{gender:(%A+)|(%A+)}')
 			if configuration.main_settings.gender == 0 then
-				local gendermsg = cmd:gsub('{gender:.+|.+}', male, 1)
+				local gendermsg = cmd:gsub('{gender:%A+|%A+}', male, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			else
-				local gendermsg = cmd:gsub('{gender:.+|.+}', female, 1)
+				local gendermsg = cmd:gsub('{gender:%A+|%A+}', female, 1)
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
 		end
 	end
-
+	
 	function sampev.onSendSpawn()
 		if not checkServer(select(1, sampGetCurrentServerAddress())) then
 			ASHelperMessage('Скрипт работает только на серверах Arizona RP. Скрипт выгружен.')
