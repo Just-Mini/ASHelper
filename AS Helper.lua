@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(27)
+script_version_number(28)
 script_version('2.3')
 script_dependencies('imgui; samp events; lfs')
 
@@ -2796,7 +2796,7 @@ if imguicheck and encodingcheck then
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
 					if not inprocess then
-						if configuration.main_settings.myrankint <= 5 then
+						if configuration.main_settings.myrankint >= 5 then
 							imgui.SetScrollY(0)
 							passvalue = true
 							mcvalue = true
