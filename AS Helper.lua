@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(32)
+script_version_number(33)
 script_version('2.4')
 script_dependencies('imgui; samp events; lfs')
 
@@ -491,7 +491,7 @@ function main()
 		return
 	end)
 	sampRegisterChatCommand('ashdep', function()
-		if configuration.main_settings.myrankint >= 1 then
+		if configuration.main_settings.myrankint >= 5 then
 			windows.imgui_depart.v = not windows.imgui_depart.v
 			return
 		end
