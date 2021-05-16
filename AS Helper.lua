@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(31)
+script_version_number(32)
 script_version('2.4')
 script_dependencies('imgui; samp events; lfs')
 
@@ -491,7 +491,7 @@ function main()
 		return
 	end)
 	sampRegisterChatCommand('ashdep', function()
-		if configuration.main_settings.myrankint >= 5 then
+		if configuration.main_settings.myrankint >= 1 then
 			windows.imgui_depart.v = not windows.imgui_depart.v
 			return
 		end
@@ -1214,7 +1214,7 @@ if sampevcheck then
 			local r, g, b, a = imgui.ImColor(configuration.main_settings.RChatColor):GetRGBA()
 			return { join_argb(r, g, b, a), message}
 		end
-		if message:find('%[D%]') and color == 865730559 then
+		if message:find('%[D%]') and color == 865730559 or color == 865665023 then
 			if message:find(u8:decode(departsettings.myorgname.v)) then
 				local tmsg = message:gsub('%[D%] ','')
 				table.insert(dephistory,tmsg)
@@ -4294,16 +4294,12 @@ if imguicheck and encodingcheck then
 				end
 			end
 			imgui.Hint('/d ['..u8:decode(departsettings.myorgname.v)..'] - [Информация] Тех. Неполадки')
-			imgui.SetCursorPosY(-263)
-			if imgui.Button(u8'Очистить историю',imgui.ImVec2(150,25)) then
-				dephistory = {}
-			end
 			imgui.EndChild()
 			imgui.SameLine()
 			imgui.BeginChild('##deptext',imgui.ImVec2(480,265),true,imgui.WindowFlags.NoScrollbar)
 			imgui.SetScrollY(imgui.GetScrollMaxY())
 			imgui.TextColoredRGB('История сообщений департамента {808080}(?)',1)
-			imgui.Hint('Если в чате департамента будет тэг \''..u8:decode(departsettings.myorgname.v)..'\'\n в этот список добавится это сообщение')
+			imgui.Hint('Если в чате департамента будет тэг \''..u8:decode(departsettings.myorgname.v)..'\'\n{FFFFFF}в этот список добавится это сообщение')
 			imgui.Separator()
 			for k,v in pairs(dephistory) do
 				imgui.TextWrapped(u8(v))
