@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(37)
+script_version_number(38)
 script_version('2.4 (p.1)')
 script_dependencies('imgui; samp events; lfs')
 
@@ -535,13 +535,13 @@ function main()
 									sampSendChat('/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения')
 									wait(2000)
 									sampSendChat('/do Изменения были сохранены.')
-									wait(500)
+									wait(2000)
 									sampSendChat(string.format('/uninvite %s %s',uvalid,reason))
-									wait(500)
+									wait(2000)
 									sampSendChat(string.format('/blacklist %s %s',uvalid,withbl))
 								else
 									sampSendChat('/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман')
-									wait(500)
+									wait(2000)
 									sampSendChat(string.format('/uninvite %s %s',uvalid,reason))
 								end
 								sampSendChat('/time')
@@ -583,7 +583,7 @@ function main()
 								sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 								wait(2000)
 								sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-								wait(500)								
+								wait(2000)								
 								sampSendChat(string.format('/invite %s',id))
 								inprocess = false
 							end)
@@ -626,7 +626,7 @@ function main()
 								sampSendChat('/do Информация о сотруднике была изменена.')
 								wait(2000)
 								sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
-								wait(500)								
+								wait(2000)								
 								sampSendChat(string.format('/giverank %s %s',id,rank))
 								inprocess = false
 							end)
@@ -668,7 +668,7 @@ function main()
 							sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 							wait(2000)
 							sampSendChat('/do Изменения были сохранены.')
-							wait(500)								
+							wait(2000)								
 							sampSendChat(string.format('/blacklist %s %s',id,reason))
 							sampSendChat('/time')
 							inprocess = false
@@ -707,7 +707,7 @@ function main()
 							sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 							wait(2000)
 							sampSendChat('/do Изменения были сохранены.')
-							wait(500)								
+							wait(2000)								
 							sampSendChat(string.format('/unblacklist %s',id))
 							inprocess = false
 						end)
@@ -778,7 +778,7 @@ function main()
 							sampSendChat('/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор')
 							wait(2000)
 							sampSendChat('/do Выговор был убран из личного дела сотрудника.')
-							wait(500)								
+							wait(2000)								
 							sampSendChat(string.format('/unfwarn %s',id))
 							inprocess = false
 						end)
@@ -888,7 +888,7 @@ function main()
 								sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 								wait(2000)
 								sampSendChat('/do Охрана выводит нарушителя из холла.')
-								wait(500)									
+								wait(2000)									
 								sampSendChat(string.format('/expel %s %s',id,reason))
 								inprocess = false
 							end)
@@ -1130,7 +1130,7 @@ if sampevcheck then
 								sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 								wait(2000)
 								sampSendChat('/me распечатав лицензию на оружие {gender:передал|передала} её человеку напротив')
-								wait(500)
+								wait(1000)
 								givelic = true
 								sampProcessChatInput(('/givelicense %s'):format(tempid))
 								inprocess = false
@@ -2435,7 +2435,7 @@ if imguicheck and encodingcheck then
 									sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 									wait(2000)
 									sampSendChat('/do Охрана выводит нарушителя из холла.')
-										wait(500)
+									wait(2000)
 									sampSendChat(('/expel %s Н.П.А.'):format(expelid))
 									inprocess = false
 								end)
@@ -2469,7 +2469,7 @@ if imguicheck and encodingcheck then
 										sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 										wait(2000)
 										sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-										wait(500)
+										wait(2000)
 										sampSendChat(('/invite %s'):format(inviteid))
 										inprocess = false
 									end)
@@ -2488,7 +2488,7 @@ if imguicheck and encodingcheck then
 										sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 										wait(2000)
 										sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-										wait(500)
+										wait(2000)
 										sampSendChat(('/invite %s'):format(inviteid))
 										waitingaccept = inviteid
 										inprocess = false
@@ -2566,7 +2566,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 								wait(2000)
 								sampSendChat('/do Изменения были сохранены.')
-									wait(500)
+								wait(2000)
 								sampSendChat(('/unblacklist %s'):format(unblacklistid))
 								inprocess = false
 							end)
@@ -2608,7 +2608,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор')
 								wait(2000)
 								sampSendChat('/do Выговор был убран из личного дела сотрудника.')
-									wait(500)
+									wait(2000)
 								sampSendChat(('/unfwarn %s'):format(unfwarnid))
 								inprocess = false
 							end)
@@ -2729,7 +2729,7 @@ if imguicheck and encodingcheck then
 											sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 											wait(2000)
 											sampSendChat(('/me распечатав лицензию на %s {gender:передал|передала} её человеку напротив'):format(lictype))
-											wait(500)
+											wait(1000)
 											givelic = true
 											sampProcessChatInput(('/givelicense %s'):format(sellto))
 											inprocess = false
@@ -2804,7 +2804,7 @@ if imguicheck and encodingcheck then
 											sampSendChat('/do Изменения были сохранены.')
 											wait(2000)
 											sampSendChat(('/uninvite %s %s'):format(uninviteid,u8:decode(uninvitebuf.v)))
-											wait(500)
+											wait(2000)
 											sampSendChat(('/blacklist %s %s'):format(uninviteid,u8:decode(blacklistbuf.v)))
 											sampSendChat('/time')
 											inprocess = false
@@ -2872,7 +2872,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/do Информация о сотруднике была изменена.')
 								wait(2000)
 								sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
-								wait(500)
+								wait(2000)
 								sampSendChat(('/giverank %s %s'):format(changerankid,Ranks_select.v+1))
 								inprocess = false
 							end)
@@ -2900,7 +2900,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения')
 								wait(2000)
 								sampSendChat('/do Информация о сотруднике была изменена.')
-									wait(500)
+								wait(2000)
 								sampSendChat(('/giverank %s %s'):format(changerankid,Ranks_select.v+1))
 								inprocess = false
 							end)
@@ -2947,7 +2947,7 @@ if imguicheck and encodingcheck then
 									sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 									wait(2000)
 									sampSendChat('/do Изменения были сохранены.')
-										wait(500)
+									wait(2000)
 									sampSendChat(('/blacklist %s %s'):format(blacklistid,u8:decode(blacklistbuff.v)))
 									sampSendChat('/time')
 									inprocess = false
@@ -3358,7 +3358,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 								wait(2000)
 								sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
-								wait(500)
+								wait(2000)
 								sampSendChat(('/invite %s'):format(inviteid))
 								inprocess = false
 							end)
