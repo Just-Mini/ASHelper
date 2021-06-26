@@ -1,8 +1,8 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(33)
-script_version('2.4')
+script_version_number(35)
+script_version('2.4 (p.1)')
 script_dependencies('imgui; samp events; lfs')
 
 require 'moonloader'
@@ -304,6 +304,7 @@ local configuration = inicfg.load({
 		gunaprice = 50000,
 		huntprice = 100000,
 		kladprice = 200000,
+		taxiprice = 250000,
 		RChatColor = 4282626093,
 		DChatColor = 4294940723,
 		ASChatColor = 4281558783
@@ -319,7 +320,8 @@ local configuration = inicfg.load({
 		lodka = 0,
 		guns = 0,
 		hunt = 0,
-		klad = 0
+		klad = 0,
+		taxi = 0
 	},
 	BindsName = {},
 	BindsDelay = {},
@@ -1032,11 +1034,13 @@ if sampevcheck then
 				sampSendDialogResponse(6, 1, 6, nil)
 			elseif lictype == 'раскопки' then
 				sampSendDialogResponse(6, 1, 7, nil)
+			elseif lictype == 'такси' then
+				sampSendDialogResponse(6, 1, 8, nil)
 			end
 			lua_thread.create(function()
 				wait(1000)
 				if givelic then
-					sampSendChat(string.format('/givelicense %s',sellto))
+					sampProcessChatInput(string.format('/givelicense %s',sellto))
 				end
 			end)
 			return false
@@ -1108,8 +1112,9 @@ if sampevcheck then
 								sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 								wait(2000)
 								sampSendChat('/me распечатав лицензию на оружие {gender:передал|передала} её человеку напротив')
+								wait(500)
 								givelic = true
-								sampSendChat(('/givelicense %s'):format(tempid))
+								sampProcessChatInput(('/givelicense %s'):format(tempid))
 								inprocess = false
 							end)
 						else
@@ -1203,7 +1208,7 @@ if sampevcheck then
 				return false
 			end
 		end
-		if message:find('%[Информация%] {FFFFFF}Вы предложили (.+) купить лицензию на (.+)') and givelic then
+		if message:find('%[Информация%] {FFFFFF}Вы предложили (.+) купить лицензию (.+)') and givelic then
 			givelic = false
 		end
 		if message == ('Используйте: /jobprogress(Без параметра)') and color == -1104335361 then
@@ -1227,21 +1232,23 @@ if sampevcheck then
 			sampSendChat('/stats')
 		end
 		if message:find('%[Информация%] {FFFFFF}Вы успешно продали лицензию') then
-			local typeddd, toddd = message:match('%[Информация%] {FFFFFF}Вы успешно продали лицензию на (.+) игроку (.+).')
-			if typeddd == 'авто' then
+			local typeddd, toddd = message:match('%[Информация%] {FFFFFF}Вы успешно продали лицензию (.+) игроку (.+).')
+			if typeddd == 'на авто' then
 				configuration.my_stats.avto = configuration.my_stats.avto + 1
-			elseif typeddd == 'мото' then
+			elseif typeddd == 'на мото' then
 				configuration.my_stats.moto = configuration.my_stats.moto + 1
-			elseif typeddd == 'рыбалку' then
+			elseif typeddd == 'на рыбалку' then
 				configuration.my_stats.riba = configuration.my_stats.riba + 1
-			elseif typeddd == 'плавание' then
+			elseif typeddd == 'на плавание' then
 				configuration.my_stats.lodka = configuration.my_stats.lodka + 1
-			elseif typeddd == 'оружие' then
+			elseif typeddd == 'на оружие' then
 				configuration.my_stats.guns = configuration.my_stats.guns + 1
-			elseif typeddd == 'охоту' then
+			elseif typeddd == 'на охоту' then
 				configuration.my_stats.hunt = configuration.my_stats.hunt + 1
-			elseif typeddd == 'раскопки' then
+			elseif typeddd == 'на раскопки' then
 				configuration.my_stats.klad = configuration.my_stats.klad + 1
+			elseif typeddd == 'таксиста' then
+				configuration.my_stats.taxi = configuration.my_stats.taxi + 1
 			else
 				if configuration.main_settings.replacechat then
 					ASHelperMessage(string.format('Вы успешно продали лицензию на %s игроку %s.',typeddd,toddd:gsub('_',' ')))
@@ -1514,7 +1521,7 @@ function onScriptTerminate(script, quitGame)
 
 4. Если ничего из вышеперечисленного не исправило ошибку, то следует установить скрипт на другую сборку.
 
-5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#6291) эту ошибку.]], 'ОК', nil, 0)
+5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#1488) эту ошибку.]], 'ОК', nil, 0)
 	end
 end
 
@@ -1524,7 +1531,7 @@ if imguicheck and encodingcheck then
 	encoding.default 					= 'CP1251'
 	
 	local Licenses_select 				= imgui.ImInt(0)
-	local Licenses_Arr 					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки'}
+	local Licenses_Arr 					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки',u8"Такси"}
 
 	local StyleBox_select				= imgui.ImInt(configuration.main_settings.style)
 	local StyleBox_arr					= {u8'Тёмно-оранжевая (transp.)',u8'Тёмно-красная (not transp.)',u8'Светло-синяя (not transp.)',u8'Фиолетовая (not transp.)',u8'Тёмно-зеленая (not transp.)'}
@@ -1597,7 +1604,8 @@ if imguicheck and encodingcheck then
 		lodkaprice 						= imgui.ImBuffer(tostring(configuration.main_settings.lodkaprice), 7),
 		gunaprice 						= imgui.ImBuffer(tostring(configuration.main_settings.gunaprice), 7),
 		huntprice 						= imgui.ImBuffer(tostring(configuration.main_settings.huntprice), 7),
-		kladprice						= imgui.ImBuffer(tostring(configuration.main_settings.kladprice), 7)
+		kladprice						= imgui.ImBuffer(tostring(configuration.main_settings.kladprice), 7),
+		taxiprice						= imgui.ImBuffer(tostring(configuration.main_settings.taxiprice), 7)
 	}
 	
 	local lectionsettings = {
@@ -2247,7 +2255,7 @@ if imguicheck and encodingcheck then
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.46, 0.51, 0.85, 1))
 			if imgui.Button('Discord', imgui.ImVec2(90, 25)) then
 				ASHelperMessage('Ссылка была скопирована')
-				setClipboardText('JustMini#6291')
+				setClipboardText('JustMini#1488')
 			end
 			imgui.PopStyleColor(3)
 			imgui.EndPopup()
@@ -2374,6 +2382,8 @@ if imguicheck and encodingcheck then
 								sampSendChat(('/do Лицензия на охоту - %s$.'):format(string.separate(configuration.main_settings.huntprice)))
 								wait(2000)
 								sampSendChat(('/do Лицензия на раскопки - %s$.'):format(string.separate(configuration.main_settings.kladprice)))
+								wait(2000)
+								sampSendChat(('/do Лицензия на работу таксиста - %s$.'):format(string.separate(configuration.main_settings.taxi)))
 								inprocess = false
 							end)
 						else
@@ -2694,8 +2704,9 @@ if imguicheck and encodingcheck then
 											sampSendChat('/do Спустя некоторое время бланк на получение лицензии был заполнен.')
 											wait(2000)
 											sampSendChat(('/me распечатав лицензию на %s {gender:передал|передала} её человеку напротив'):format(lictype))
+											wait(500)
 											givelic = true
-											sampSendChat(('/givelicense %s'):format(sellto))
+											sampProcessChatInput(('/givelicense %s'):format(sellto))
 											inprocess = false
 										end)
 									end
@@ -3463,7 +3474,7 @@ if imguicheck and encodingcheck then
 			imgui.PopStyleColor(3)
 			imgui.SetCursorPos(imgui.ImVec2(217, 22))
 			imgui.TextColoredRGB('{808080}'..thisScript().version)
-			imgui.Hint('Обновление от 16.05.2021')
+			imgui.Hint('Обновление от 25.06.2021')
 			imgui.BeginChild('##Buttons',imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
 			for number, button in pairs(buttons) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2)
@@ -3636,6 +3647,14 @@ if imguicheck and encodingcheck then
 				imgui.PushItemWidth(62)
 				if imgui.InputText(u8'Раскопки', pricelist.kladprice, imgui.InputTextFlags.CharsDecimal) then
 					configuration.main_settings.kladprice = pricelist.kladprice.v
+					inicfg.save(configuration,'AS Helper')
+				end
+				imgui.PopItemWidth()
+				imgui.SameLine()
+				imgui.SetCursorPosX((imgui.GetWindowWidth() + 31) / 2)
+				imgui.PushItemWidth(62)
+				if imgui.InputText(u8'Такси', pricelist.taxiprice, imgui.InputTextFlags.CharsDecimal) then
+					configuration.main_settings.taxiprice = pricelist.taxiprice.v
 					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.PopItemWidth()
@@ -4345,7 +4364,11 @@ if imguicheck and encodingcheck then
 			imgui.Separator()
 			imgui.PushFont(fontsize16)
 			imgui.TextColoredRGB([[
-Версия 2.4 (текущая)
+Версия 2.4 patch 1 (текущая)
+ - Добавлена функция продажи лицензии на таксование
+ - Исправлен баг с вводом /givelicense самостоятельно
+ 
+Версия 2.4
  - Добавлена функция общения в рацию департамента /ashdep
  - Изменён список изменений
  - Удалена светло-тёмная тема
@@ -4433,6 +4456,7 @@ if imguicheck and encodingcheck then
 			imgui.Text(fa.ICON_FA_CROSSHAIRS..u8' Оружие - '..configuration.my_stats.guns)
 			imgui.Text(fa.ICON_FA_SKULL_CROSSBONES..u8' Охота - '..configuration.my_stats.hunt)
 			imgui.Text(fa.ICON_FA_ARCHIVE..u8' Раскопки - '..configuration.my_stats.klad)
+			imgui.Text(fa.ICON_FA_ARCHIVE..u8' Такси - '..configuration.my_stats.taxi)
 			imgui.End()
 		end
 	end
