@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(35)
+script_version_number(36)
 script_version('2.4 (p.1)')
 script_dependencies('imgui; samp events; lfs')
 
@@ -15,6 +15,8 @@ local encodingcheck, encoding	= pcall(require, 'encoding')
 local lfscheck, lfs 			= pcall(require, 'lfs')
 
 local ScreenX, ScreenY 			= getScreenResolution()
+
+local lastq = false
 
 local lections 					= {}
 local ruless					= {}
@@ -381,7 +383,8 @@ local configuration = inicfg.load({
 		['ICON_FA_PEN'] = '\xef\x8c\x84',
 		['ICON_FA_TIMES'] = '\xef\x80\x8d',
 		['ICON_FA_QUESTION_CIRCLE'] = '\xef\x81\x99',
-		['ICON_FA_MINUS_SQUARE'] = '\xef\x85\x86'
+		['ICON_FA_MINUS_SQUARE'] = '\xef\x85\x86',
+		['ICON_FA_CLOCK'] = "\xef\x80\x97"
 	}
 	
 	setmetatable(fa, {
@@ -463,6 +466,11 @@ function main()
 	ASHelperMessage('Введите /ash чтобы открыть настройки.')
 	checkstyle()
 	imgui.Process = false
+	sampRegisterChatCommand('tempcmd',function()
+		fastmenuID = 0
+		windows.imgui_fm.v = true
+		windowtype = 8
+	end)
 	if configuration.main_settings.changelog then
 		windows.imgui_changelog.v = true
 		configuration.main_settings.changelog = false
@@ -527,11 +535,13 @@ function main()
 									sampSendChat('/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения')
 									wait(2000)
 									sampSendChat('/do Изменения были сохранены.')
+									wait(500)
 									sampSendChat(string.format('/uninvite %s %s',uvalid,reason))
-									wait(100)
+									wait(500)
 									sampSendChat(string.format('/blacklist %s %s',uvalid,withbl))
 								else
 									sampSendChat('/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман')
+									wait(500)
 									sampSendChat(string.format('/uninvite %s %s',uvalid,reason))
 								end
 								sampSendChat('/time')
@@ -573,6 +583,7 @@ function main()
 								sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 								wait(2000)
 								sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
+								wait(500)								
 								sampSendChat(string.format('/invite %s',id))
 								inprocess = false
 							end)
@@ -615,6 +626,7 @@ function main()
 								sampSendChat('/do Информация о сотруднике была изменена.')
 								wait(2000)
 								sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
+								wait(500)								
 								sampSendChat(string.format('/giverank %s %s',id,rank))
 								inprocess = false
 							end)
@@ -656,6 +668,7 @@ function main()
 							sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 							wait(2000)
 							sampSendChat('/do Изменения были сохранены.')
+							wait(500)								
 							sampSendChat(string.format('/blacklist %s %s',id,reason))
 							sampSendChat('/time')
 							inprocess = false
@@ -694,6 +707,7 @@ function main()
 							sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 							wait(2000)
 							sampSendChat('/do Изменения были сохранены.')
+							wait(500)								
 							sampSendChat(string.format('/unblacklist %s',id))
 							inprocess = false
 						end)
@@ -764,6 +778,7 @@ function main()
 							sampSendChat('/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор')
 							wait(2000)
 							sampSendChat('/do Выговор был убран из личного дела сотрудника.')
+							wait(500)								
 							sampSendChat(string.format('/unfwarn %s',id))
 							inprocess = false
 						end)
@@ -802,6 +817,7 @@ function main()
 							sampSendChat('/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\'')
 							wait(2000)
 							sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+							wait(500)							
 							sampSendChat(string.format('/fmute %s %s %s',id,mutetime,reason))
 							inprocess = false
 						end)
@@ -839,6 +855,7 @@ function main()
 							sampSendChat('/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\'')
 							wait(2000)
 							sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+							wait(500)							
 							sampSendChat(string.format('/funmute %s',id))
 							inprocess = false
 						end)
@@ -871,6 +888,7 @@ function main()
 								sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 								wait(2000)
 								sampSendChat('/do Охрана выводит нарушителя из холла.')
+								wait(500)									
 								sampSendChat(string.format('/expel %s %s',id,reason))
 								inprocess = false
 							end)
@@ -2417,6 +2435,7 @@ if imguicheck and encodingcheck then
 									sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
 									wait(2000)
 									sampSendChat('/do Охрана выводит нарушителя из холла.')
+										wait(500)
 									sampSendChat(('/expel %s Н.П.А.'):format(expelid))
 									inprocess = false
 								end)
@@ -2450,6 +2469,7 @@ if imguicheck and encodingcheck then
 										sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 										wait(2000)
 										sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
+										wait(500)
 										sampSendChat(('/invite %s'):format(inviteid))
 										inprocess = false
 									end)
@@ -2468,6 +2488,7 @@ if imguicheck and encodingcheck then
 										sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 										wait(2000)
 										sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
+										wait(500)
 										sampSendChat(('/invite %s'):format(inviteid))
 										waitingaccept = inviteid
 										inprocess = false
@@ -2545,6 +2566,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 								wait(2000)
 								sampSendChat('/do Изменения были сохранены.')
+									wait(500)
 								sampSendChat(('/unblacklist %s'):format(unblacklistid))
 								inprocess = false
 							end)
@@ -2586,6 +2608,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор')
 								wait(2000)
 								sampSendChat('/do Выговор был убран из личного дела сотрудника.')
+									wait(500)
 								sampSendChat(('/unfwarn %s'):format(unfwarnid))
 								inprocess = false
 							end)
@@ -2630,6 +2653,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\'')
 								wait(2000)
 								sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+								wait(500)
 								sampSendChat(('/funmute %s'):format(funmuteid))
 								inprocess = false
 							end)
@@ -2646,6 +2670,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						if configuration.main_settings.myrankint >= 5 then
 							imgui.SetScrollY(0)
+							lastq = false
 							windowtype = 8
 						else
 							ASHelperMessage('Данное действие доступно с 5-го ранга.')
@@ -2779,7 +2804,7 @@ if imguicheck and encodingcheck then
 											sampSendChat('/do Изменения были сохранены.')
 											wait(2000)
 											sampSendChat(('/uninvite %s %s'):format(uninviteid,u8:decode(uninvitebuf.v)))
-											wait(100)
+											wait(500)
 											sampSendChat(('/blacklist %s %s'):format(uninviteid,u8:decode(blacklistbuf.v)))
 											sampSendChat('/time')
 											inprocess = false
@@ -2847,6 +2872,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/do Информация о сотруднике была изменена.')
 								wait(2000)
 								sampSendChat('Поздравляю с повышением. Новый бейджик Вы можете взять в раздевалке.')
+								wait(500)
 								sampSendChat(('/giverank %s %s'):format(changerankid,Ranks_select.v+1))
 								inprocess = false
 							end)
@@ -2874,6 +2900,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения')
 								wait(2000)
 								sampSendChat('/do Информация о сотруднике была изменена.')
+									wait(500)
 								sampSendChat(('/giverank %s %s'):format(changerankid,Ranks_select.v+1))
 								inprocess = false
 							end)
@@ -2920,6 +2947,7 @@ if imguicheck and encodingcheck then
 									sampSendChat('/me {gender:подтведрдил|подтвердила} изменения')
 									wait(2000)
 									sampSendChat('/do Изменения были сохранены.')
+										wait(500)
 									sampSendChat(('/blacklist %s %s'):format(blacklistid,u8:decode(blacklistbuff.v)))
 									sampSendChat('/time')
 									inprocess = false
@@ -3007,6 +3035,7 @@ if imguicheck and encodingcheck then
 										sampSendChat('/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\'')
 										wait(2000)
 										sampSendChat('/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\'')
+										wait(500)
 										sampSendChat(('/fmute %s %s %s'):format(fmuteid,u8:decode(fmuteint.v),u8:decode(fmutebuff.v)))
 										inprocess = false
 									end)
@@ -3030,6 +3059,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: 09:00 - 19:00')
 						sampSendChat('Назовите время дневной смены в будние дни.')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3039,6 +3069,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: 10:00 - 18:00')
 						sampSendChat('Назовите время дневной смены в выходные дни.')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3048,6 +3079,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: выговор')
 						sampSendChat('Какое наказание получает сотрудник за ложное нажатие кнопки вызова полиции?')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3057,6 +3089,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: (3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт')
 						sampSendChat('С какой должности разрешено брать автомобили, мотоциклы и вертолёт?')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3066,6 +3099,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: (5+) Инструктор')
 						sampSendChat('Скажите, с какой должности разрешено брать отпуск?')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3075,6 +3109,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: 5 минут максимально, за этим последует выговор.')
 						sampSendChat('Максимально допустимое время сна вне раздевалки?')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3084,6 +3119,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.')
 						sampSendChat('Что по вашему мнению означает слово \'Субординация\'?')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3093,6 +3129,7 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						ASHelperMessage('Подсказка: по должности, по имени, \'Сэр\' и \'Коллега\'.')
 						sampSendChat('Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?')
+						lastq = os.clock() - 1
 					else
 						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 					end
@@ -3155,6 +3192,10 @@ if imguicheck and encodingcheck then
 					end
 				end
 				imgui.PopStyleColor(2)
+				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 605) / 2)
+				imgui.Text(fa.ICON_FA_CLOCK.." "..(lastq == false and u8"0 с. назад" or math.floor(os.clock()-lastq)..u8" с. назад"))
+				imgui.Hint("Прошедшее время с последнего вопроса.")
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
@@ -3317,6 +3358,7 @@ if imguicheck and encodingcheck then
 								sampSendChat('Добро пожаловать! Раздевалка за дверью.')
 								wait(2000)
 								sampSendChat('Со всей информацией Вы можете ознакомиться на оф. портале.')
+								wait(500)
 								sampSendChat(('/invite %s'):format(inviteid))
 								inprocess = false
 							end)
@@ -3474,7 +3516,7 @@ if imguicheck and encodingcheck then
 			imgui.PopStyleColor(3)
 			imgui.SetCursorPos(imgui.ImVec2(217, 22))
 			imgui.TextColoredRGB('{808080}'..thisScript().version)
-			imgui.Hint('Обновление от 25.06.2021')
+			imgui.Hint('Обновление от 26.06.2021')
 			imgui.BeginChild('##Buttons',imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
 			for number, button in pairs(buttons) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2)
@@ -4367,6 +4409,7 @@ if imguicheck and encodingcheck then
 Версия 2.4 patch 1 (текущая)
  - Добавлена функция продажи лицензии на таксование
  - Исправлен баг с вводом /givelicense самостоятельно
+ - Добавлен таймер в проверку устава
  
 Версия 2.4
  - Добавлена функция общения в рацию департамента /ashdep
