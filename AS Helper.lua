@@ -1,8 +1,8 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(38)
-script_version('2.4 (p.1)')
+script_version_number(39)
+script_version('2.5')
 script_dependencies('imgui; samp events; lfs')
 
 require 'moonloader'
@@ -16,11 +16,24 @@ local lfscheck, lfs 			= pcall(require, 'lfs')
 
 local ScreenX, ScreenY 			= getScreenResolution()
 
-local lastq = false
-
 local lections 					= {}
+local questions					= {}
 local ruless					= {}
 local dephistory				= {}
+
+local default_questions = {
+	active = { redact = false },
+	questions = {
+		{bname = 'Рабочее время в будние дни',bq = 'Назовите время дневной смены в будние дни.',bhint = '09:00 - 19:00'},
+		{bname = 'Рабочее время в выходные дни',bq = 'Назовите время дневной смены в выходные дни.',bhint = '10:00 - 18:00'},
+		{bname = 'Кнопка вызова полиции без причины',bq = 'Какое наказание получает сотрудник за ложное нажатие кнопки вызова полиции?',bhint = 'выговор'},
+		{bname = 'Использование транспорта',bq = 'С какой должности разрешено брать автомобили, мотоциклы и вертолёт?',bhint = '(3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт'},
+		{bname = 'Должность для отпуска',bq = 'Скажите, с какой должности разрешено брать отпуск?',bhint = '(5+) Инструктор'},
+		{bname = 'Время сна вне раздвелки',bq = 'Максимально допустимое время сна вне раздевалки?',bhint = '5 минут максимально, за этим последует выговор.'},
+		{bname = 'Что такое субординация',bq = 'Что по вашему мнению означает слово \'Субординация\'?',bhint = 'cубординация - это правила общения между сотрудниками, разными по должности.'},
+		{bname = 'Обращения к другим сотрудникам',bq = 'Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?',bhint = 'Подсказка: по должности, по имени, \'Сэр\' и \'Коллега\'.'},
+	}
+}
 
 local default_lect = {
 	active = { bool = false, name = nil, handle = nil },
@@ -296,6 +309,7 @@ local configuration = inicfg.load({
 		replacechat = true,
 		dofastscreen = true,
 		noscrollbar = true,
+		playdubinka = true,
 		changelog = true,
 		usefastmenu = 'E',
 		fastscreen = 'F4',
@@ -384,7 +398,8 @@ local configuration = inicfg.load({
 		['ICON_FA_TIMES'] = '\xef\x80\x8d',
 		['ICON_FA_QUESTION_CIRCLE'] = '\xef\x81\x99',
 		['ICON_FA_MINUS_SQUARE'] = '\xef\x85\x86',
-		['ICON_FA_CLOCK'] = "\xef\x80\x97"
+		['ICON_FA_CLOCK'] = "\xef\x80\x97",
+		['ICON_FA_COG'] = "\xef\x80\x93"
 	}
 	
 	setmetatable(fa, {
@@ -875,7 +890,7 @@ function main()
 	end)
 	sampRegisterChatCommand('expel', function(param)
 		if configuration.main_settings.dorponcmd then
-			if configuration.main_settings.myrankint >= 5 then
+			if configuration.main_settings.myrankint >= 2 then
 				if not inprocess then
 					local id,reason = param:match('(%d+) (.+)')
 					local id = tonumber(id)
@@ -903,7 +918,7 @@ function main()
 				ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 				return
 			end
-			ASHelperMessage('Данная команда доступна с 5-го ранга.')
+			ASHelperMessage('Данная команда доступна с 2-го ранга.')
 			return
 		end
 		sampSendChat(string.format('/expel %s',param))
@@ -912,8 +927,8 @@ function main()
 	updatechatcommands()
 	local bindkeysthread = lua_thread.create_suspended(keybindactivation)
 
+	-- меню быстрого доступа
 	while true do
-		-- меню быстрого доступа
 		if getCharPlayerIsTargeting() then
 			if configuration.main_settings.createmarker then
 				local targettingped = select(2,getCharPlayerIsTargeting())
@@ -950,6 +965,17 @@ function main()
 			setVirtualKeyDown(0x77, true)
 			wait(0)
 			setVirtualKeyDown(0x77, false)
+		end
+		--отыгровка дубинки
+		if configuration.main_settings.playdubinka then
+			local weapon = getCurrentCharWeapon(playerPed)
+			if weapon == 3 and not rp_check then 
+				sampSendChat('/me сняв дубинку с пояса {gender:взял|взяла} в правую руку')
+				rp_check = true
+			elseif weapon ~= 3 and rp_check then
+				sampSendChat('/me {gender:повесил|повесила} дубинку на пояс')
+				rp_check = false
+			end
 		end
 		-- всё, что связано с imgui
 		if windows.imgui_settings.v or windows.imgui_fm.v or windows.imgui_binder.v or windows.imgui_sobes.v or windows.imgui_lect.v or windows.imgui_depart.v or windows.imgui_changelog.v then
@@ -1361,6 +1387,7 @@ if sampevcheck then
 				return{('[%s акцент]: %s'):format(u8:decode(configuration.main_settings.myaccent),message)}
 			end
 		end
+		sampAddChatMessage("Carolos McCandy: "..message,0x9F5073)
 	end
 	
 	function sampev.onSendCommand(cmd)
@@ -1420,6 +1447,9 @@ if sampevcheck then
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
+		end
+		if cmd:find("/me") then
+			sampAddChatMessage("Carolos McCandy:"..cmd:gsub("/me",""),0x9F5073)
 		end
 	end
 	
@@ -1573,10 +1603,11 @@ if imguicheck and encodingcheck then
 
 	local buttons 						= {fa.ICON_FA_USER_COG..u8' Настройки пользователя',fa.ICON_FA_FILE_ALT..u8' Ценовая политика',fa.ICON_FA_KEYBOARD..u8' Горячие клавиши',fa.ICON_FA_PALETTE..u8' Настройки цветов',fa.ICON_FA_BOOK_OPEN..u8' Правила автошколы',fa.ICON_FA_INFO_CIRCLE..u8' Информация о скрипте'}
 
-	
 	local search_rule				 	= imgui.ImBuffer(256)
 	local rule_align					= imgui.ImInt(configuration.main_settings.rule_align)
 	
+	local lastq = false
+
 	windows = {
 		imgui_settings 					= imgui.ImBool(false),
 		imgui_fm 						= imgui.ImBool(false),
@@ -1610,9 +1641,10 @@ if imguicheck and encodingcheck then
 		replacechat						= imgui.ImBool(configuration.main_settings.replacechat),
 		dofastscreen					= imgui.ImBool(configuration.main_settings.dofastscreen),
 		noscrollbar						= imgui.ImBool(configuration.main_settings.noscrollbar),
+		playdubinka						= imgui.ImBool(configuration.main_settings.playdubinka),
 		myname 							= imgui.ImBuffer(configuration.main_settings.myname, 256),
 		myaccent 						= imgui.ImBuffer(configuration.main_settings.myaccent, 256),
-		gender 							= imgui.ImInt(configuration.main_settings.gender)
+		gender 							= imgui.ImInt(configuration.main_settings.gender),
 	}
 	
 	local pricelist = {
@@ -1638,6 +1670,12 @@ if imguicheck and encodingcheck then
 		toorgname						= imgui.ImBuffer(50),
 		frequency						= imgui.ImBuffer(7),
 		myorgtext						= imgui.ImBuffer(256),
+	}
+
+	local questionsettings = {
+		questionname					= imgui.ImBuffer(256),
+		questionhint					= imgui.ImBuffer(256),
+		questionques					= imgui.ImBuffer(256)
 	}
 	
 	local whiteashelper					= imgui.CreateTextureFromFile(getGameDirectory() .. '\\moonloader\\AS Helper\\Images\\settingswhite.png')
@@ -2271,11 +2309,55 @@ if imguicheck and encodingcheck then
 			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.46, 0.51, 0.85, 0.8))
 			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.46, 0.51, 0.85, 0.9))
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.46, 0.51, 0.85, 1))
-			if imgui.Button('Discord', imgui.ImVec2(90, 25)) then
+			imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(1, 1, 1, 1))
+			if imgui.Button(u8'Discord', imgui.ImVec2(90, 25)) then
 				ASHelperMessage('Ссылка была скопирована')
 				setClipboardText('JustMini#1488')
 			end
 			imgui.PopStyleColor(3)
+			imgui.EndPopup()
+		end
+	end
+
+	function editquestion()
+		if imgui.BeginPopup(u8'Редактор вопросов', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
+			imgui.Text(u8'Название кнопки:')
+			imgui.SameLine()
+			imgui.SetCursorPosX(125)
+			imgui.InputText('##questeditorname', questionsettings.questionname)
+			imgui.Text(u8'Вопрос: ')
+			imgui.SameLine()
+			imgui.SetCursorPosX(125)
+			imgui.InputText('##questeditorques', questionsettings.questionques)
+			imgui.Text(u8'Подсказка: ')
+			imgui.SameLine()
+			imgui.SetCursorPosX(125)
+			imgui.InputText('##questeditorhint', questionsettings.questionhint)
+			imgui.SetCursorPosX( (imgui.GetWindowWidth() - 300 - imgui.GetStyle().ItemSpacing.x) / 2 )
+			if #questionsettings.questionhint.v > 0 and #questionsettings.questionques.v > 0 and #questionsettings.questionname.v > 0 then
+				if imgui.Button(u8'Сохранить####questeditor', imgui.ImVec2(150, 25)) then
+					if question_number == nil then 
+						table.insert(questions.questions, {
+							bname = u8:decode(tostring(questionsettings.questionname.v)),
+							bq = u8:decode(tostring(questionsettings.questionques.v)),
+							bhint = u8:decode(tostring(questionsettings.questionhint.v)),
+						})
+					else
+						questions.questions[question_number].bname = u8:decode(tostring(questionsettings.questionname.v))
+						questions.questions[question_number].bq = u8:decode(tostring(questionsettings.questionques.v))
+						questions.questions[question_number].bhint = u8:decode(tostring(questionsettings.questionhint.v))
+					end
+					local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'w')
+					file:write(encodeJson(questions))
+					file:close()
+					imgui.CloseCurrentPopup()
+				end
+			else
+				imgui.LockedButton(u8'Сохранить####questeditor', imgui.ImVec2(150, 25))
+				imgui.Hint('Вы ввели не все параметры. Переповерьте всё.')
+			end
+			imgui.SameLine()
+			if imgui.Button(u8'Отменить##questeditor', imgui.ImVec2(150, 25)) then imgui.CloseCurrentPopup() end
 			imgui.EndPopup()
 		end
 	end
@@ -2401,7 +2483,7 @@ if imguicheck and encodingcheck then
 								wait(2000)
 								sampSendChat(('/do Лицензия на раскопки - %s$.'):format(string.separate(configuration.main_settings.kladprice)))
 								wait(2000)
-								sampSendChat(('/do Лицензия на работу таксиста - %s$.'):format(string.separate(configuration.main_settings.taxi)))
+								sampSendChat(('/do Лицензия на работу таксиста - %s$.'):format(string.separate(configuration.main_settings.taxiprice)))
 								inprocess = false
 							end)
 						else
@@ -2423,7 +2505,7 @@ if imguicheck and encodingcheck then
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
-					if configuration.main_settings.myrankint >= 5 then
+					if configuration.main_settings.myrankint >= 2 then
 						if not inprocess then
 							if not sampIsPlayerPaused(fastmenuID) then
 								windows.imgui_fm.v = false
@@ -2446,7 +2528,7 @@ if imguicheck and encodingcheck then
 							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						end
 					else
-						ASHelperMessage('Данная команда доступна с 5-го ранга.')
+						ASHelperMessage('Данная команда доступна с 2-го ранга.')
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
@@ -3052,89 +3134,66 @@ if imguicheck and encodingcheck then
 					windowtype = 0
 				end
 			end
-	
+	print(questions.active.redact)
 			if windowtype == 8 then
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Рабочее время в будние дни', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: 09:00 - 19:00')
-						sampSendChat('Назовите время дневной смены в будние дни.')
-						lastq = os.clock() - 1
+				if #questions.questions ~= 0 then
+					if questions.active.redact then
+						for k,v in pairs(questions.questions) do
+							imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+							if imgui.Button(u8(v.bname.."##"..k), imgui.ImVec2(200,30)) then
+								if not inprocess then
+									if string.rlower(v.bhint):find("подсказка") then
+										ASHelperMessage(v.bhint)
+									else
+										ASHelperMessage("Подсказка: "..v.bhint)
+									end
+									sampSendChat(v.bq)
+									lastq = os.clock() - 1
+								else
+									ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
+								end
+							end
+							imgui.SameLine()
+							if imgui.Button(fa.ICON_FA_PEN.."##"..k, imgui.ImVec2(30,30)) then
+								question_number = k
+								questionsettings.questionname.v = u8(v.bname)
+								questionsettings.questionhint.v = u8(v.bhint)
+								questionsettings.questionques.v = u8(v.bq)
+								imgui.OpenPopup(u8('Редактор вопросов'))
+							end
+							imgui.SameLine()
+							if imgui.Button(fa.ICON_FA_TRASH.."##"..k, imgui.ImVec2(30,30)) then
+								table.remove(questions.questions,k)
+								local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'w')
+								file:write(encodeJson(questions))
+								file:close()
+							end
+						end
 					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
+						for k,v in pairs(questions.questions) do
+							imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
+							if imgui.Button(u8(v.bname), imgui.ImVec2(285,30)) then
+								if not inprocess then
+									if string.rlower(v.bhint):find("подсказка") then
+										ASHelperMessage(v.bhint)
+									else
+										ASHelperMessage("Подсказка: "..v.bhint)
+									end
+									sampSendChat(v.bq)
+									lastq = os.clock() - 1
+								else
+									ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
+								end
+							end
+						end
+					end
+				else
+					imgui.TextColoredRGB("Восстановить все вопросы",1)
+					if imgui.IsItemHovered() and imgui.IsMouseReleased(0) then
+						questions = default_questions
 					end
 				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Рабочее время в выходные дни', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: 10:00 - 18:00')
-						sampSendChat('Назовите время дневной смены в выходные дни.')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Кнопка вызова полиции без причины', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: выговор')
-						sampSendChat('Какое наказание получает сотрудник за ложное нажатие кнопки вызова полиции?')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Использование транспорта', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: (3+) Лицензёр - мото, (4+) Мл.Инструктор - авто, (8+) Зам. директора - вертолёт')
-						sampSendChat('С какой должности разрешено брать автомобили, мотоциклы и вертолёт?')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Должность для отпуска', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: (5+) Инструктор')
-						sampSendChat('Скажите, с какой должности разрешено брать отпуск?')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Время сна вне раздвелки', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: 5 минут максимально, за этим последует выговор.')
-						sampSendChat('Максимально допустимое время сна вне раздевалки?')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Что такое субординация', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: cубординация - это правила общения между сотрудниками, разными по должности.')
-						sampSendChat('Что по вашему мнению означает слово \'Субординация\'?')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(u8'Обращения к другим сотрудникам', imgui.ImVec2(285,30)) then
-					if not inprocess then
-						ASHelperMessage('Подсказка: по должности, по имени, \'Сэр\' и \'Коллега\'.')
-						sampSendChat('Такой вопрос, какие обращения допускаются к другим сотрудникам автошколы?')
-						lastq = os.clock() - 1
-					else
-						ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
-					end
-				end
-				imgui.TextColoredRGB('{808080}подсказки могут отличаться от вашего сервера',1)
+				imgui.NewLine()
 				imgui.NewLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.00, 0.40, 0.00, 1.00))
@@ -3201,6 +3260,34 @@ if imguicheck and encodingcheck then
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
 					windowtype = 0
 				end
+				imgui.SetCursorPosY((imgui.GetWindowWidth() + 660) / 2)
+				if not questions.active.redact then
+					imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.80, 0.25, 0.25, 1.00))
+					imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.70, 0.25, 0.25, 1.00))
+					imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.90, 0.25, 0.25, 1.00))
+				else
+					print(#questions.questions)
+					if #questions.questions <= 7 then
+						imgui.SetCursorPosX(imgui.GetWindowWidth() - 95)
+						if imgui.Button(fa.ICON_FA_PLUS_CIRCLE,imgui.ImVec2(50,25)) then
+							question_number = nil
+							questionsettings.questionname.v = u8('')
+							questionsettings.questionhint.v = u8('')
+							questionsettings.questionques.v = u8('')
+							imgui.OpenPopup(u8('Редактор вопросов'))
+						end
+						imgui.SameLine()
+					end
+					imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.00, 0.70, 0.00, 1.00))
+					imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.00, 0.60, 0.00, 1.00))
+					imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.00, 0.50, 0.00, 1.00))
+				end
+				imgui.SetCursorPosX(imgui.GetWindowWidth() - 35)
+				if imgui.Button(fa.ICON_FA_COG, imgui.ImVec2(25,25)) then
+					questions.active.redact = not questions.active.redact
+				end
+				imgui.PopStyleColor(3)
+				editquestion()
 			end
 			if not sampIsPlayerConnected(fastmenuID) then
 	        	windows.imgui_fm.v = false
@@ -3516,7 +3603,7 @@ if imguicheck and encodingcheck then
 			imgui.PopStyleColor(3)
 			imgui.SetCursorPos(imgui.ImVec2(217, 22))
 			imgui.TextColoredRGB('{808080}'..thisScript().version)
-			imgui.Hint('Обновление от 26.06.2021')
+			imgui.Hint('Обновление от 23.07.2021')
 			imgui.BeginChild('##Buttons',imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
 			for number, button in pairs(buttons) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2)
@@ -3615,6 +3702,11 @@ if imguicheck and encodingcheck then
 					configuration.main_settings.noscrollbar = usersettings.noscrollbar.v
 					inicfg.save(configuration,'AS Helper')
 					checkstyle()
+				end
+				imgui.SetCursorPosX(10)
+				if imgui.Checkbox(u8'Автоотыгровка дубинки', usersettings.playdubinka) then
+					configuration.main_settings.playdubinka = usersettings.playdubinka.v
+					inicfg.save(configuration,'AS Helper')
 				end
 				imgui.SetCursorPosX(10)
 				if imgui.Button(u8'Обновить', imgui.ImVec2(85,25)) then
@@ -3847,7 +3939,7 @@ if imguicheck and encodingcheck then
 				if imgui.Button(fa.ICON_FA_LINK..u8' Связь со мной', imgui.ImVec2(120,25)) then
 					imgui.OpenPopup(u8('Связь'))
 				end
-				imgui.Hint('Если вы нашли баг/ошибку в скрипте,\n то можете отправить мне её.')
+				imgui.Hint('Если вы нашли баг/ошибку в скрипте,\n{FFFFFF} то можете отправить мне её.')
 				communicate()
 			end
 			imgui.EndChild()
@@ -4406,7 +4498,14 @@ if imguicheck and encodingcheck then
 			imgui.Separator()
 			imgui.PushFont(fontsize16)
 			imgui.TextColoredRGB([[
-Версия 2.4 patch 1 (текущая)
+Версия 2.5 (текущая)
+ - Добавлена автоотыгровка дубинки
+ - Выгонять теперь можно со 2-го ранга
+ - Исправлен баг с крашем скрипта при озвучивании прайс листа
+ - Переделана система проверки устава
+ - Добавлен таймер последнего вопроса в проверку устава		
+ 
+Версия 2.4 patch 1
  - Добавлена функция продажи лицензии на таксование
  - Исправлен баг с вводом /givelicense самостоятельно
  - Добавлен таймер в проверку устава
@@ -4583,6 +4682,17 @@ function checkbibl()
 	else
 		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'r')
 		lections = decodeJson(file:read('*a'))
+		file:close()
+	end
+	if not doesFileExist(getWorkingDirectory()..'\\AS Helper\\Questions.json') then
+		questions = default_questions
+		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'w')
+		file:write(encodeJson(questions))
+		file:close()
+	else
+		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'r')
+		questions = decodeJson(file:read('*a'))
+		questions.active.redact = false
 		file:close()
 	end
 	checkrules()
