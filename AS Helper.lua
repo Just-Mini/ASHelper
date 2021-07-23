@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(39)
+script_version_number(40)
 script_version('2.5')
 script_dependencies('imgui; samp events; lfs')
 
@@ -1144,7 +1144,6 @@ if sampevcheck then
 								end
 								skiporcancel = false
 								inprocess = true
-								lictype = 'оружие'
 								sampSendChat('/me взяв мед.карту в руки начал её проверять')
 								wait(2000)
 								sampSendChat('/do Мед.карта в норме.')
@@ -1158,6 +1157,7 @@ if sampevcheck then
 								sampSendChat('/me распечатав лицензию на оружие {gender:передал|передала} её человеку напротив')
 								wait(1000)
 								givelic = true
+								lictype = 'оружие'
 								sampProcessChatInput(('/givelicense %s'):format(tempid))
 								inprocess = false
 							end)
@@ -1387,7 +1387,6 @@ if sampevcheck then
 				return{('[%s акцент]: %s'):format(u8:decode(configuration.main_settings.myaccent),message)}
 			end
 		end
-		sampAddChatMessage("Carolos McCandy: "..message,0x9F5073)
 	end
 	
 	function sampev.onSendCommand(cmd)
@@ -1447,9 +1446,6 @@ if sampevcheck then
 				sampSendChat(tostring(gendermsg))
 				return false
 			end
-		end
-		if cmd:find("/me") then
-			sampAddChatMessage("Carolos McCandy:"..cmd:gsub("/me",""),0x9F5073)
 		end
 	end
 	
