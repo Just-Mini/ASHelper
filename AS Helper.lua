@@ -1,8 +1,8 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(40)
-script_version('2.5')
+script_version_number(41)
+script_version('2.6')
 script_dependencies('imgui; samp events; lfs')
 
 require 'moonloader'
@@ -473,7 +473,7 @@ function main()
 		end
     end
 	while not sampIsLocalPlayerSpawned() do
-		wait(200)
+		wait(2000)
 	end
 	getmyrank = true
 	sampSendChat('/stats')
@@ -1448,19 +1448,6 @@ if sampevcheck then
 			end
 		end
 	end
-	
-	function sampev.onSendSpawn()
-		if not checkServer(select(1, sampGetCurrentServerAddress())) then
-			ASHelperMessage('Скрипт работает только на серверах Arizona RP. Скрипт выгружен.')
-			NoErrors = true
-			thisScript():unload()
-		end
-		lua_thread.create(function()
-			wait(1000)
-			getmyrank = true
-			sampSendChat('/stats')
-		end)
-	end
 end
 
 function checkServer(ip)
@@ -1480,7 +1467,8 @@ function checkServer(ip)
 		'185.169.134.172',
 		'185.169.134.173',
 		'185.169.134.174',
-		'80.66.82.191'}) do
+		'80.66.82.191',
+		'80.66.82.190'}) do
 		if v == ip then 
 			return true
 		end
@@ -1547,24 +1535,18 @@ function onScriptTerminate(script, quitGame)
 		end
     	sampShowDialog(1313, '{ff6633}[AS Helper]{ffffff} Скрипт был выгружен сам по себе.', [[
 {ffffff}                                                                             Что делать в таких случаях?{f51111}
-
 Если вы самостоятельно перезагрузили скрипт, то можете закрыть это диалоговое окно.
 В ином случае, для начала попытайтесь восстановить работу скрипта сочетанием клавиш CTRL + R.
 Если же это не помогло, то читайте следующие пункты.{ff6633}
-
 1. Возможно у вас установлены другие LUA файлы и хелперы, попытайтесь удалить их.
-
 2. Возможно вы не доустановили некоторые дополнения, а именно:
  - SAMPFUNCS
  - CLEO 4.1+
  - MoonLoader 0.26
-
 3. Если данной ошибки не было ранее, попытайтесь сделать следующие действия:
 - В папке moonloader > config > Удаляем файл AS Helper.ini
 - В папке moonloader > Удаляем папку AS Helper
-
 4. Если ничего из вышеперечисленного не исправило ошибку, то следует установить скрипт на другую сборку.
-
 5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#1488) эту ошибку.]], 'ОК', nil, 0)
 	end
 end
@@ -2310,7 +2292,7 @@ if imguicheck and encodingcheck then
 				ASHelperMessage('Ссылка была скопирована')
 				setClipboardText('JustMini#1488')
 			end
-			imgui.PopStyleColor(3)
+			imgui.PopStyleColor(4)
 			imgui.EndPopup()
 		end
 	end
@@ -3130,7 +3112,6 @@ if imguicheck and encodingcheck then
 					windowtype = 0
 				end
 			end
-	print(questions.active.redact)
 			if windowtype == 8 then
 				if #questions.questions ~= 0 then
 					if questions.active.redact then
@@ -3183,10 +3164,23 @@ if imguicheck and encodingcheck then
 							end
 						end
 					end
+					print(#default_questions.questions)
 				else
 					imgui.TextColoredRGB("Восстановить все вопросы",1)
 					if imgui.IsItemHovered() and imgui.IsMouseReleased(0) then
-						questions = default_questions
+						local function copy(obj, seen)
+							if type(obj) ~= 'table' then return obj end
+							if seen and seen[obj] then return seen[obj] end
+							local s = seen or {}
+							local res = setmetatable({}, getmetatable(obj))
+							s[obj] = res
+							for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
+							return res
+						end
+						questions = copy(default_questions)
+						local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'w')
+						file:write(encodeJson(questions))
+						file:close()
 					end
 				end
 				imgui.NewLine()
@@ -3262,7 +3256,6 @@ if imguicheck and encodingcheck then
 					imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.70, 0.25, 0.25, 1.00))
 					imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.90, 0.25, 0.25, 1.00))
 				else
-					print(#questions.questions)
 					if #questions.questions <= 7 then
 						imgui.SetCursorPosX(imgui.GetWindowWidth() - 95)
 						if imgui.Button(fa.ICON_FA_PLUS_CIRCLE,imgui.ImVec2(50,25)) then
@@ -3599,7 +3592,7 @@ if imguicheck and encodingcheck then
 			imgui.PopStyleColor(3)
 			imgui.SetCursorPos(imgui.ImVec2(217, 22))
 			imgui.TextColoredRGB('{808080}'..thisScript().version)
-			imgui.Hint('Обновление от 23.07.2021')
+			imgui.Hint('Обновление от 28.08.2021')
 			imgui.BeginChild('##Buttons',imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
 			for number, button in pairs(buttons) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2)
@@ -3625,7 +3618,6 @@ if imguicheck and encodingcheck then
 	• Настройки: Введя команду /ash откроются настройки в которых можно изменять никнейм в приветствии, акцент, создание маркера при выделении, пол, цены на лицензии, горячую клавишу быстрого меню и узнать информацию о скрипте.
 	
 	• Биндер: Введя команду /ashbind откроется полностью работоспособный биндер, в котором вы можете создать абсолютно любой бинд.
-
 	• Меню лекций: Введя команду /ashlect откроется меню лекций, в котором вы сможете озвучить/добавить/удалить лекции.]]
 	))
 			end
@@ -4285,7 +4277,16 @@ if imguicheck and encodingcheck then
 				imgui.TextColoredRGB('У вас нет ни одной лекции.',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 250) / 2)
 				if imgui.Button(u8'Восстановить изначальные лекции', imgui.ImVec2(250, 25)) then
-					lections = default_lect
+					local function copy(obj, seen)
+						if type(obj) ~= 'table' then return obj end
+						if seen and seen[obj] then return seen[obj] end
+						local s = seen or {}
+						local res = setmetatable({}, getmetatable(obj))
+						s[obj] = res
+						for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
+						return res
+					end
+					lections = copy(default_lect)
 					local file = io.open(getWorkingDirectory()..'\\AS Helper\\Lections.json', 'w')
 					file:write(encodeJson(lections))
 					file:close()
@@ -4494,7 +4495,12 @@ if imguicheck and encodingcheck then
 			imgui.Separator()
 			imgui.PushFont(fontsize16)
 			imgui.TextColoredRGB([[
-Версия 2.5 (текущая)
+Версия 2.6 (текущая)
+ - Добавлена поддержка 17-го сервера (Show-Low)
+ - Исправлен краш при открытии вкладки "Связь со мной"
+ - Исправлен баг с восстановлением лекций/вопросов
+ 
+Версия 2.5
  - Добавлена автоотыгровка дубинки
  - Выгонять теперь можно со 2-го ранга
  - Исправлен баг с крашем скрипта при озвучивании прайс листа
