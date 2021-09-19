@@ -1,7 +1,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(42)
+script_version_number(43)
 script_version('2.6 p.1')
 script_dependencies('imgui; samp events; lfs')
 
@@ -453,8 +453,7 @@ local configuration = inicfg.load({
 --rkeys
 
 function main()
-	if not isSampfuncsLoaded() or not isSampLoaded() then
-	return end
+	if not isSampLoaded() or not isSampfuncsLoaded() then return end
 	while not isSampAvailable() do wait(1000) end
 
 	local checking = checkbibl()
