@@ -1,8 +1,8 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(41)
-script_version('2.6')
+script_version_number(42)
+script_version('2.6 p.1')
 script_dependencies('imgui; samp events; lfs')
 
 require 'moonloader'
@@ -293,7 +293,7 @@ local default_rules = {
 
 local configuration = inicfg.load({
 	main_settings = {
-		myrankint = 0,
+		myrankint = 1,
 		gender = 0,
 		style = 0,
 		rule_align = 1,
@@ -455,9 +455,8 @@ local configuration = inicfg.load({
 function main()
 	if not isSampfuncsLoaded() or not isSampLoaded() then
 	return end
-	while not isSampAvailable() do
-		wait(200)
-	end
+	while not isSampAvailable() do wait(1000) end
+
 	local checking = checkbibl()
 	while not checking do
 		wait(200)
@@ -472,9 +471,9 @@ function main()
 			ASHelperMessage('Создан файл конфигурации.')
 		end
     end
-	while not sampIsLocalPlayerSpawned() do
-		wait(2000)
-	end
+	--while not sampIsLocalPlayerSpawned() do
+	--	wait(2000)
+	--end
 	getmyrank = true
 	sampSendChat('/stats')
 	ASHelperMessage(('AS Helper %s успешно загружен. Автор: JustMini'):format(thisScript().version))
@@ -1317,7 +1316,7 @@ if sampevcheck then
 			return {color,message}
 		end
 	end
-	
+
 	function sampev.onSendChat(message)
 		if message:find('{my_id}') then
 			sampSendChat(message:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
@@ -4495,7 +4494,10 @@ if imguicheck and encodingcheck then
 			imgui.Separator()
 			imgui.PushFont(fontsize16)
 			imgui.TextColoredRGB([[
-Версия 2.6 (текущая)
+Версия 2.6 patch 1
+ - Испралена неработоспособность скрипта
+ 
+Версия 2.6
  - Добавлена поддержка 17-го сервера (Show-Low)
  - Исправлен краш при открытии вкладки "Связь со мной"
  - Исправлен баг с восстановлением лекций/вопросов
