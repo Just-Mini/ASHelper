@@ -1,8 +1,8 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(43)
-script_version('2.6 p.1')
+script_version_number(44)
+script_version('2.7')
 script_dependencies('imgui; samp events; lfs')
 
 require 'moonloader'
@@ -299,9 +299,9 @@ local configuration = inicfg.load({
 		rule_align = 1,
 		lection_delay = 10,
 		myname = '',
-		myrank = '',
 		myaccent = '',
 		astag = 'Автошкола',
+		expelreason = 'Н.П.А.',
 		useservername = true,
 		useaccent = false,
 		createmarker = false,
@@ -338,6 +338,18 @@ local configuration = inicfg.load({
 		hunt = 0,
 		klad = 0,
 		taxi = 0
+	},
+	RankNames = {
+		'Стажёр',
+		'Консультант',
+		'Лицензёр',
+		'Мл.Инструктор',
+		'Инструктор',
+		'Менеджер',
+		'Ст. Менеджер',
+		'Помощник директора',
+		'Директор',
+		'Управляющий',
 	},
 	BindsName = {},
 	BindsDelay = {},
@@ -398,8 +410,9 @@ local configuration = inicfg.load({
 		['ICON_FA_TIMES'] = '\xef\x80\x8d',
 		['ICON_FA_QUESTION_CIRCLE'] = '\xef\x81\x99',
 		['ICON_FA_MINUS_SQUARE'] = '\xef\x85\x86',
-		['ICON_FA_CLOCK'] = "\xef\x80\x97",
-		['ICON_FA_COG'] = "\xef\x80\x93"
+		['ICON_FA_CLOCK'] = '\xef\x80\x97',
+		['ICON_FA_COG'] = '\xef\x80\x93',
+		['ICON_FA_TAXI'] = '\xef\x86\xba',
 	}
 	
 	setmetatable(fa, {
@@ -443,9 +456,14 @@ local configuration = inicfg.load({
 		inprocess = true
 		for bp in tostring(configuration.BindsAction[numb]):gmatch('[^~]+') do
 			temp2 = temp2 + 1
-			sampSendChat(tostring(bp))
-			if temp2 ~= temp then
-				wait(configuration.BindsDelay[numb])
+			if not bp:find('%{delay_(%d+)%}') then
+				sampSendChat(tostring(bp))
+				if temp2 ~= temp then
+					wait(configuration.BindsDelay[numb])
+				end
+			else
+				local delay = bp:match('%{delay_(%d+)%}')
+				wait(delay)
 			end
 		end
 		inprocess = false
@@ -466,10 +484,9 @@ function main()
 		thisScript():unload()
 	end
 	if not doesFileExist('moonloader/config/AS Helper.ini') then
-        if inicfg.save(configuration, 'AS Helper.ini') then
-			ASHelperMessage('Создан файл конфигурации.')
+		if inicfg.save(configuration, 'AS Helper.ini') then
 		end
-    end
+	end
 	--while not sampIsLocalPlayerSpawned() do
 	--	wait(2000)
 	--end
@@ -479,11 +496,6 @@ function main()
 	ASHelperMessage('Введите /ash чтобы открыть настройки.')
 	checkstyle()
 	imgui.Process = false
-	sampRegisterChatCommand('tempcmd',function()
-		fastmenuID = 0
-		windows.imgui_fm.v = true
-		windowtype = 8
-	end)
 	if configuration.main_settings.changelog then
 		windows.imgui_changelog.v = true
 		configuration.main_settings.changelog = false
@@ -948,7 +960,7 @@ function main()
 						fastmenuID = select(2,sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())))
 						local r, g, b, a = imgui.ImColor(configuration.main_settings.ASChatColor):GetRGBA()
 						ASHelperMessage(string.format('Вы использовали меню быстрого доступа на: %s [%s]',string.gsub(sampGetPlayerNickname(fastmenuID), '_', ' '),fastmenuID))
-						ASHelperMessage(string.format('Зажмите {%06X}ALT{FFFFFF} для того, чтобы скрыть курсор. {%06X}ESC{FFFFFF} для того, чтобы закрыть меню.', join_rgb(r, g, b), join_rgb(r, g, b)))
+						ASHelperMessage('Зажмите {MC}ALT{WC} для того, чтобы скрыть курсор. {MC}ESC{WC} для того, чтобы закрыть меню.')
 						wait(0)
 						windowtype = 0
 						windows.imgui_fm.v = true
@@ -1037,9 +1049,14 @@ function updatechatcommands()
 							inprocess = true
 							for bp in tostring(configuration.BindsAction[key]):gmatch('[^~]+') do
 								temp2 = temp2 + 1
-								sampSendChat(tostring(bp))
-								if temp2 ~= temp then
-									wait(configuration.BindsDelay[key])
+								if not bp:find('%{delay_(%d+)%}') then
+									sampSendChat(tostring(bp))
+									if temp2 ~= temp then
+										wait(configuration.BindsDelay[key])
+									end
+								else
+									local delay = bp:match('%{delay_(%d+)%}')
+									wait(delay)
 								end
 							end
 							inprocess = false
@@ -1097,7 +1114,6 @@ if sampevcheck then
 						if rangint ~= configuration.main_settings.myrankint then
 							ASHelperMessage(string.format('Ваш ранг был обновлён на %s (%s)',rang,rangint))
 						end
-						configuration.main_settings.myrank = rang
 						configuration.main_settings.myrankint = rangint
 						inicfg.save(configuration,'AS Helper')
 					end
@@ -1107,6 +1123,7 @@ if sampevcheck then
 				NoErrors = true
 				thisScript():unload()
 			end
+			sampSendDialogResponse(235, 0, 0, nil)
 			getmyrank = false
 			return false
 
@@ -1177,6 +1194,7 @@ if sampevcheck then
 								inprocess = false
 							end)
 						end
+						sampSendDialogResponse(1234, 1, 1, nil)
 						return false
 					end
 				end
@@ -1225,6 +1243,18 @@ if sampevcheck then
 							passvalue = false
 							passverdict = ('игрок в организации')
 						end
+					end
+				end
+			end
+		end
+		if dialogId == 2015 then 
+			for line in text:gmatch('[^\r\n]+') do
+				local name, rank = line:match('^{%x+}[A-z0-9_]+%([0-9]+%)\t(.+)%(([0-9]+)%)\t%d+\t%d+')
+				if name and rank then
+					name, rank = tostring(name), tonumber(rank)
+					if configuration.RankNames[rank] ~= nil and configuration.RankNames[rank] ~= name then
+						ASHelperMessage(string.format('Название {MC}%s{WC} ранга изменено с {MC}%s{WC} на {MC}%s{WC}', rank, configuration.RankNames[rank], name))
+						configuration.RankNames[rank] = name
 					end
 				end
 			end
@@ -1326,7 +1356,7 @@ if sampevcheck then
 			return false
 		end
 		if message:find('{my_rank}') then
-			sampSendChat(message:gsub('{my_rank}', configuration.main_settings.myrank))
+			sampSendChat(message:gsub('{my_rank}', configuration.RankNames[configuration.main_settings.myrankint]))
 			return false
 		end
 		if message:find('{my_score}') then
@@ -1388,6 +1418,7 @@ if sampevcheck then
 	end
 	
 	function sampev.onSendCommand(cmd)
+		print(cmd)
 		if cmd:find('{my_id}') then
 			sampSendChat(cmd:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
 			return  false
@@ -1397,7 +1428,7 @@ if sampevcheck then
 			return false
 		end
 		if cmd:find('{my_rank}') then
-			sampSendChat(cmd:gsub('{my_rank}', configuration.main_settings.myrank))
+			sampSendChat(cmd:gsub('{my_rank}', configuration.RankNames[configuration.main_settings.myrankint]))
 			return false
 		end
 		if cmd:find('{my_score}') then
@@ -1477,6 +1508,8 @@ end
 function ASHelperMessage(text)
 	if imguicheck then
 		local r, g, b, a = imgui.ImColor(configuration.main_settings.ASChatColor):GetRGBA()
+		text = text:gsub('{WC}', '{EBEBEB}')
+		text = text:gsub('{MC}', ('{%06X}'):format(join_rgb(r, g, b)))
 		sampAddChatMessage(('[ASHelper]{EBEBEB} %s'):format(text),join_rgb(r, g, b))
 	else
 		sampAddChatMessage(('[ASHelper]{EBEBEB} %s'):format(text),0xff6633)
@@ -1520,19 +1553,19 @@ function onQuitGame()
 end
 
 function onScriptTerminate(script, quitGame)
-    if script == thisScript() then
-        if not sampIsDialogActive() then
-            showCursor(false, false)
-        end
+	if script == thisScript() then
+		if not sampIsDialogActive() then
+			showCursor(false, false)
+		end
 		if marker ~= nil then
 			removeBlip(marker)
 		end
-        inicfg.save(configuration, 'AS Helper.ini')
+		inicfg.save(configuration, 'AS Helper.ini')
 		if NoErrors then
 			return false
 		end
-    	sampShowDialog(1313, '{ff6633}[AS Helper]{ffffff} Скрипт был выгружен сам по себе.', [[
-{ffffff}                                                                             Что делать в таких случаях?{f51111}
+		sampShowDialog(1313, '{ff6633}[AS Helper]{ffffff} Скрипт был выгружен сам по себе.', [[
+{ffffff}																			 Что делать в таких случаях?{f51111}
 Если вы самостоятельно перезагрузили скрипт, то можете закрыть это диалоговое окно.
 В ином случае, для начала попытайтесь восстановить работу скрипта сочетанием клавиш CTRL + R.
 Если же это не помогло, то читайте следующие пункты.{ff6633}
@@ -1545,7 +1578,7 @@ function onScriptTerminate(script, quitGame)
 - В папке moonloader > config > Удаляем файл AS Helper.ini
 - В папке moonloader > Удаляем папку AS Helper
 4. Если ничего из вышеперечисленного не исправило ошибку, то следует установить скрипт на другую сборку.
-5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#1488) эту ошибку.]], 'ОК', nil, 0)
+5. Если у вас скрипт вылетает по нажатию на какую-то кнопку, то можете отправить (JustMini#3885) эту ошибку.]], 'ОК', nil, 0)
 	end
 end
 
@@ -1555,13 +1588,12 @@ if imguicheck and encodingcheck then
 	encoding.default 					= 'CP1251'
 	
 	local Licenses_select 				= imgui.ImInt(0)
-	local Licenses_Arr 					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки',u8"Такси"}
+	local Licenses_Arr 					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки',u8'Такси'}
 
 	local StyleBox_select				= imgui.ImInt(configuration.main_settings.style)
 	local StyleBox_arr					= {u8'Тёмно-оранжевая (transp.)',u8'Тёмно-красная (not transp.)',u8'Светло-синяя (not transp.)',u8'Фиолетовая (not transp.)',u8'Тёмно-зеленая (not transp.)'}
 
 	local Ranks_select 					= imgui.ImInt(0)
-	local Ranks_arr 					= {u8'[1] Стажёр',u8'[2] Консультант',u8'[3] Лицензёр',u8'[4] Мл. Инструктор',u8'[5] Инструктор',u8'[6] Менеджер',u8'[7] Ст. Менеджер',u8'[8] Помощник директора',u8'[9] Директор'}
 	
 	local sobesdecline_select 			= imgui.ImInt(0)
 	local sobesdecline_arr 				= {u8'Плохое РП',u8'Не было РП',u8'Плохая грамматика',u8'Ничего не показал',u8'Другое'}
@@ -1621,6 +1653,7 @@ if imguicheck and encodingcheck then
 		myname 							= imgui.ImBuffer(configuration.main_settings.myname, 256),
 		myaccent 						= imgui.ImBuffer(configuration.main_settings.myaccent, 256),
 		gender 							= imgui.ImInt(configuration.main_settings.gender),
+		expelreason						= imgui.ImBuffer(u8(configuration.main_settings.expelreason), 256),
 	}
 	
 	local pricelist = {
@@ -1668,7 +1701,7 @@ if imguicheck and encodingcheck then
 	local tagbuttons = {
 		{name = '{my_id}',text = 'Пишет Ваш ID.',hint = '/n /showpass {my_id}\n(( /showpass \'Ваш ID\' ))'},
 		{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я '..u8:decode(configuration.main_settings.myname)..'.'},
-		{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = '/do На груди бейджик {my_rank}\nНа груди бейджик '..configuration.main_settings.myrank},
+		{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = '/do На груди бейджик {my_rank}\nНа груди бейджик '..configuration.RankNames[configuration.main_settings.myrankint]},
 		{name = '{my_score}',text = 'Пишет Ваш уровень.',hint = 'Я проживаю в штате уже {my_score} лет!\n- Я проживаю в штате уже \'Ваш уровень\' лет!'},
 		{name = '{H}',text = 'Пишет системное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в чч'},
 		{name = '{HM}',text = 'Пишет системное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в чч:мм будет концерт!'},
@@ -1676,6 +1709,7 @@ if imguicheck and encodingcheck then
 		{name = '{gender:Текст1|Текст2}',text = 'Пишет сообщение в зависимости от вашего пола.',hint = 'Я вчера {gender:был|была} в банке\n- Если мужской пол: был в банке\n- Если женский пол: была в банке'},
 		{name = '@{ID}',text = 'Узнаёт имя игрока по ID.',hint = 'Ты не видел где сейчас @{43}?\n- Ты не видел где сейчас \'Имя 43 ида\''},
 		{name = '{close_id}',text = 'Узнаёт ID ближайшего к вам игрока',hint = 'О, а вот и @{{close_id}}?\nО, а вот и \'Имя ближайшего ида\''},
+		{name = '{delay_*}',text = 'Добавляет задержку между сообщениями',hint = 'Добрый день, я сотрудник Автошколы г. Сан-Фиерро, чем могу вам помочь?\n{delay_2000}\n/do На груди висит бейджик с надписью Лицензёр Автошколы.\n\n[10:54:29] Добрый день, я сотрудник Автошколы г. Сан-Фиерро, чем могу вам помочь?\n[10:54:31] На груди висит бейджик с надписью Лицензёр Автошколы.'},
 	}
 
 	local fa_glyph_ranges	= imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
@@ -1753,173 +1787,176 @@ if imguicheck and encodingcheck then
 			colors[clr.ModalWindowDarkening] 	= ImVec4(0.00, 0.00, 0.00, 0.30)
 			--textcolorinhex						= '{ccccd4}'
 		elseif configuration.main_settings.style == 1 then -- из Bank Helper
-			colors[clr.Text]                   	= ImVec4(0.95, 0.96, 0.98, 1.00)
-			colors[clr.TextDisabled]           	= ImVec4(0.29, 0.29, 0.29, 1.00)
-			colors[clr.WindowBg]               	= ImVec4(0.14, 0.14, 0.14, 1.00)
-			colors[clr.ChildWindowBg]          	= ImVec4(0.14, 0.14, 0.14, 1.00)
-			colors[clr.PopupBg]                	= ImVec4(0.14, 0.14, 0.14, 1.00)
-			colors[clr.Border]                 	= ImVec4(1.00, 0.28, 0.28, 0.50)
-			colors[clr.BorderShadow]           	= ImVec4(1.00, 1.00, 1.00, 0.00)
-			colors[clr.FrameBg]                	= ImVec4(0.22, 0.22, 0.22, 1.00)
-			colors[clr.FrameBgHovered]         	= ImVec4(0.18, 0.18, 0.18, 1.00)
-			colors[clr.FrameBgActive]          	= ImVec4(0.09, 0.12, 0.14, 1.00)
-			colors[clr.TitleBg]                	= ImVec4(1.00, 0.30, 0.30, 1.00)
-			colors[clr.TitleBgActive]          	= ImVec4(1.00, 0.30, 0.30, 1.00)
-			colors[clr.TitleBgCollapsed]       	= ImVec4(1.00, 0.30, 0.30, 1.00)
-			colors[clr.MenuBarBg]              	= ImVec4(0.20, 0.20, 0.20, 1.00)
-			colors[clr.ScrollbarBg]            	= ImVec4(0.02, 0.02, 0.02, 0.39)
-			colors[clr.ScrollbarGrab]          	= ImVec4(0.36, 0.36, 0.36, 1.00)
+			colors[clr.Text]				   	= ImVec4(0.95, 0.96, 0.98, 1.00)
+			colors[clr.TextDisabled]		   	= ImVec4(0.29, 0.29, 0.29, 1.00)
+			colors[clr.WindowBg]			   	= ImVec4(0.14, 0.14, 0.14, 1.00)
+			colors[clr.ChildWindowBg]		  	= ImVec4(0.14, 0.14, 0.14, 1.00)
+			colors[clr.PopupBg]					= ImVec4(0.14, 0.14, 0.14, 1.00)
+			colors[clr.Border]				 	= ImVec4(1.00, 0.28, 0.28, 0.50)
+			colors[clr.BorderShadow]		   	= ImVec4(1.00, 1.00, 1.00, 0.00)
+			colors[clr.FrameBg]					= ImVec4(0.22, 0.22, 0.22, 1.00)
+			colors[clr.FrameBgHovered]		 	= ImVec4(0.18, 0.18, 0.18, 1.00)
+			colors[clr.FrameBgActive]		  	= ImVec4(0.09, 0.12, 0.14, 1.00)
+			colors[clr.TitleBg]					= ImVec4(1.00, 0.30, 0.30, 1.00)
+			colors[clr.TitleBgActive]		  	= ImVec4(1.00, 0.30, 0.30, 1.00)
+			colors[clr.TitleBgCollapsed]	   	= ImVec4(1.00, 0.30, 0.30, 1.00)
+			colors[clr.MenuBarBg]			  	= ImVec4(0.20, 0.20, 0.20, 1.00)
+			colors[clr.ScrollbarBg]				= ImVec4(0.02, 0.02, 0.02, 0.39)
+			colors[clr.ScrollbarGrab]		  	= ImVec4(0.36, 0.36, 0.36, 1.00)
 			colors[clr.ScrollbarGrabHovered]   	= ImVec4(0.18, 0.22, 0.25, 1.00)
-			colors[clr.ScrollbarGrabActive]    	= ImVec4(0.24, 0.24, 0.24, 1.00)
-			colors[clr.ComboBg]                	= ImVec4(0.24, 0.24, 0.24, 1.00)
-			colors[clr.CheckMark]              	= ImVec4(1.00, 0.28, 0.28, 1.00)
-			colors[clr.SliderGrab]             	= ImVec4(1.00, 0.28, 0.28, 1.00)
-			colors[clr.SliderGrabActive]       	= ImVec4(1.00, 0.28, 0.28, 1.00)
-			colors[clr.Button]                 	= ImVec4(1.00, 0.30, 0.30, 1.00)
-			colors[clr.ButtonHovered]          	= ImVec4(1.00, 0.25, 0.25, 1.00)
-			colors[clr.ButtonActive]           	= ImVec4(1.00, 0.20, 0.20, 1.00)
-			colors[clr.Header]                 	= ImVec4(1.00, 0.28, 0.28, 1.00)
-			colors[clr.HeaderHovered]          	= ImVec4(1.00, 0.39, 0.39, 1.00)
-			colors[clr.HeaderActive]           	= ImVec4(1.00, 0.21, 0.21, 1.00)
-			colors[clr.ResizeGrip]             	= ImVec4(1.00, 0.28, 0.28, 1.00)
-			colors[clr.ResizeGripHovered]      	= ImVec4(1.00, 0.39, 0.39, 1.00)
-			colors[clr.ResizeGripActive]       	= ImVec4(1.00, 0.19, 0.19, 1.00)
-			colors[clr.CloseButton]            	= ImVec4(1.00, 0.00, 0.00, 0.50)
-			colors[clr.CloseButtonHovered]     	= ImVec4(1.00, 0.00, 0.00, 0.60)
-			colors[clr.CloseButtonActive]      	= ImVec4(1.00, 0.00, 0.00, 0.70)
-			colors[clr.PlotLines]              	= ImVec4(0.61, 0.61, 0.61, 1.00)
-			colors[clr.PlotLinesHovered]       	= ImVec4(1.00, 0.43, 0.35, 1.00)
-			colors[clr.PlotHistogram]          	= ImVec4(1.00, 0.21, 0.21, 1.00)
+			colors[clr.ScrollbarGrabActive]		= ImVec4(0.24, 0.24, 0.24, 1.00)
+			colors[clr.ComboBg]					= ImVec4(0.24, 0.24, 0.24, 1.00)
+			colors[clr.CheckMark]			  	= ImVec4(1.00, 0.28, 0.28, 1.00)
+			colors[clr.SliderGrab]			 	= ImVec4(1.00, 0.28, 0.28, 1.00)
+			colors[clr.SliderGrabActive]	   	= ImVec4(1.00, 0.28, 0.28, 1.00)
+			colors[clr.Button]				 	= ImVec4(1.00, 0.30, 0.30, 1.00)
+			colors[clr.ButtonHovered]		  	= ImVec4(1.00, 0.25, 0.25, 1.00)
+			colors[clr.ButtonActive]		   	= ImVec4(1.00, 0.20, 0.20, 1.00)
+			colors[clr.Header]				 	= ImVec4(1.00, 0.28, 0.28, 1.00)
+			colors[clr.HeaderHovered]		  	= ImVec4(1.00, 0.39, 0.39, 1.00)
+			colors[clr.HeaderActive]		   	= ImVec4(1.00, 0.21, 0.21, 1.00)
+			colors[clr.ResizeGrip]			 	= ImVec4(1.00, 0.28, 0.28, 1.00)
+			colors[clr.ResizeGripHovered]	  	= ImVec4(1.00, 0.39, 0.39, 1.00)
+			colors[clr.ResizeGripActive]	   	= ImVec4(1.00, 0.19, 0.19, 1.00)
+			colors[clr.CloseButton]				= ImVec4(1.00, 0.00, 0.00, 0.50)
+			colors[clr.CloseButtonHovered]	 	= ImVec4(1.00, 0.00, 0.00, 0.60)
+			colors[clr.CloseButtonActive]	  	= ImVec4(1.00, 0.00, 0.00, 0.70)
+			colors[clr.PlotLines]			  	= ImVec4(0.61, 0.61, 0.61, 1.00)
+			colors[clr.PlotLinesHovered]	   	= ImVec4(1.00, 0.43, 0.35, 1.00)
+			colors[clr.PlotHistogram]		  	= ImVec4(1.00, 0.21, 0.21, 1.00)
 			colors[clr.PlotHistogramHovered]   	= ImVec4(1.00, 0.18, 0.18, 1.00)
-			colors[clr.TextSelectedBg]         	= ImVec4(1.00, 0.25, 0.25, 1.00)
+			colors[clr.TextSelectedBg]		 	= ImVec4(1.00, 0.25, 0.25, 1.00)
 			colors[clr.ModalWindowDarkening]   	= ImVec4(0.00, 0.00, 0.00, 0.30)
 			--textcolorinhex						= '{f2f5fa}'
 		elseif configuration.main_settings.style == 2 then -- https://www.blast.hk/threads/25442/post-262906
 			colors[clr.Text]					= ImVec4(0.00, 0.00, 0.00, 0.51)
 			colors[clr.TextDisabled]   			= ImVec4(0.24, 0.24, 0.24, 1.00)
 			colors[clr.WindowBg]				= ImVec4(1.00, 1.00, 1.00, 1.00)
-			colors[clr.ChildWindowBg]        	= ImVec4(0.96, 0.96, 0.96, 1.00)
-			colors[clr.PopupBg]              	= ImVec4(0.92, 0.92, 0.92, 1.00)
-			colors[clr.Border]               	= ImVec4(0.00, 0.49, 1.00, 0.78)
-			colors[clr.BorderShadow]         	= ImVec4(0.00, 0.00, 0.00, 0.00)
-			colors[clr.FrameBg]              	= ImVec4(0.68, 0.68, 0.68, 0.50)
-			colors[clr.FrameBgHovered]       	= ImVec4(0.82, 0.82, 0.82, 1.00)
-			colors[clr.FrameBgActive]        	= ImVec4(0.76, 0.76, 0.76, 1.00)
-			colors[clr.TitleBg]              	= ImVec4(0.00, 0.45, 1.00, 0.82)
-			colors[clr.TitleBgCollapsed]     	= ImVec4(0.00, 0.45, 1.00, 0.82)
-			colors[clr.TitleBgActive]        	= ImVec4(0.00, 0.45, 1.00, 0.82)
-			colors[clr.MenuBarBg]            	= ImVec4(0.00, 0.37, 0.78, 1.00)
-			colors[clr.ScrollbarBg]          	= ImVec4(0.00, 0.00, 0.00, 0.00)
-			colors[clr.ScrollbarGrab]        	= ImVec4(0.00, 0.35, 1.00, 0.78)
+			colors[clr.ChildWindowBg]			= ImVec4(0.96, 0.96, 0.96, 1.00)
+			colors[clr.PopupBg]			  	= ImVec4(0.92, 0.92, 0.92, 1.00)
+			colors[clr.Border]			   	= ImVec4(0.00, 0.49, 1.00, 0.78)
+			colors[clr.BorderShadow]		 	= ImVec4(0.00, 0.00, 0.00, 0.00)
+			colors[clr.FrameBg]			  	= ImVec4(0.68, 0.68, 0.68, 0.50)
+			colors[clr.FrameBgHovered]	   	= ImVec4(0.82, 0.82, 0.82, 1.00)
+			colors[clr.FrameBgActive]			= ImVec4(0.76, 0.76, 0.76, 1.00)
+			colors[clr.TitleBg]			  	= ImVec4(0.00, 0.45, 1.00, 0.82)
+			colors[clr.TitleBgCollapsed]	 	= ImVec4(0.00, 0.45, 1.00, 0.82)
+			colors[clr.TitleBgActive]			= ImVec4(0.00, 0.45, 1.00, 0.82)
+			colors[clr.MenuBarBg]				= ImVec4(0.00, 0.37, 0.78, 1.00)
+			colors[clr.ScrollbarBg]		  	= ImVec4(0.00, 0.00, 0.00, 0.00)
+			colors[clr.ScrollbarGrab]			= ImVec4(0.00, 0.35, 1.00, 0.78)
 			colors[clr.ScrollbarGrabHovered] 	= ImVec4(0.00, 0.33, 1.00, 0.84)
 			colors[clr.ScrollbarGrabActive]  	= ImVec4(0.00, 0.31, 1.00, 0.88)
-			colors[clr.ComboBg]              	= ImVec4(0.92, 0.92, 0.92, 1.00)
-			colors[clr.CheckMark]            	= ImVec4(0.00, 0.49, 1.00, 0.59)
-			colors[clr.SliderGrab]           	= ImVec4(0.00, 0.49, 1.00, 0.59)
-			colors[clr.SliderGrabActive]     	= ImVec4(0.00, 0.39, 1.00, 0.71)
-			colors[clr.Button]               	= ImVec4(0.00, 0.49, 1.00, 0.59)
-			colors[clr.ButtonHovered]        	= ImVec4(0.00, 0.49, 1.00, 0.71)
-			colors[clr.ButtonActive]         	= ImVec4(0.00, 0.49, 1.00, 0.78)
-			colors[clr.Header]               	= ImVec4(0.00, 0.49, 1.00, 0.78)
-			colors[clr.HeaderHovered]        	= ImVec4(0.00, 0.49, 1.00, 0.71)
-			colors[clr.HeaderActive]         	= ImVec4(0.00, 0.49, 1.00, 0.78)
-			colors[clr.ResizeGrip]           	= ImVec4(0.00, 0.39, 1.00, 0.59)
-			colors[clr.ResizeGripHovered]    	= ImVec4(0.00, 0.27, 1.00, 0.59)
-			colors[clr.ResizeGripActive]     	= ImVec4(0.00, 0.25, 1.00, 0.63)
-			colors[clr.CloseButton]          	= ImVec4(0.00, 0.35, 0.96, 0.71)
+			colors[clr.ComboBg]			  	= ImVec4(0.92, 0.92, 0.92, 1.00)
+			colors[clr.CheckMark]				= ImVec4(0.00, 0.49, 1.00, 0.59)
+			colors[clr.SliderGrab]		   	= ImVec4(0.00, 0.49, 1.00, 0.59)
+			colors[clr.SliderGrabActive]	 	= ImVec4(0.00, 0.39, 1.00, 0.71)
+			colors[clr.Button]			   	= ImVec4(0.00, 0.49, 1.00, 0.59)
+			colors[clr.ButtonHovered]			= ImVec4(0.00, 0.49, 1.00, 0.71)
+			colors[clr.ButtonActive]		 	= ImVec4(0.00, 0.49, 1.00, 0.78)
+			colors[clr.Header]			   	= ImVec4(0.00, 0.49, 1.00, 0.78)
+			colors[clr.HeaderHovered]			= ImVec4(0.00, 0.49, 1.00, 0.71)
+			colors[clr.HeaderActive]		 	= ImVec4(0.00, 0.49, 1.00, 0.78)
+			colors[clr.Separator]			  	= ImVec4(0.00, 0.00, 0.00, 0.51)
+			colors[clr.SeparatorHovered]	   	= ImVec4(0.00, 0.00, 0.00, 0.51)
+			colors[clr.SeparatorActive]			= ImVec4(0.00, 0.00, 0.00, 0.51)
+			colors[clr.ResizeGrip]		   	= ImVec4(0.00, 0.39, 1.00, 0.59)
+			colors[clr.ResizeGripHovered]		= ImVec4(0.00, 0.27, 1.00, 0.59)
+			colors[clr.ResizeGripActive]	 	= ImVec4(0.00, 0.25, 1.00, 0.63)
+			colors[clr.CloseButton]		  	= ImVec4(0.00, 0.35, 0.96, 0.71)
 			colors[clr.CloseButtonHovered]   	= ImVec4(0.00, 0.31, 0.88, 0.69)
-			colors[clr.CloseButtonActive]    	= ImVec4(0.00, 0.25, 0.88, 0.67)
-			colors[clr.PlotLines]            	= ImVec4(0.00, 0.39, 1.00, 0.75)
-			colors[clr.PlotLinesHovered]     	= ImVec4(0.00, 0.39, 1.00, 0.75)
-			colors[clr.PlotHistogram]        	= ImVec4(0.00, 0.39, 1.00, 0.75)
+			colors[clr.CloseButtonActive]		= ImVec4(0.00, 0.25, 0.88, 0.67)
+			colors[clr.PlotLines]				= ImVec4(0.00, 0.39, 1.00, 0.75)
+			colors[clr.PlotLinesHovered]	 	= ImVec4(0.00, 0.39, 1.00, 0.75)
+			colors[clr.PlotHistogram]			= ImVec4(0.00, 0.39, 1.00, 0.75)
 			colors[clr.PlotHistogramHovered] 	= ImVec4(0.00, 0.35, 0.92, 0.78)
-			colors[clr.TextSelectedBg]       	= ImVec4(0.00, 0.47, 1.00, 0.59)
+			colors[clr.TextSelectedBg]	   	= ImVec4(0.00, 0.47, 1.00, 0.59)
 			colors[clr.ModalWindowDarkening] 	= ImVec4(0.20, 0.20, 0.20, 0.35)
 			--textcolorinhex						= '{7d7d7d}'
 		elseif configuration.main_settings.style == 3 then -- из Bank Helper
 			colors[clr.Text]					= ImVec4(1.00, 1.00, 1.00, 1.00)
-			colors[clr.WindowBg]              	= ImVec4(0.14, 0.12, 0.16, 1.00)
-			colors[clr.ChildWindowBg]         	= ImVec4(0.30, 0.20, 0.39, 0.00)
-			colors[clr.PopupBg]               	= ImVec4(0.05, 0.05, 0.10, 0.90)
-			colors[clr.Border]                	= ImVec4(0.89, 0.85, 0.92, 0.30)
-			colors[clr.BorderShadow]          	= ImVec4(0.00, 0.00, 0.00, 0.00)
-			colors[clr.FrameBg]               	= ImVec4(0.30, 0.20, 0.39, 1.00)
-			colors[clr.FrameBgHovered]        	= ImVec4(0.41, 0.19, 0.63, 0.68)
-			colors[clr.FrameBgActive]         	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.TitleBg]               	= ImVec4(0.41, 0.19, 0.63, 0.45)
-			colors[clr.TitleBgCollapsed]      	= ImVec4(0.41, 0.19, 0.63, 0.35)
-			colors[clr.TitleBgActive]         	= ImVec4(0.41, 0.19, 0.63, 0.78)
-			colors[clr.MenuBarBg]             	= ImVec4(0.30, 0.20, 0.39, 0.57)
-			colors[clr.ScrollbarBg]           	= ImVec4(0.30, 0.20, 0.39, 1.00)
-			colors[clr.ScrollbarGrab]         	= ImVec4(0.41, 0.19, 0.63, 0.31)
+			colors[clr.WindowBg]			  	= ImVec4(0.14, 0.12, 0.16, 1.00)
+			colors[clr.ChildWindowBg]		 	= ImVec4(0.30, 0.20, 0.39, 0.00)
+			colors[clr.PopupBg]			   	= ImVec4(0.05, 0.05, 0.10, 0.90)
+			colors[clr.Border]					= ImVec4(0.89, 0.85, 0.92, 0.30)
+			colors[clr.BorderShadow]		  	= ImVec4(0.00, 0.00, 0.00, 0.00)
+			colors[clr.FrameBg]			   	= ImVec4(0.30, 0.20, 0.39, 1.00)
+			colors[clr.FrameBgHovered]			= ImVec4(0.41, 0.19, 0.63, 0.68)
+			colors[clr.FrameBgActive]		 	= ImVec4(0.41, 0.19, 0.63, 1.00)
+			colors[clr.TitleBg]			   	= ImVec4(0.41, 0.19, 0.63, 0.45)
+			colors[clr.TitleBgCollapsed]	  	= ImVec4(0.41, 0.19, 0.63, 0.35)
+			colors[clr.TitleBgActive]		 	= ImVec4(0.41, 0.19, 0.63, 0.78)
+			colors[clr.MenuBarBg]			 	= ImVec4(0.30, 0.20, 0.39, 0.57)
+			colors[clr.ScrollbarBg]		   	= ImVec4(0.30, 0.20, 0.39, 1.00)
+			colors[clr.ScrollbarGrab]		 	= ImVec4(0.41, 0.19, 0.63, 0.31)
 			colors[clr.ScrollbarGrabHovered]  	= ImVec4(0.41, 0.19, 0.63, 0.78)
 			colors[clr.ScrollbarGrabActive]   	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.ComboBg]               	= ImVec4(0.30, 0.20, 0.39, 1.00)
-			colors[clr.CheckMark]             	= ImVec4(0.56, 0.61, 1.00, 1.00)
-			colors[clr.SliderGrab]            	= ImVec4(0.41, 0.19, 0.63, 0.24)
-			colors[clr.SliderGrabActive]      	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.Button]                	= ImVec4(0.41, 0.19, 0.63, 0.44)
-			colors[clr.ButtonHovered]         	= ImVec4(0.41, 0.19, 0.63, 0.86)
-			colors[clr.ButtonActive]          	= ImVec4(0.64, 0.33, 0.94, 1.00)
-			colors[clr.Header]                	= ImVec4(0.41, 0.19, 0.63, 0.76)
-			colors[clr.HeaderHovered]         	= ImVec4(0.41, 0.19, 0.63, 0.86)
-			colors[clr.HeaderActive]          	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.ResizeGrip]            	= ImVec4(0.41, 0.19, 0.63, 0.20)
-			colors[clr.ResizeGripHovered]     	= ImVec4(0.41, 0.19, 0.63, 0.78)
-			colors[clr.ResizeGripActive]      	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.CloseButton]           	= ImVec4(1.00, 1.00, 1.00, 0.75)
-			colors[clr.CloseButtonHovered]    	= ImVec4(0.88, 0.74, 1.00, 0.59)
-			colors[clr.CloseButtonActive]     	= ImVec4(0.88, 0.85, 0.92, 1.00)
-			colors[clr.PlotLines]             	= ImVec4(0.89, 0.85, 0.92, 0.63)
-			colors[clr.PlotLinesHovered]      	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.PlotHistogram]         	= ImVec4(0.89, 0.85, 0.92, 0.63)
+			colors[clr.ComboBg]			   	= ImVec4(0.30, 0.20, 0.39, 1.00)
+			colors[clr.CheckMark]			 	= ImVec4(0.56, 0.61, 1.00, 1.00)
+			colors[clr.SliderGrab]				= ImVec4(0.41, 0.19, 0.63, 0.24)
+			colors[clr.SliderGrabActive]	  	= ImVec4(0.41, 0.19, 0.63, 1.00)
+			colors[clr.Button]					= ImVec4(0.41, 0.19, 0.63, 0.44)
+			colors[clr.ButtonHovered]		 	= ImVec4(0.41, 0.19, 0.63, 0.86)
+			colors[clr.ButtonActive]		  	= ImVec4(0.64, 0.33, 0.94, 1.00)
+			colors[clr.Header]					= ImVec4(0.41, 0.19, 0.63, 0.76)
+			colors[clr.HeaderHovered]		 	= ImVec4(0.41, 0.19, 0.63, 0.86)
+			colors[clr.HeaderActive]		  	= ImVec4(0.41, 0.19, 0.63, 1.00)
+			colors[clr.ResizeGrip]				= ImVec4(0.41, 0.19, 0.63, 0.20)
+			colors[clr.ResizeGripHovered]	 	= ImVec4(0.41, 0.19, 0.63, 0.78)
+			colors[clr.ResizeGripActive]	  	= ImVec4(0.41, 0.19, 0.63, 1.00)
+			colors[clr.CloseButton]		   	= ImVec4(1.00, 1.00, 1.00, 0.75)
+			colors[clr.CloseButtonHovered]		= ImVec4(0.88, 0.74, 1.00, 0.59)
+			colors[clr.CloseButtonActive]	 	= ImVec4(0.88, 0.85, 0.92, 1.00)
+			colors[clr.PlotLines]			 	= ImVec4(0.89, 0.85, 0.92, 0.63)
+			colors[clr.PlotLinesHovered]	  	= ImVec4(0.41, 0.19, 0.63, 1.00)
+			colors[clr.PlotHistogram]		 	= ImVec4(0.89, 0.85, 0.92, 0.63)
 			colors[clr.PlotHistogramHovered]  	= ImVec4(0.41, 0.19, 0.63, 1.00)
-			colors[clr.TextSelectedBg]        	= ImVec4(0.41, 0.19, 0.63, 0.43)
+			colors[clr.TextSelectedBg]			= ImVec4(0.41, 0.19, 0.63, 0.43)
 			colors[clr.ModalWindowDarkening]  	= ImVec4(0.20, 0.20, 0.20, 0.35)
 			--textcolorinhex						= '{ffffff}'
 		elseif configuration.main_settings.style == 4 then -- https://www.blast.hk/threads/25442/post-555626
-			colors[clr.Text]                   	= ImVec4(0.90, 0.90, 0.90, 1.00)
-			colors[clr.TextDisabled]           	= ImVec4(0.60, 0.60, 0.60, 1.00)
-			colors[clr.WindowBg]               	= ImVec4(0.08, 0.08, 0.08, 1.00)
-			colors[clr.ChildWindowBg]          	= ImVec4(0.10, 0.10, 0.10, 1.00)
-			colors[clr.PopupBg]                	= ImVec4(0.08, 0.08, 0.08, 1.00)
-			colors[clr.Border]                 	= ImVec4(0.70, 0.70, 0.70, 0.40)
-			colors[clr.BorderShadow]           	= ImVec4(0.00, 0.00, 0.00, 0.00)
-			colors[clr.FrameBg]                	= ImVec4(0.15, 0.15, 0.15, 1.00)
-			colors[clr.FrameBgHovered]         	= ImVec4(0.19, 0.19, 0.19, 0.71)
-			colors[clr.FrameBgActive]          	= ImVec4(0.34, 0.34, 0.34, 0.79)
-			colors[clr.TitleBg]                	= ImVec4(0.00, 0.69, 0.33, 0.80)
-			colors[clr.TitleBgActive]          	= ImVec4(0.00, 0.74, 0.36, 1.00)
-			colors[clr.TitleBgCollapsed]       	= ImVec4(0.00, 0.69, 0.33, 0.50)
-			colors[clr.MenuBarBg]              	= ImVec4(0.00, 0.80, 0.38, 1.00)
-			colors[clr.ScrollbarBg]            	= ImVec4(0.16, 0.16, 0.16, 1.00)
-			colors[clr.ScrollbarGrab]          	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.Text]				   	= ImVec4(0.90, 0.90, 0.90, 1.00)
+			colors[clr.TextDisabled]		   	= ImVec4(0.60, 0.60, 0.60, 1.00)
+			colors[clr.WindowBg]			   	= ImVec4(0.08, 0.08, 0.08, 1.00)
+			colors[clr.ChildWindowBg]		  	= ImVec4(0.10, 0.10, 0.10, 1.00)
+			colors[clr.PopupBg]					= ImVec4(0.08, 0.08, 0.08, 1.00)
+			colors[clr.Border]				 	= ImVec4(0.70, 0.70, 0.70, 0.40)
+			colors[clr.BorderShadow]		   	= ImVec4(0.00, 0.00, 0.00, 0.00)
+			colors[clr.FrameBg]					= ImVec4(0.15, 0.15, 0.15, 1.00)
+			colors[clr.FrameBgHovered]		 	= ImVec4(0.19, 0.19, 0.19, 0.71)
+			colors[clr.FrameBgActive]		  	= ImVec4(0.34, 0.34, 0.34, 0.79)
+			colors[clr.TitleBg]					= ImVec4(0.00, 0.69, 0.33, 0.80)
+			colors[clr.TitleBgActive]		  	= ImVec4(0.00, 0.74, 0.36, 1.00)
+			colors[clr.TitleBgCollapsed]	   	= ImVec4(0.00, 0.69, 0.33, 0.50)
+			colors[clr.MenuBarBg]			  	= ImVec4(0.00, 0.80, 0.38, 1.00)
+			colors[clr.ScrollbarBg]				= ImVec4(0.16, 0.16, 0.16, 1.00)
+			colors[clr.ScrollbarGrab]		  	= ImVec4(0.00, 0.69, 0.33, 1.00)
 			colors[clr.ScrollbarGrabHovered]   	= ImVec4(0.00, 0.82, 0.39, 1.00)
-			colors[clr.ScrollbarGrabActive]    	= ImVec4(0.00, 1.00, 0.48, 1.00)
-			colors[clr.ComboBg]                	= ImVec4(0.20, 0.20, 0.20, 0.99)
-			colors[clr.CheckMark]              	= ImVec4(0.00, 0.69, 0.33, 1.00)
-			colors[clr.SliderGrab]             	= ImVec4(0.00, 0.69, 0.33, 1.00)
-			colors[clr.SliderGrabActive]       	= ImVec4(0.00, 0.77, 0.37, 1.00)
-			colors[clr.Button]                 	= ImVec4(0.00, 0.69, 0.33, 1.00)
-			colors[clr.ButtonHovered]          	= ImVec4(0.00, 0.82, 0.39, 1.00)
-			colors[clr.ButtonActive]           	= ImVec4(0.00, 0.87, 0.42, 1.00)
-			colors[clr.Header]                 	= ImVec4(0.00, 0.69, 0.33, 1.00)
-			colors[clr.HeaderHovered]          	= ImVec4(0.00, 0.76, 0.37, 0.57)
-			colors[clr.HeaderActive]           	= ImVec4(0.00, 0.88, 0.42, 0.89)
-			colors[clr.Separator]              	= ImVec4(1.00, 1.00, 1.00, 0.40)
-			colors[clr.SeparatorHovered]       	= ImVec4(1.00, 1.00, 1.00, 0.60)
-			colors[clr.SeparatorActive]        	= ImVec4(1.00, 1.00, 1.00, 0.80)
-			colors[clr.ResizeGrip]             	= ImVec4(0.00, 0.69, 0.33, 1.00)
-			colors[clr.ResizeGripHovered]      	= ImVec4(0.00, 0.76, 0.37, 1.00)
-			colors[clr.ResizeGripActive]       	= ImVec4(0.00, 0.86, 0.41, 1.00)
-			colors[clr.CloseButton]            	= ImVec4(0.00, 0.82, 0.39, 1.00)
-			colors[clr.CloseButtonHovered]     	= ImVec4(0.00, 0.88, 0.42, 1.00)
-			colors[clr.CloseButtonActive]      	= ImVec4(0.00, 1.00, 0.48, 1.00)
-			colors[clr.PlotLines]              	= ImVec4(0.00, 0.69, 0.33, 1.00)
-			colors[clr.PlotLinesHovered]       	= ImVec4(0.00, 0.74, 0.36, 1.00)
-			colors[clr.PlotHistogram]          	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.ScrollbarGrabActive]		= ImVec4(0.00, 1.00, 0.48, 1.00)
+			colors[clr.ComboBg]					= ImVec4(0.20, 0.20, 0.20, 0.99)
+			colors[clr.CheckMark]			  	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.SliderGrab]			 	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.SliderGrabActive]	   	= ImVec4(0.00, 0.77, 0.37, 1.00)
+			colors[clr.Button]				 	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.ButtonHovered]		  	= ImVec4(0.00, 0.82, 0.39, 1.00)
+			colors[clr.ButtonActive]		   	= ImVec4(0.00, 0.87, 0.42, 1.00)
+			colors[clr.Header]				 	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.HeaderHovered]		  	= ImVec4(0.00, 0.76, 0.37, 0.57)
+			colors[clr.HeaderActive]		   	= ImVec4(0.00, 0.88, 0.42, 0.89)
+			colors[clr.Separator]			  	= ImVec4(1.00, 1.00, 1.00, 0.40)
+			colors[clr.SeparatorHovered]	   	= ImVec4(1.00, 1.00, 1.00, 0.60)
+			colors[clr.SeparatorActive]			= ImVec4(1.00, 1.00, 1.00, 0.80)
+			colors[clr.ResizeGrip]			 	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.ResizeGripHovered]	  	= ImVec4(0.00, 0.76, 0.37, 1.00)
+			colors[clr.ResizeGripActive]	   	= ImVec4(0.00, 0.86, 0.41, 1.00)
+			colors[clr.CloseButton]				= ImVec4(0.00, 0.82, 0.39, 1.00)
+			colors[clr.CloseButtonHovered]	 	= ImVec4(0.00, 0.88, 0.42, 1.00)
+			colors[clr.CloseButtonActive]	  	= ImVec4(0.00, 1.00, 0.48, 1.00)
+			colors[clr.PlotLines]			  	= ImVec4(0.00, 0.69, 0.33, 1.00)
+			colors[clr.PlotLinesHovered]	   	= ImVec4(0.00, 0.74, 0.36, 1.00)
+			colors[clr.PlotHistogram]		  	= ImVec4(0.00, 0.69, 0.33, 1.00)
 			colors[clr.PlotHistogramHovered]   	= ImVec4(0.00, 0.80, 0.38, 1.00)
-			colors[clr.TextSelectedBg]         	= ImVec4(0.00, 0.69, 0.33, 0.72)
+			colors[clr.TextSelectedBg]		 	= ImVec4(0.00, 0.69, 0.33, 0.72)
 			colors[clr.ModalWindowDarkening]   	= ImVec4(0.17, 0.17, 0.17, 0.48)
 			--textcolorinhex						= '{e5e5e5}'
 		else
@@ -1979,7 +2016,7 @@ if imguicheck and encodingcheck then
 					configuration.main_settings.gender = k
 					if inicfg.save(configuration,'AS Helper') then
 						local r, g, b, a = imgui.ImColor(configuration.main_settings.ASChatColor):GetRGBA()
-						ASHelperMessage(string.format('Пол был выбран: {%06X}%s', join_rgb(r, g, b),usersettings.gender.v and 'Мужской' or 'Женский'))
+						ASHelperMessage(string.format('Пол был выбран: {MC}%s', usersettings.gender.v and 'Мужской' or 'Женский'))
 					end
 					return k
 				end
@@ -2039,7 +2076,7 @@ if imguicheck and encodingcheck then
 		end
 	end
 
-	function imgui.SmoothButton(bool, name, wide) -- из https://www.blast.hk/threads/49782/
+	function imgui.SmoothButton(bool, name, wide) -- на основе https://www.blast.hk/threads/49782/
 		local animTime = 0.25
 		local drawList = imgui.GetWindowDrawList()
 		local p1 = imgui.GetCursorScreenPos()
@@ -2287,8 +2324,17 @@ if imguicheck and encodingcheck then
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.46, 0.51, 0.85, 1))
 			imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(1, 1, 1, 1))
 			if imgui.Button(u8'Discord', imgui.ImVec2(90, 25)) then
+				ASHelperMessage('Ник был скопирован')
+				setClipboardText('JustMini#3885')
+			end
+			imgui.PopStyleColor(4)
+			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.19, 0.22, 0.26, 0.8))
+			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(0.19, 0.22, 0.26, 0.9))
+			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.19, 0.22, 0.26, 1))
+			imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(1, 1, 1, 1))
+			if imgui.Button(u8'BlastHack', imgui.ImVec2(90, 25)) then
 				ASHelperMessage('Ссылка была скопирована')
-				setClipboardText('JustMini#1488')
+				setClipboardText('https://www.blast.hk/threads/87533/')
 			end
 			imgui.PopStyleColor(4)
 			imgui.EndPopup()
@@ -2423,7 +2469,7 @@ if imguicheck and encodingcheck then
 									sampSendChat('Доброй ночи, я {gender:сотрудник|сотрудница} Автошколы г. Сан-Фиерро, чем могу вам помочь?')
 								end
 								wait(2000)
-								sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname))))
+								sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.RankNames[configuration.main_settings.myrankint],(configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname))))
 								inprocess = false
 							end)
 						else
@@ -2480,32 +2526,49 @@ if imguicheck and encodingcheck then
 					end
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-				if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
-					if configuration.main_settings.myrankint >= 2 then
-						if not inprocess then
-							if not sampIsPlayerPaused(fastmenuID) then
-								windows.imgui_fm.v = false
-								lua_thread.create(function()
-									local expelid = fastmenuID
-									inprocess = true
-									sampSendChat('/do Рация свисает на поясе.')
-									wait(2000)
-									sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
-									wait(2000)
-									sampSendChat('/do Охрана выводит нарушителя из холла.')
-									wait(2000)
-									sampSendChat(('/expel %s Н.П.А.'):format(expelid))
-									inprocess = false
-								end)
+				imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30))
+				if imgui.IsMouseReleased(0) or imgui.IsMouseReleased(1) then
+					if imgui.IsItemHovered() then
+						if imgui.IsMouseReleased(0) then
+							if configuration.main_settings.myrankint >= 2 then
+								if not inprocess then
+									if not sampIsPlayerPaused(fastmenuID) then
+										windows.imgui_fm.v = false
+										lua_thread.create(function()
+											local expelid = fastmenuID
+											inprocess = true
+											sampSendChat('/do Рация свисает на поясе.')
+											wait(2000)
+											sampSendChat('/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней')
+											wait(2000)
+											sampSendChat('/do Охрана выводит нарушителя из холла.')
+											wait(2000)
+											sampSendChat(('/expel %s %s'):format(expelid,configuration.main_settings.expelreason))
+											inprocess = false
+										end)
+									else
+										ASHelperMessage('Игрок находится в АФК!')
+									end
+								else
+									ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
+								end
 							else
-								ASHelperMessage('Игрок находится в АФК!')
+								ASHelperMessage('Данная команда доступна с 2-го ранга.')
 							end
-						else
-							ASHelperMessage('Не торопитесь, вы уже отыгрываете что-то!')
 						end
-					else
-						ASHelperMessage('Данная команда доступна с 2-го ранга.')
+						if imgui.IsMouseReleased(1) then
+							imgui.OpenPopup('##changeexpelreason')
+						end
 					end
+				end
+				imgui.Hint('ЛКМ для того, чтобы выгнать человека\n{FFFFFF}ПКМ для того, чтобы настроить причину',0)
+				if imgui.BeginPopup('##changeexpelreason') then
+					imgui.Text(u8'Причина /expel:')
+					if imgui.InputText('##expelreasonbuff',usersettings.expelreason) then
+						configuration.main_settings.expelreason = u8:decode(usersettings.expelreason.v)
+						inicfg.save(configuration,'AS Helper')
+					end
+					imgui.EndPopup()
 				end
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30))
@@ -2822,7 +2885,7 @@ if imguicheck and encodingcheck then
 			if windowtype == 3 then
 				imgui.TextColoredRGB('Причина увольнения:',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'').x) / 5.7)
-				imgui.InputText(u8'    ', uninvitebuf)
+				imgui.InputText(u8'	', uninvitebuf)
 				if uninvitebox.v then
 					imgui.TextColoredRGB('Причина ЧС:',1)
 					imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8' ').x) / 5.7)
@@ -2904,7 +2967,7 @@ if imguicheck and encodingcheck then
 	
 			if windowtype == 4 then
 				imgui.PushItemWidth(270)
-				imgui.Combo(' ', Ranks_select, Ranks_arr, #Ranks_arr)
+				imgui.Combo(' ', Ranks_select, {u8('[1] '..configuration.RankNames[1]), u8('[2] '..configuration.RankNames[2]),u8('[3] '..configuration.RankNames[3]),u8('[4] '..configuration.RankNames[4]),u8('[5] '..configuration.RankNames[5]),u8('[6] '..configuration.RankNames[6]),u8('[7] '..configuration.RankNames[7]),u8('[8] '..configuration.RankNames[8]),u8('[9] '..configuration.RankNames[9])}, #configuration.RankNames)
 				imgui.PopItemWidth()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 270) / 2)
 				imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0.15, 0.42, 0.0, 1.00))
@@ -2967,7 +3030,6 @@ if imguicheck and encodingcheck then
 						ASHelperMessage('Данная команда доступна с 9-го ранга.')
 					end
 				end
-				imgui.TextColoredRGB('{808080}названия рангов могут отличаться от ваших',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
@@ -2978,7 +3040,7 @@ if imguicheck and encodingcheck then
 			if windowtype == 5 then
 				imgui.TextColoredRGB('Причина занесения в ЧС:',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'').x) / 5.7)
-				imgui.InputText(u8'                   ', blacklistbuff)
+				imgui.InputText(u8'				   ', blacklistbuff)
 				imgui.NewLine()
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				if imgui.Button(u8'Занести в ЧС '..sampGetPlayerNickname(fastmenuID)..'['..fastmenuID..']', imgui.ImVec2(285,30)) then
@@ -3062,7 +3124,7 @@ if imguicheck and encodingcheck then
 			if windowtype == 7 then
 				imgui.TextColoredRGB('Причина мута:',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8'').x) / 5.7)
-				imgui.InputText(u8'         ', fmutebuff)
+				imgui.InputText(u8'		 ', fmutebuff)
 				imgui.TextColoredRGB('Время мута:',1)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - imgui.CalcTextSize(u8' ').x) / 5.7)
 				imgui.InputInt(u8' ', fmuteint)
@@ -3115,12 +3177,12 @@ if imguicheck and encodingcheck then
 					if questions.active.redact then
 						for k,v in pairs(questions.questions) do
 							imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
-							if imgui.Button(u8(v.bname.."##"..k), imgui.ImVec2(200,30)) then
+							if imgui.Button(u8(v.bname..'##'..k), imgui.ImVec2(200,30)) then
 								if not inprocess then
-									if string.rlower(v.bhint):find("подсказка") then
+									if string.rlower(v.bhint):find('подсказка') then
 										ASHelperMessage(v.bhint)
 									else
-										ASHelperMessage("Подсказка: "..v.bhint)
+										ASHelperMessage('Подсказка: '..v.bhint)
 									end
 									sampSendChat(v.bq)
 									lastq = os.clock() - 1
@@ -3129,7 +3191,7 @@ if imguicheck and encodingcheck then
 								end
 							end
 							imgui.SameLine()
-							if imgui.Button(fa.ICON_FA_PEN.."##"..k, imgui.ImVec2(30,30)) then
+							if imgui.Button(fa.ICON_FA_PEN..'##'..k, imgui.ImVec2(30,30)) then
 								question_number = k
 								questionsettings.questionname.v = u8(v.bname)
 								questionsettings.questionhint.v = u8(v.bhint)
@@ -3137,7 +3199,7 @@ if imguicheck and encodingcheck then
 								imgui.OpenPopup(u8('Редактор вопросов'))
 							end
 							imgui.SameLine()
-							if imgui.Button(fa.ICON_FA_TRASH.."##"..k, imgui.ImVec2(30,30)) then
+							if imgui.Button(fa.ICON_FA_TRASH..'##'..k, imgui.ImVec2(30,30)) then
 								table.remove(questions.questions,k)
 								local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'w')
 								file:write(encodeJson(questions))
@@ -3149,10 +3211,10 @@ if imguicheck and encodingcheck then
 							imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 							if imgui.Button(u8(v.bname), imgui.ImVec2(285,30)) then
 								if not inprocess then
-									if string.rlower(v.bhint):find("подсказка") then
+									if string.rlower(v.bhint):find('подсказка') then
 										ASHelperMessage(v.bhint)
 									else
-										ASHelperMessage("Подсказка: "..v.bhint)
+										ASHelperMessage('Подсказка: '..v.bhint)
 									end
 									sampSendChat(v.bq)
 									lastq = os.clock() - 1
@@ -3162,9 +3224,8 @@ if imguicheck and encodingcheck then
 							end
 						end
 					end
-					print(#default_questions.questions)
 				else
-					imgui.TextColoredRGB("Восстановить все вопросы",1)
+					imgui.TextColoredRGB('Восстановить все вопросы',1)
 					if imgui.IsItemHovered() and imgui.IsMouseReleased(0) then
 						local function copy(obj, seen)
 							if type(obj) ~= 'table' then return obj end
@@ -3241,8 +3302,8 @@ if imguicheck and encodingcheck then
 				imgui.PopStyleColor(2)
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.SetCursorPosY((imgui.GetWindowWidth() + 605) / 2)
-				imgui.Text(fa.ICON_FA_CLOCK.." "..(lastq == false and u8"0 с. назад" or math.floor(os.clock()-lastq)..u8" с. назад"))
-				imgui.Hint("Прошедшее время с последнего вопроса.")
+				imgui.Text(fa.ICON_FA_CLOCK..' '..(lastq == false and u8'0 с. назад' or math.floor(os.clock()-lastq)..u8' с. назад'))
+				imgui.Hint('Прошедшее время с последнего вопроса.')
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 285) / 2)
 				imgui.SetCursorPosY((imgui.GetWindowWidth() + 655) / 2)
 				if imgui.Button(u8'Назад', imgui.ImVec2(142.5,30)) then
@@ -3276,11 +3337,11 @@ if imguicheck and encodingcheck then
 				imgui.PopStyleColor(3)
 				editquestion()
 			end
-			if not sampIsPlayerConnected(fastmenuID) then
-	        	windows.imgui_fm.v = false
-				windows.imgui_sobes.v = false
-	        	ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
-	        end
+			-- if not sampIsPlayerConnected(fastmenuID) then
+				-- windows.imgui_fm.v = false
+				-- windows.imgui_sobes.v = false
+				-- ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
+			-- end
 			imgui.End()
 		end
 
@@ -3296,9 +3357,9 @@ if imguicheck and encodingcheck then
 					if not inprocess then
 						lua_thread.create(function()
 							inprocess = true
-							sampSendChat(('Здравствуйте, я %s Автошколы, вы пришли на собеседование?'):format(configuration.main_settings.myrank))
+							sampSendChat(('Здравствуйте, я %s Автошколы, вы пришли на собеседование?'):format(configuration.RankNames[configuration.main_settings.myrankint]))
 							wait(2000)
-							sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.main_settings.myrank,configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname)))
+							sampSendChat(('/do На груди висит бейджик с надписью %s %s.'):format(configuration.RankNames[configuration.main_settings.myrankint],configuration.main_settings.useservername and string.gsub(sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))), '_', ' ') or u8:decode(configuration.main_settings.myname)))
 							inprocess = false
 						end)
 					else
@@ -3311,7 +3372,7 @@ if imguicheck and encodingcheck then
 						lua_thread.create(function()
 							inprocess = true
 							sampSendChat('Хорошо, для этого покажите мне ваши документы, а именно: паспорт и мед.карту')
-							sampSendChat('/n ОБЯЗАТЕЛЬНО по рп!')
+							sampSendChat('/n Обязательно по рп!')
 							wait(50)
 							sobesetap = 1
 							inprocess = false
@@ -3568,10 +3629,10 @@ if imguicheck and encodingcheck then
 				end
 			end
 			if not sampIsPlayerConnected(fastmenuID) then
-	        	windows.imgui_fm.v = false
+				windows.imgui_fm.v = false
 				windows.imgui_sobes.v = false
-	        	ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
-	        end
+				ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
+			end
 			imgui.End()
 		end
 
@@ -3590,7 +3651,7 @@ if imguicheck and encodingcheck then
 			imgui.PopStyleColor(3)
 			imgui.SetCursorPos(imgui.ImVec2(217, 22))
 			imgui.TextColoredRGB('{808080}'..thisScript().version)
-			imgui.Hint('Обновление от 28.08.2021')
+			imgui.Hint('Обновление от 02.11.2021')
 			imgui.BeginChild('##Buttons',imgui.ImVec2(230,240),true,imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoScrollWithMouse)
 			for number, button in pairs(buttons) do
 				imgui.SetCursorPosX((imgui.GetWindowWidth() - 220) / 2)
@@ -3616,6 +3677,7 @@ if imguicheck and encodingcheck then
 	• Настройки: Введя команду /ash откроются настройки в которых можно изменять никнейм в приветствии, акцент, создание маркера при выделении, пол, цены на лицензии, горячую клавишу быстрого меню и узнать информацию о скрипте.
 	
 	• Биндер: Введя команду /ashbind откроется полностью работоспособный биндер, в котором вы можете создать абсолютно любой бинд.
+	
 	• Меню лекций: Введя команду /ashlect откроется меню лекций, в котором вы сможете озвучить/добавить/удалить лекции.]]
 	))
 			end
@@ -3700,7 +3762,7 @@ if imguicheck and encodingcheck then
 					sampSendChat('/stats')
 				end
 				imgui.SameLine()
-				imgui.Text(u8'Ваш ранг: '..u8(configuration.main_settings.myrank)..' ('..u8(configuration.main_settings.myrankint)..')')
+				imgui.Text(u8'Ваш ранг: '..u8(configuration.RankNames[configuration.main_settings.myrankint])..' ('..u8(configuration.main_settings.myrankint)..')')
 				imgui.PushItemWidth(85)
 				imgui.SetCursorPosX(10)
 				if imgui.Combo(u8'',usersettings.gender, {u8'Мужской',u8'Женский'}, 2) then
@@ -3714,6 +3776,15 @@ if imguicheck and encodingcheck then
 					GetMyGender()
 				end
 				imgui.Hint('ЛКМ для автоматического определения.')
+				imgui.PushItemWidth(85)
+				imgui.SetCursorPosX(10)
+				if imgui.InputText(u8'##expelreasonbuff',usersettings.expelreason) then
+					configuration.main_settings.expelreason = u8:decode(usersettings.expelreason.v)
+					inicfg.save(configuration,'AS Helper')
+				end
+				imgui.PopItemWidth()
+				imgui.SameLine('')
+				imgui.Text(u8'Причина /expel')
 			end
 
 			if settingswindow == 2 then
@@ -3845,7 +3916,7 @@ if imguicheck and encodingcheck then
 				if imgui.Button(u8'Тест##RTest',imgui.ImVec2(50,25)) then
 					local result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					local r, g, b, a = imgui.ImColor(configuration.main_settings.RChatColor):GetRGBA()
-					sampAddChatMessage('[R] '..configuration.main_settings.myrank..' '..sampGetPlayerNickname(tonumber(myid))..'['..myid..']:(( Это сообщение видите только вы! ))', join_rgb(r, g, b))
+					sampAddChatMessage('[R] '..configuration.RankNames[configuration.main_settings.myrankint]..' '..sampGetPlayerNickname(tonumber(myid))..'['..myid..']:(( Это сообщение видите только вы! ))', join_rgb(r, g, b))
 				end
 				if imgui.ColorEdit4(u8'Цвет чата департамента##DSet', chatcolors.DChatColor, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoAlpha) then
 					local clr = imgui.ImColor.FromFloat4(chatcolors.DChatColor.v[1], chatcolors.DChatColor.v[2], chatcolors.DChatColor.v[3], chatcolors.DChatColor.v[4]):GetU32()
@@ -3863,7 +3934,7 @@ if imguicheck and encodingcheck then
 				if imgui.Button(u8'Тест##DTest',imgui.ImVec2(50,25)) then
 					local result, myid = sampGetPlayerIdByCharHandle(playerPed)
 					local r, g, b, a = imgui.ImColor(configuration.main_settings.DChatColor):GetRGBA()
-					sampAddChatMessage('[D] '..configuration.main_settings.myrank..' '..sampGetPlayerNickname(tonumber(myid))..'['..myid..']: Это сообщение видите только вы!', join_rgb(r, g, b))
+					sampAddChatMessage('[D] '..configuration.RankNames[configuration.main_settings.myrankint]..' '..sampGetPlayerNickname(tonumber(myid))..'['..myid..']: Это сообщение видите только вы!', join_rgb(r, g, b))
 				end
 				if imgui.ColorEdit4(u8'Цвет AS Helper в чате##SSet', chatcolors.ASChatColor, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoAlpha) then
 					local clr = imgui.ImColor.FromFloat4(chatcolors.ASChatColor.v[1], chatcolors.ASChatColor.v[2], chatcolors.ASChatColor.v[3], chatcolors.ASChatColor.v[4]):GetU32()
@@ -4368,7 +4439,7 @@ if imguicheck and encodingcheck then
 			imgui.End()
 		end
 
-		if windows.imgui_depart.v then -- спиздил и ухудшил идею https://www.blast.hk/threads/86025/
+		if windows.imgui_depart.v then -- идея https://www.blast.hk/threads/86025/ (удалено :()
 			imgui.SetNextWindowSize(imgui.ImVec2(700, 365), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenX / 2 , ScreenY / 2),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 			imgui.Begin(u8'#depart', windows.imgui_depart, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
@@ -4405,12 +4476,11 @@ if imguicheck and encodingcheck then
 				imgui.SameLine(20.7)
 				imgui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), u8('Банк'))
 			end
-			imgui.TextColoredRGB('Частота соеденения {808080}(?)',1)
-			imgui.Hint('Точки будут меняться на запятые в чате\n{FFFFFF}Не обязательный параметр')
-			imgui.InputText('##frequencydep',departsettings.frequency, imgui.InputTextFlags.CharsDecimal)
+			imgui.TextColoredRGB('Частота соеденения',1)
+			imgui.InputText('##frequencydep',departsettings.frequency)
 			if not imgui.IsItemActive() and #departsettings.frequency.v == 0 then
 				imgui.SameLine(20.7)
-				imgui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), '100.3')
+				imgui.TextColored(imgui.ImVec4(0.5, 0.5, 0.5, 1), '100,3')
 			end
 			imgui.PopItemWidth()
 			imgui.NewLine()
@@ -4493,12 +4563,18 @@ if imguicheck and encodingcheck then
 			imgui.Separator()
 			imgui.PushFont(fontsize16)
 			imgui.TextColoredRGB([[
-Версия 2.6 patch 1
+Версия 2.7
+ - Добавлена функция задержки между сообщениями в биндере
+ - Добавлена причина /expel
+ - Исправлены некоторые баги
+ - Теперь ранги в хелпере синхронизируются с вашими
+ 
+Версия 2.6.1
  - Испралена неработоспособность скрипта
  
 Версия 2.6
  - Добавлена поддержка 17-го сервера (Show-Low)
- - Исправлен краш при открытии вкладки "Связь со мной"
+ - Исправлен краш при открытии вкладки 'Связь со мной'
  - Исправлен баг с восстановлением лекций/вопросов
  
 Версия 2.5
@@ -4508,10 +4584,9 @@ if imguicheck and encodingcheck then
  - Переделана система проверки устава
  - Добавлен таймер последнего вопроса в проверку устава		
  
-Версия 2.4 patch 1
+Версия 2.4.1
  - Добавлена функция продажи лицензии на таксование
  - Исправлен баг с вводом /givelicense самостоятельно
- - Добавлен таймер в проверку устава
  
 Версия 2.4
  - Добавлена функция общения в рацию департамента /ashdep
@@ -4576,14 +4651,14 @@ if imguicheck and encodingcheck then
  - Исправлены баги
  
 Версия 1.0
- - Релиз
+ - Релиз (спасибо zody за помощь в разработке)
 ]])
 			imgui.PopFont()
 			imgui.End()
 		end
 
 		if windows.imgui_stats.v then
-			imgui.SetNextWindowSize(imgui.ImVec2(150, 175), imgui.Cond.FirstUseEver)
+			imgui.SetNextWindowSize(imgui.ImVec2(150, 200), imgui.Cond.FirstUseEver)
 			imgui.SetNextWindowPos(imgui.ImVec2(configuration.imgui_pos.posX,configuration.imgui_pos.posY),imgui.Cond.FirstUseEver)
 			imgui.Begin(u8'Статистика  ##stats',_,imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar)
 			if imgui.IsMouseDoubleClicked(0) and imgui.IsWindowHovered() then
@@ -4601,7 +4676,7 @@ if imguicheck and encodingcheck then
 			imgui.Text(fa.ICON_FA_CROSSHAIRS..u8' Оружие - '..configuration.my_stats.guns)
 			imgui.Text(fa.ICON_FA_SKULL_CROSSBONES..u8' Охота - '..configuration.my_stats.hunt)
 			imgui.Text(fa.ICON_FA_ARCHIVE..u8' Раскопки - '..configuration.my_stats.klad)
-			imgui.Text(fa.ICON_FA_ARCHIVE..u8' Такси - '..configuration.my_stats.taxi)
+			imgui.Text(fa.ICON_FA_TAXI..u8' Такси - '..configuration.my_stats.taxi)
 			imgui.End()
 		end
 	end
@@ -4712,14 +4787,14 @@ function checkbibl()
 		ASHelperMessage('Отсутствует библиотека samp events. Пытаюсь её установить.')
 		createDirectory('moonloader/lib/samp')
 		createDirectory('moonloader/lib/samp/events')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events.lua', 'moonloader/lib/samp/events.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/raknet.lua', 'moonloader/lib/samp/raknet.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/synchronization.lua', 'moonloader/lib/samp/synchronization.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/bitstream_io.lua', 'moonloader/lib/samp/events/bitstream_io.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/core.lua', 'moonloader/lib/samp/events/core.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/extra_types.lua', 'moonloader/lib/samp/events/extra_types.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/handlers.lua', 'moonloader/lib/samp/events/handlers.lua')
-		DownloadFile('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/samp/events/utils.lua', 'moonloader/lib/samp/events/utils.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/events.lua', 'moonloader/lib/samp/events.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/raknet.lua', 'moonloader/lib/samp/raknet.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/synchronization.lua', 'moonloader/lib/samp/synchronization.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/events/bitstream_io.lua', 'moonloader/lib/samp/events/bitstream_io.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/events/core.lua', 'moonloader/lib/samp/events/core.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/events/extra_types.lua', 'moonloader/lib/samp/events/extra_types.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/events/handlers.lua', 'moonloader/lib/samp/events/handlers.lua')
+		DownloadFile('https://raw.githubusercontent.com/THE-FYP/SAMP.Lua/master/samp/events/utils.lua', 'moonloader/lib/samp/events/utils.lua')
 		ASHelperMessage('Библиотека samp events была успешно установлена.')
 		NoErrors = true
 		thisScript():reload()
