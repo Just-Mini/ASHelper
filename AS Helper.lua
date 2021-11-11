@@ -1,8 +1,8 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(44)
-script_version('2.7')
+script_version_number(45)
+script_version('2.7.1')
 script_dependencies('imgui; samp events; lfs')
 
 require 'moonloader'
@@ -298,6 +298,7 @@ local configuration = inicfg.load({
 		style = 0,
 		rule_align = 1,
 		lection_delay = 10,
+		lection_type = 1,
 		myname = '',
 		myaccent = '',
 		astag = 'Автошкола',
@@ -482,14 +483,14 @@ function main()
 		ASHelperMessage('Скрипт работает только на серверах Arizona RP. Скрипт выгружен.')
 		NoErrors = true
 		thisScript():unload()
+		while NoErrors do
+			wait(0)
+		end
 	end
 	if not doesFileExist('moonloader/config/AS Helper.ini') then
 		if inicfg.save(configuration, 'AS Helper.ini') then
 		end
 	end
-	--while not sampIsLocalPlayerSpawned() do
-	--	wait(2000)
-	--end
 	getmyrank = true
 	sampSendChat('/stats')
 	ASHelperMessage(('AS Helper %s успешно загружен. Автор: JustMini'):format(thisScript().version))
@@ -1418,7 +1419,6 @@ if sampevcheck then
 	end
 	
 	function sampev.onSendCommand(cmd)
-		print(cmd)
 		if cmd:find('{my_id}') then
 			sampSendChat(cmd:gsub('{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
 			return  false
@@ -1497,7 +1497,8 @@ function checkServer(ip)
 		'185.169.134.173',
 		'185.169.134.174',
 		'80.66.82.191',
-		'80.66.82.190'}) do
+		'80.66.82.190',
+		'80.66.82.188'}) do
 		if v == ip then 
 			return true
 		end
@@ -1668,7 +1669,7 @@ if imguicheck and encodingcheck then
 	}
 	
 	local lectionsettings = {
-		lection_type					= imgui.ImInt(1),
+		lection_type					= imgui.ImInt(configuration.main_settings.lection_type),
 		lection_delay					= imgui.ImInt(configuration.main_settings.lection_delay),
 		lection_name					= imgui.ImBuffer(256),
 		lection_text					= imgui.ImBuffer(65536)
@@ -1959,6 +1960,50 @@ if imguicheck and encodingcheck then
 			colors[clr.TextSelectedBg]		 	= ImVec4(0.00, 0.69, 0.33, 0.72)
 			colors[clr.ModalWindowDarkening]   	= ImVec4(0.17, 0.17, 0.17, 0.48)
 			--textcolorinhex						= '{e5e5e5}'
+		elseif configuration.main_settings.style == 5 then
+			colors[clr.Text] = 					ImVec4(0.9, 0.9, 0.9, 1)
+			colors[clr.TextDisabled] = 			ImVec4(1, 1, 1, 1)
+			colors[clr.WindowBg] = 				ImVec4(0, 0, 0, 1)
+			colors[clr.ChildWindowBg] = 		ImVec4(0, 0, 0, 1)
+			colors[clr.PopupBg] = 				ImVec4(0, 0, 0, 1)
+			colors[clr.Border] = 				ImVec4(0.51, 0.51, 0.51, 0.6)
+			colors[clr.BorderShadow] = 			ImVec4(0.35, 0.35, 0.35, 0.66)
+			colors[clr.FrameBg] = 				ImVec4(1, 1, 1, 0.28)
+			colors[clr.FrameBgHovered] = 		ImVec4(0.68, 0.68, 0.68, 0.67)
+			colors[clr.FrameBgActive] = 		ImVec4(0.79, 0.73, 0.73, 0.62)
+			colors[clr.TitleBg] = 				ImVec4(0, 0, 0, 1)
+			colors[clr.TitleBgActive] = 		ImVec4(0.46, 0.46, 0.46, 1)
+			colors[clr.TitleBgCollapsed] = 		ImVec4(0, 0, 0, 1)
+			colors[clr.MenuBarBg] = 			ImVec4(0, 0, 0, 0.8)
+			colors[clr.ScrollbarBg] = 			ImVec4(0, 0, 0, 0.6)
+			colors[clr.ScrollbarGrab] = 		ImVec4(1, 1, 1, 0.87)
+			colors[clr.ScrollbarGrabHovered] = 	ImVec4(1, 1, 1, 0.79)
+			colors[clr.ScrollbarGrabActive] = 	ImVec4(0.8, 0.5, 0.5, 0.4)
+			colors[clr.ComboBg] = 				ImVec4(0.24, 0.24, 0.24, 0.99)
+			colors[clr.CheckMark] = 			ImVec4(0.99, 0.99, 0.99, 0.52)
+			colors[clr.SliderGrab] = 			ImVec4(1, 1, 1, 0.42)
+			colors[clr.SliderGrabActive] = 		ImVec4(0.76, 0.76, 0.76, 1)
+			colors[clr.Button] = 				ImVec4(0.51, 0.51, 0.51, 0.6)
+			colors[clr.ButtonHovered] = 		ImVec4(0.68, 0.68, 0.68, 1)
+			colors[clr.ButtonActive] = 			ImVec4(0.67, 0.67, 0.67, 1)
+			colors[clr.Header] = 				ImVec4(0.72, 0.72, 0.72, 0.54)
+			colors[clr.HeaderHovered] = 		ImVec4(0.92, 0.92, 0.95, 0.77)
+			colors[clr.HeaderActive] = 			ImVec4(0.82, 0.82, 0.82, 0.8)
+			colors[clr.Separator] = 			ImVec4(0.73, 0.73, 0.73, 1)
+			colors[clr.SeparatorHovered] = 		ImVec4(0.81, 0.81, 0.81, 1)
+			colors[clr.SeparatorActive] = 		ImVec4(0.74, 0.74, 0.74, 1)
+			colors[clr.ResizeGrip] = 			ImVec4(0.8, 0.8, 0.8, 0.3)
+			colors[clr.ResizeGripHovered] = 	ImVec4(0.95, 0.95, 0.95, 0.6)
+			colors[clr.ResizeGripActive] = 		ImVec4(1, 1, 1, 0.9)
+			colors[clr.CloseButton] = 			ImVec4(0.45, 0.45, 0.45, 0.5)
+			colors[clr.CloseButtonHovered] = 	ImVec4(0.7, 0.7, 0.9, 0.6)
+			colors[clr.CloseButtonActive] = 	ImVec4(0.7, 0.7, 0.7, 1)
+			colors[clr.PlotLines] = 			ImVec4(1, 1, 1, 1)
+			colors[clr.PlotLinesHovered] = 		ImVec4(1, 1, 1, 1)
+			colors[clr.PlotHistogram] = 		ImVec4(1, 1, 1, 1)
+			colors[clr.PlotHistogramHovered] = 	ImVec4(1, 1, 1, 1)
+			colors[clr.TextSelectedBg] = 		ImVec4(1, 1, 1, 0.35)
+			colors[clr.ModalWindowDarkening] = 	ImVec4(0.88, 0.88, 0.88, 0.35)
 		else
 			configuration.main_settings.style = 0
 			checkstyle()
@@ -2135,6 +2180,33 @@ if imguicheck and encodingcheck then
 		local button = imgui.Button(text, size)
 		imgui.PopStyleColor(4)
 		return button
+	end
+
+	function imgui.CircleButton(str_id, bool, color4)
+		local rBool = false
+	
+		local p = imgui.GetCursorScreenPos()
+		local radius = 10
+		local draw_list = imgui.GetWindowDrawList()
+		local hovered = false
+		if imgui.InvisibleButton(str_id, imgui.ImVec2(23, 23)) then
+			rBool = true
+		end
+		hovered = imgui.IsItemHovered()
+		
+		local col_bg
+		local r,g,b,a = imgui.ImColor(color4):GetRGBA()
+		a = bool and 150 or (hovered and 110 or 70)
+		col_bg = imgui.GetColorU32(imgui.ImColor(r,g,b,a):GetVec4())
+	
+		if bool then
+			draw_list:AddCircleFilled(imgui.ImVec2(p.x + radius, p.y + radius), radius+1, imgui.GetColorU32(imgui.GetStyle().Colors[imgui.Col.Text]))
+		end
+		
+		draw_list:AddCircleFilled(imgui.ImVec2(p.x + radius, p.y + radius), radius, imgui.GetColorU32(col_bg))
+		draw_list:AddCircleFilled(imgui.ImVec2(p.x + radius, p.y + radius), radius-3, imgui.GetColorU32(color4))
+		imgui.SetCursorPosY(imgui.GetCursorPosY()+radius)
+		return rBool
 	end
 
 	function imgui.TextColoredRGB(text,align)
@@ -3337,11 +3409,11 @@ if imguicheck and encodingcheck then
 				imgui.PopStyleColor(3)
 				editquestion()
 			end
-			-- if not sampIsPlayerConnected(fastmenuID) then
-				-- windows.imgui_fm.v = false
-				-- windows.imgui_sobes.v = false
-				-- ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
-			-- end
+			if not sampIsPlayerConnected(fastmenuID) then
+				windows.imgui_fm.v = false
+				windows.imgui_sobes.v = false
+				ASHelperMessage('Игрок с которым вы взаимодействовали вышел из игры!')
+			end
 			imgui.End()
 		end
 
@@ -3892,14 +3964,42 @@ if imguicheck and encodingcheck then
 			end
 
 			if settingswindow == 4 then
-				imgui.PushItemWidth(200)
-				if imgui.Combo(u8'Выбор темы', StyleBox_select, StyleBox_arr, #StyleBox_arr) then
-					configuration.main_settings.style = StyleBox_select.v
-					if inicfg.save(configuration,'AS Helper') then
-						checkstyle()
-					end
+				imgui.Text(u8"Выбор стиля:")
+				if imgui.CircleButton("##choosestyle0", configuration.main_settings.style == 0, imgui.ImVec4(1.00, 0.42, 0.00, 0.53)) then
+					configuration.main_settings.style = 0
+					inicfg.save(configuration, 'AS Helper.ini')
+					checkstyle()
 				end
-				imgui.PopItemWidth()
+				imgui.SameLine()
+				if imgui.CircleButton("##choosestyle1", configuration.main_settings.style == 1, imgui.ImVec4(1.00, 0.28, 0.28, 1.00)) then
+					configuration.main_settings.style = 1
+					inicfg.save(configuration, 'AS Helper.ini')
+					checkstyle()
+				end
+				imgui.SameLine()
+				if imgui.CircleButton("##choosestyle2", configuration.main_settings.style == 2, imgui.ImVec4(0.00, 0.35, 1.00, 0.78)) then
+					configuration.main_settings.style = 2
+					inicfg.save(configuration, 'AS Helper.ini')
+					checkstyle()
+				end
+				imgui.SameLine()
+				if imgui.CircleButton("##choosestyle3", configuration.main_settings.style == 3, imgui.ImVec4(0.41, 0.19, 0.63, 0.31)) then
+					configuration.main_settings.style = 3
+					inicfg.save(configuration, 'AS Helper.ini')
+					checkstyle()
+				end
+				imgui.SameLine()
+				if imgui.CircleButton("##choosestyle4", configuration.main_settings.style == 4, imgui.ImVec4(0.00, 0.69, 0.33, 1.00)) then
+					configuration.main_settings.style = 4
+					inicfg.save(configuration, 'AS Helper.ini')
+					checkstyle()
+				end
+				imgui.SameLine()
+				if imgui.CircleButton("##choosestyle5", configuration.main_settings.style == 5, imgui.ImVec4(0.51, 0.51, 0.51, 0.6)) then
+					configuration.main_settings.style = 5
+					inicfg.save(configuration, 'AS Helper.ini')
+					checkstyle()
+				end
 				if imgui.ColorEdit4(u8'Цвет чата организации##RSet', chatcolors.RChatColor, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoAlpha) then
 					local clr = imgui.ImColor.FromFloat4(chatcolors.RChatColor.v[1], chatcolors.RChatColor.v[2], chatcolors.RChatColor.v[3], chatcolors.RChatColor.v[4]):GetU32()
 					configuration.main_settings.RChatColor = clr
@@ -4314,13 +4414,21 @@ if imguicheck and encodingcheck then
 			end
 			imgui.PopStyleColor(3)
 			imgui.Separator()
-			imgui.RadioButton(u8('Чат'), lectionsettings.lection_type, 1)
+			if imgui.RadioButton(u8('Чат'), lectionsettings.lection_type, 1) then
+				configuration.main_settings.lection_type = lectionsettings.lection_type.v
+			end
 			imgui.SameLine()
-			imgui.RadioButton(u8('/s'), lectionsettings.lection_type, 4)
+			if imgui.RadioButton(u8('/s'), lectionsettings.lection_type, 4) then
+				configuration.main_settings.lection_type = lectionsettings.lection_type.v
+			end
 			imgui.SameLine()
-			imgui.RadioButton(u8('/r'), lectionsettings.lection_type, 2)
+			if imgui.RadioButton(u8('/r'), lectionsettings.lection_type, 2) then
+				configuration.main_settings.lection_type = lectionsettings.lection_type.v
+			end
 			imgui.SameLine()
-			imgui.RadioButton(u8('/rb'), lectionsettings.lection_type, 3)
+			if imgui.RadioButton(u8('/rb'), lectionsettings.lection_type, 3) then
+				configuration.main_settings.lection_type = lectionsettings.lection_type.v
+			end
 			imgui.SameLine()
 			imgui.SetCursorPosX(245)
 			imgui.PushItemWidth(50)
@@ -4386,11 +4494,23 @@ if imguicheck and encodingcheck then
 								inprocess = true
 								for i, line in ipairs(block.text) do
 									if lectionsettings.lection_type.v == 2 then
-										sampSendChat(('/r %s'):format(line))
+										if line:sub(1,1) == "/" then
+											sampSendChat(line)
+										else
+											sampSendChat(('/r %s'):format(line))
+										end
 									elseif lectionsettings.lection_type.v == 3 then
-										sampSendChat(('/rb %s'):format(line))
+										if line:sub(1,1) == "/" then
+											sampSendChat(line)
+										else
+											sampSendChat(('/rb %s'):format(line))
+										end
 									elseif lectionsettings.lection_type.v == 4 then
-										sampSendChat(('/s %s'):format(line))
+										if line:sub(1,1) == "/" then
+											sampSendChat(line)
+										else
+											sampSendChat(('/s %s'):format(line))
+										end
 									else
 										sampSendChat(line)
 									end
@@ -4447,6 +4567,9 @@ if imguicheck and encodingcheck then
 			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
+			imgui.SameLine(622)
+			imgui.Button(fa.ICON_FA_INFO_CIRCLE,imgui.ImVec2(23,23))
+			imgui.Hint('Пока что это окно функционирует как должно не на всех серверах\n{FFFFFF}В будущих обновлениях будут доступны более детальные настройки')
 			imgui.SameLine(645)
 			if imgui.Button(fa.ICON_FA_MINUS_SQUARE,imgui.ImVec2(23,23)) then
 				if #dephistory ~= 0 then
@@ -4563,6 +4686,9 @@ if imguicheck and encodingcheck then
 			imgui.Separator()
 			imgui.PushFont(fontsize16)
 			imgui.TextColoredRGB([[
+Версия 2.7.1
+ - Добавлена поддержка 18-го сервера (Casa Grande)
+ 
 Версия 2.7
  - Добавлена функция задержки между сообщениями в биндере
  - Добавлена причина /expel
