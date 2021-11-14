@@ -1,4 +1,4 @@
-local cimguimodule = getWorkingDirectory() .. [[\lib\ASH\mimgui\cimguidx9]]
+local cimguimodule = getWorkingDirectory() .. [[\lib\mimgui\cimguidx9]]
 local ffi = require "ffi"
 local cdecl = assert(require "mimgui.cdefs", "imgui.lua not properly build")
 
