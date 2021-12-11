@@ -33,7 +33,7 @@ script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
 script_version_number(46)
-script_version('3.0')
+script_version('3.0.1')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -1494,7 +1494,7 @@ local imgui_fm = imgui.OnFrame(
 			return false
 		end
 		if configuration.main_settings.fmstyle == 0 then
-			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.FirstUseEver)
+			imgui.SetNextWindowSize(imgui.ImVec2(300, 517), imgui.Cond.Always)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenSizeX * 0.5 , ScreenSizeY * 0.5),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 			imgui.Begin(u8'Меню быстрого доступа', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse + (configuration.main_settings.noscrollbar and imgui.WindowFlags.NoScrollbar or imgui.WindowFlags.NoBringToFrontOnFocus))
 				if imgui.IsWindowAppearing() then
@@ -2385,7 +2385,7 @@ local imgui_fm = imgui.OnFrame(
 				end
 			imgui.End()
 		else
-			imgui.SetNextWindowSize(imgui.ImVec2(500, 300), imgui.Cond.FirstUseEver)
+			imgui.SetNextWindowSize(imgui.ImVec2(500, 300), imgui.Cond.Always)
 			imgui.SetNextWindowPos(imgui.ImVec2(ScreenSizeX * 0.5 , ScreenSizeY * 0.7),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 			imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(0,0))
 			imgui.Begin(u8'Меню быстрого доступа', windows.imgui_fm, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar)
@@ -3613,7 +3613,7 @@ local imgui_settings = imgui.OnFrame(
 										if configuration.main_settings.statsvisible then
 											changePosition(configuration.imgui_pos)
 										else
-											addNotify('Включите отображение статистики.')
+											addNotify('Включите отображение\nстатистики.', 5)
 										end
 									end
 									imgui.SameLine()
@@ -6045,6 +6045,12 @@ function main()
 		end
 		windows.imgui_depart[0] = not windows.imgui_depart[0]
 	end)
+	sampRegisterChatCommand('ashupd', function()
+		windows.imgui_settings[0] = true
+		mainwindow[0] = 3
+		infowindow[0] = 1
+		alpha[0] = clock()
+	end)
 
 	sampRegisterChatCommand('uninvite', function(param)
 		if not configuration.main_settings.dorponcmd then
@@ -6416,18 +6422,10 @@ end
 
 changelog = {
 	versions = {
-		[0] =
-		{
-			version = 'beta',
-			data = '01.01.2000',
-			text = {''},
-			scroll = 3642653,
-		},
 		{
 			version = '1.0',
 			date = '31.03.2021',
 			text = {'Релиз (спасибо zody за помощь в разработке)'},
-			scroll = 1455,
 		},
 
 		{
@@ -6456,7 +6454,6 @@ changelog = {
  - Исправлен баг с поиском по уставу
  - Исправлен баг с ударом при принятии человека в организацию]]
 			},
-			scroll = 1440,
 		},
 
 		{
@@ -6478,7 +6475,6 @@ changelog = {
  - Исправлен баг с непродающимися лицензиями
  - Исправлен баг с пропадающим курсором после использования быстрого меню]]
 			},
-			scroll = 1213,
 		},
 
 		{
@@ -6492,7 +6488,6 @@ changelog = {
 				'Добавлены png картинки вместо заголовков у окон',
 				'Добавлены тэги в биндер',
 			},
-			scroll = 1010,
 		},
 
 		{
@@ -6513,7 +6508,6 @@ changelog = {
  - Добавлена функция продажи лицензии на таксование
  - Исправлен баг с вводом /givelicense самостоятельно]]
 			},
-			scroll = 759
 		},
 
 		{
@@ -6529,7 +6523,6 @@ changelog = {
 				active = false,
 				text = [[ - Исправлен баг с крашем скрипта при озвучивании прайс листа]]
 			},
-			scroll = 577,
 		},
 
 		{
@@ -6545,7 +6538,6 @@ changelog = {
  - Исправлен баг с восстановлением лекций/вопросов
  - Испралена неработоспособность скрипта из-за перехода сервера на R3]]
 			},
-			scroll = 459
 		},
 
 		{
@@ -6557,7 +6549,6 @@ changelog = {
 				'Теперь ранги в хелпере синхронизируются с вашими',
 				'Добавлена поддержка 18-го сервера (Casa-Grande)',
 			},
-			scroll = 313,
 		},
 		
 		{
@@ -6575,7 +6566,13 @@ changelog = {
 				'Добавлены правила и проверка устава в зависимости от вашего сервера (правила были взяты с форума 13.11.2021, при изменении писать автору)',
 				'Добавлена вкладка \'Отыгровки\', в которой можно настроить: проверку мед. карты при продаже лицензии на оружие, охоту; замену слова \'Автошкола\' на \'ГЦЛ\'; выставить задержку между сообщениями',
 			},
-			scroll = 0,
+			patches = {
+				active = false,
+				text = [[
+ - Исправлен краш скрипта при изменении местоположения выключенной статистики
+ - Исправлен баг с неработающей командой /ashupd
+ - Исправлен баг с размером меню быстрого доступа при смене стиля]]
+			},
 		},
 	},
 }
