@@ -1,7 +1,7 @@
 {
     "file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua",
-    "version":"3.0.1",
-    "change_log":" - Исправлен краш скрипта при изменении местоположения выключенной статистики\n - Исправлен баг с неработающей командой /ashupd\n - Исправлен баг с размером меню быстрого доступа при смене стиля",
+    "version":"3.0.2",
+    "change_log":" - Исправлен баг с причиной увольнения через меню быстрого доступа\n - Изменены некоторые отыгровки",
     "beta_upd":false,
     "beta_file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua",
     "beta_version":"null",

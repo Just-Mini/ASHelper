@@ -33,7 +33,7 @@ script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
 script_version_number(46)
-script_version('3.0.1')
+script_version('3.0.2')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -443,7 +443,7 @@ local fwarnbuff						= new.char[256]()
 local fmutebuff						= new.char[256]()
 local fmuteint						= new.int(0)
 local lastq							= new.int(0)
-local autoupd						= new.int(-600)
+local autoupd						= new.int(0)
 local now_zametka					= new.int(1)
 local zametka_window				= new.int(1)
 local search_rule					= new.char[256]()
@@ -1326,26 +1326,26 @@ function imgui.AnimButton(label, size, duration)
 	end
 	local pool = UI_ANIMBUT[label]
 
-	if pool["hovered"]["clock"] ~= nil then
-		if os.clock() - pool["hovered"]["clock"] <= duration then
-			pool["color"] = bringVec4To( pool["color"], pool["hovered"]["cur"] and cols.hovered or cols.default, pool["hovered"]["clock"], duration)
+	if pool['hovered']['clock'] ~= nil then
+		if os.clock() - pool['hovered']['clock'] <= duration then
+			pool['color'] = bringVec4To( pool['color'], pool['hovered']['cur'] and cols.hovered or cols.default, pool['hovered']['clock'], duration)
 		else
-			pool["color"] = pool["hovered"]["cur"] and cols.hovered or cols.default
+			pool['color'] = pool['hovered']['cur'] and cols.hovered or cols.default
 		end
 	else
-		pool["color"] = cols.default
+		pool['color'] = cols.default
 	end
 
-	imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(pool["color"]))
-	imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(pool["color"]))
-	imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(pool["color"]))
+	imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(pool['color']))
+	imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(pool['color']))
+	imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(pool['color']))
 	local result = imgui.Button(label, size or imgui.ImVec2(0, 0))
 	imgui.PopStyleColor(3)
 
-	pool["hovered"]["cur"] = imgui.IsItemHovered()
-	if pool["hovered"]["old"] ~= pool["hovered"]["cur"] then
-		pool["hovered"]["old"] = pool["hovered"]["cur"]
-		pool["hovered"]["clock"] = os.clock()
+	pool['hovered']['cur'] = imgui.IsItemHovered()
+	if pool['hovered']['old'] ~= pool['hovered']['cur'] then
+		pool['hovered']['old'] = pool['hovered']['cur']
+		pool['hovered']['clock'] = os.clock()
 	end
 
 	return result
@@ -1600,27 +1600,16 @@ local imgui_fm = imgui.OnFrame(
 						imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30))
 						if imgui.IsItemHovered() and (imgui.IsMouseReleased(0) or imgui.IsMouseReleased(1)) then
 							if configuration.main_settings.myrankint >= 9 then
-								if imgui.IsMouseReleased(0) then
-									windows.imgui_fm[0] = false
-									sendchatarray(configuration.main_settings.playcd, {
-										{'/do Ключи от шкафчика в кармане.'},
-										{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
-										{'/me {gender:передал|передала} ключ человеку напротив'},
-										{'Добро пожаловать! Раздевалка за дверью.'},
-										{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
-										{'/invite %s', fastmenuID},
-									})
-								end
+								windows.imgui_fm[0] = false
+								sendchatarray(configuration.main_settings.playcd, {
+									{'/do Ключи от шкафчика в кармане.'},
+									{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
+									{'/me {gender:передал|передала} ключ человеку напротив'},
+									{'Добро пожаловать! Раздевалка за дверью.'},
+									{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
+									{'/invite %s', fastmenuID},
+								})
 								if imgui.IsMouseReleased(1) then
-									windows.imgui_fm[0] = false
-									sendchatarray(configuration.main_settings.playcd, {
-										{'/do Ключи от шкафчика в кармане.'},
-										{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
-										{'/me {gender:передал|передала} ключ человеку напротив'},
-										{'Добро пожаловать! Раздевалка за дверью.'},
-										{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
-										{'/invite %s', fastmenuID},
-									})
 									waitingaccept = fastmenuID
 								end
 							else
@@ -1661,7 +1650,7 @@ local imgui_fm = imgui.OnFrame(
 							if configuration.main_settings.myrankint >= 9 then
 								windows.imgui_fm[0] = false
 								sendchatarray(configuration.main_settings.playcd, {
-									{'/me {gender:достал|достала} КПК из кармана'},
+									{'/me {gender:достал|достала} планшет из кармана'},
 									{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 									{'/me {gender:ввёл|ввела} имя гражданина в поиск'},
 									{'/me {gender:убрал|убрала} гражданина из раздела \'Чёрный список\''},
@@ -1686,7 +1675,7 @@ local imgui_fm = imgui.OnFrame(
 							if configuration.main_settings.myrankint >= 9 then
 								windows.imgui_fm[0] = false
 								sendchatarray(configuration.main_settings.playcd, {
-									{'/me {gender:достал|достала} КПК из кармана'},
+									{'/me {gender:достал|достала} планшет из кармана'},
 									{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 									{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
 									{'/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор'},
@@ -1711,8 +1700,8 @@ local imgui_fm = imgui.OnFrame(
 							if configuration.main_settings.myrankint >= 9 then
 								windows.imgui_fm[0] = false
 								sendchatarray(configuration.main_settings.playcd, {
-									{'/me {gender:достал|достала} КПК из кармана'},
-									{'/me {gender:включил|включила} КПК'},
+									{'/me {gender:достал|достала} планшет из кармана'},
+									{'/me {gender:включил|включила} планшет'},
 									{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
 									{'/me {gender:выбрал|выбрала} нужного сотрудника'},
 									{'/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\''},
@@ -1804,15 +1793,15 @@ local imgui_fm = imgui.OnFrame(
 									if #str(blacklistbuf) > 0 then
 										windows.imgui_fm[0] = false
 										sendchatarray(configuration.main_settings.playcd, {
-											{'/me {gender:достал|достала} КПК из кармана'},
+											{'/me {gender:достал|достала} планшет из кармана'},
 											{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
 											{'/do Раздел открыт.'},
 											{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
 											{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 											{'/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения'},
 											{'/do Изменения были сохранены.'},
-											{'/uninvite %s %s', fastmenuID, u8:decode(uninvitebuf[0])},
-											{'/blacklist %s %s', fastmenuID, u8:decode(blacklistbuf[0])},
+											{'/uninvite %s %s', fastmenuID, u8:decode(str(uninvitebuf))},
+											{'/blacklist %s %s', fastmenuID, u8:decode(str(blacklistbuf))},
 										})
 									else
 										ASHelperMessage('Введите причину занесения в ЧС!')
@@ -1820,12 +1809,12 @@ local imgui_fm = imgui.OnFrame(
 								else
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:достал|достала} КПК из кармана'},
+										{'/me {gender:достал|достала} планшет из кармана'},
 										{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
 										{'/do Раздел открыт.'},
 										{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
-										{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман'},
-										{'/uninvite %s %s', fastmenuID, u8:decode(uninvitebuf[0])},
+										{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} планшет и {gender:положил|положила} его обратно в карман'},
+										{'/uninvite %s %s', fastmenuID, u8:decode(str(uninvitebuf))},
 									})
 								end
 							else
@@ -1852,7 +1841,7 @@ local imgui_fm = imgui.OnFrame(
 						if configuration.main_settings.myrankint >= 9 then
 							windows.imgui_fm[0] = false
 							sendchatarray(configuration.main_settings.playcd, {
-								{'/me {gender:включил|включила} КПК'},
+								{'/me {gender:включил|включила} планшет'},
 								{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 								{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 								{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -1869,7 +1858,7 @@ local imgui_fm = imgui.OnFrame(
 						if configuration.main_settings.myrankint >= 9 then
 							windows.imgui_fm[0] = false
 							sendchatarray(configuration.main_settings.playcd, {
-								{'/me {gender:включил|включила} КПК'},
+								{'/me {gender:включил|включила} планшет'},
 								{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 								{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 								{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -1897,13 +1886,13 @@ local imgui_fm = imgui.OnFrame(
 							if #str(blacklistbuff) > 0 then
 								windows.imgui_fm[0] = false
 								sendchatarray(configuration.main_settings.playcd, {
-									{'/me {gender:достал|достала} КПК из кармана'},
+									{'/me {gender:достал|достала} планшет из кармана'},
 									{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 									{'/me {gender:ввёл|ввела} имя нарушителя'},
 									{'/me {gender:внёс|внесла} нарушителя в раздел \'Чёрный список\''},
 									{'/me {gender:подтведрдил|подтвердила} изменения'},
 									{'/do Изменения были сохранены.'},
-									{'/blacklist %s %s', fastmenuID, u8:decode(blacklistbuff[0])},
+									{'/blacklist %s %s', fastmenuID, u8:decode(str(blacklistbuff))},
 								})
 							else
 								ASHelperMessage('Введите причину занесения в ЧС!')
@@ -1928,7 +1917,7 @@ local imgui_fm = imgui.OnFrame(
 						if #str(fwarnbuff) > 0 then
 							windows.imgui_fm[0] = false
 							sendchatarray(configuration.main_settings.playcd, {
-								{'/me {gender:достал|достала} КПК из кармана'},
+								{'/me {gender:достал|достала} планшет из кармана'},
 								{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 								{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
 								{'/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор'},
@@ -1959,8 +1948,8 @@ local imgui_fm = imgui.OnFrame(
 								if tonumber(fmuteint[0]) and tonumber(fmuteint[0]) > 0 then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:достал|достала} КПК из кармана'},
-										{'/me {gender:включил|включила} КПК'},
+										{'/me {gender:достал|достала} планшет из кармана'},
+										{'/me {gender:включил|включила} планшет'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
 										{'/me {gender:выбрал|выбрала} нужного сотрудника'},
 										{'/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\''},
@@ -2056,7 +2045,7 @@ local imgui_fm = imgui.OnFrame(
 								windows.imgui_fm[0] = false
 								sendchatarray(configuration.main_settings.playcd, {
 									{'Поздравляю, %s, Вы сдали устав!', gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')},
-									{'/me {gender:включил|включила} КПК'},
+									{'/me {gender:включил|включила} планшет'},
 									{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 									{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 									{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -2347,7 +2336,7 @@ local imgui_fm = imgui.OnFrame(
 											sampSendChat('К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.')
 										elseif passverdict == ('был в деморгане') then
 											sampSendChat('К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.')
-											sampSendChat('/n поменяй мед. карту')
+											sampSendChat('/n обновите мед. карту')
 										elseif passverdict == ('в чс автошколы') then
 											sampSendChat('К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.')
 										elseif passverdict == ('есть варны') then
@@ -2724,7 +2713,7 @@ local imgui_fm = imgui.OnFrame(
 												sampSendChat('К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.')
 											elseif passverdict == ('был в деморгане') then
 												sampSendChat('К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.')
-												sampSendChat('/n поменяй мед. карту')
+												sampSendChat('/n обновите мед. карту')
 											elseif passverdict == ('в чс автошколы') then
 												sampSendChat('К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.')
 											elseif passverdict == ('есть варны') then
@@ -2848,7 +2837,7 @@ local imgui_fm = imgui.OnFrame(
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
 										{'Поздравляю, %s, Вы сдали устав!', gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')},
-										{'/me {gender:включил|включила} КПК'},
+										{'/me {gender:включил|включила} планшет'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 										{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 										{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -2970,27 +2959,16 @@ local imgui_fm = imgui.OnFrame(
 							imgui.BeginGroup()
 								imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(275,30))
 								if imgui.IsItemHovered() and (imgui.IsMouseReleased(0) or imgui.IsMouseReleased(1)) then
-									if imgui.IsMouseReleased(0) then
-										windows.imgui_fm[0] = false
-										sendchatarray(configuration.main_settings.playcd, {
-											{'/do Ключи от шкафчика в кармане.'},
-											{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
-											{'/me {gender:передал|передала} ключ человеку напротив'},
-											{'Добро пожаловать! Раздевалка за дверью.'},
-											{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
-											{'/invite %s', fastmenuID},
-										})
-									end
+									windows.imgui_fm[0] = false
+									sendchatarray(configuration.main_settings.playcd, {
+										{'/do Ключи от шкафчика в кармане.'},
+										{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
+										{'/me {gender:передал|передала} ключ человеку напротив'},
+										{'Добро пожаловать! Раздевалка за дверью.'},
+										{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
+										{'/invite %s', fastmenuID},
+									})
 									if imgui.IsMouseReleased(1) then
-										windows.imgui_fm[0] = false
-										sendchatarray(configuration.main_settings.playcd, {
-											{'/do Ключи от шкафчика в кармане.'},
-											{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
-											{'/me {gender:передал|передала} ключ человеку напротив'},
-											{'Добро пожаловать! Раздевалка за дверью.'},
-											{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
-											{'/invite %s', fastmenuID},
-										})
 										waitingaccept = fastmenuID
 									end
 								end
@@ -3012,7 +2990,7 @@ local imgui_fm = imgui.OnFrame(
 								if imgui.Button(fa.ICON_FA_USER..u8' Убрать из чёрного списка', imgui.ImVec2(275,30)) then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:достал|достала} КПК из кармана'},
+										{'/me {gender:достал|достала} планшет из кармана'},
 										{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 										{'/me {gender:ввёл|ввела} имя гражданина в поиск'},
 										{'/me {gender:убрал|убрала} гражданина из раздела \'Чёрный список\''},
@@ -3028,7 +3006,7 @@ local imgui_fm = imgui.OnFrame(
 								if imgui.Button(fa.ICON_FA_SMILE..u8' Снять выговор сотруднику', imgui.ImVec2(275,30)) then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:достал|достала} КПК из кармана'},
+										{'/me {gender:достал|достала} планшет из кармана'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 										{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
 										{'/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор'},
@@ -3044,8 +3022,8 @@ local imgui_fm = imgui.OnFrame(
 								if imgui.Button(fa.ICON_FA_VOLUME_UP..u8' Снять мут сотруднику', imgui.ImVec2(275,30)) then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:достал|достала} КПК из кармана'},
-										{'/me {gender:включил|включила} КПК'},
+										{'/me {gender:достал|достала} планшет из кармана'},
+										{'/me {gender:включил|включила} планшет'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
 										{'/me {gender:выбрал|выбрала} нужного сотрудника'},
 										{'/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\''},
@@ -3074,15 +3052,15 @@ local imgui_fm = imgui.OnFrame(
 											if #str(blacklistbuf) > 0 then
 												windows.imgui_fm[0] = false
 												sendchatarray(configuration.main_settings.playcd, {
-													{'/me {gender:достал|достала} КПК из кармана'},
+													{'/me {gender:достал|достала} планшет из кармана'},
 													{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
 													{'/do Раздел открыт.'},
 													{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
 													{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 													{'/me {gender:занёс|занесла} сотрудника в раздел, после чего {gender:подтвердил|подтвердила} изменения'},
 													{'/do Изменения были сохранены.'},
-													{'/uninvite %s %s', fastmenuID, u8:decode(uninvitebuf[0])},
-													{'/blacklist %s %s', fastmenuID, u8:decode(blacklistbuf[0])},
+													{'/uninvite %s %s', fastmenuID, u8:decode(str(uninvitebuf))},
+													{'/blacklist %s %s', fastmenuID, u8:decode(str(blacklistbuf))},
 												})
 											else
 												ASHelperMessage('Введите причину занесения в ЧС!')
@@ -3090,12 +3068,12 @@ local imgui_fm = imgui.OnFrame(
 										else
 											windows.imgui_fm[0] = false
 											sendchatarray(configuration.main_settings.playcd, {
-												{'/me {gender:достал|достала} КПК из кармана'},
+												{'/me {gender:достал|достала} планшет из кармана'},
 												{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
 												{'/do Раздел открыт.'},
 												{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
-												{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман'},
-												{'/uninvite %s %s', fastmenuID, u8:decode(uninvitebuf[0])},
+												{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} планшет и {gender:положил|положила} его обратно в карман'},
+												{'/uninvite %s %s', fastmenuID, u8:decode(str(uninvitebuf))},
 											})
 										end
 									else
@@ -3129,7 +3107,7 @@ local imgui_fm = imgui.OnFrame(
 								if configuration.main_settings.myrankint >= 9 then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:включил|включила} КПК'},
+										{'/me {gender:включил|включила} планшет'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 										{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 										{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -3147,7 +3125,7 @@ local imgui_fm = imgui.OnFrame(
 								if configuration.main_settings.myrankint >= 9 then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:включил|включила} КПК'},
+										{'/me {gender:включил|включила} планшет'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 										{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 										{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -3179,13 +3157,13 @@ local imgui_fm = imgui.OnFrame(
 									if #str(blacklistbuff) > 0 then
 										windows.imgui_fm[0] = false
 										sendchatarray(configuration.main_settings.playcd, {
-											{'/me {gender:достал|достала} КПК из кармана'},
+											{'/me {gender:достал|достала} планшет из кармана'},
 											{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 											{'/me {gender:ввёл|ввела} имя нарушителя'},
 											{'/me {gender:внёс|внесла} нарушителя в раздел \'Чёрный список\''},
 											{'/me {gender:подтведрдил|подтвердила} изменения'},
 											{'/do Изменения были сохранены.'},
-											{'/blacklist %s %s', fastmenuID, u8:decode(blacklistbuff[0])},
+											{'/blacklist %s %s', fastmenuID, u8:decode(str(blacklistbuff))},
 										})
 									else
 										ASHelperMessage('Введите причину занесения в ЧС!')
@@ -3214,7 +3192,7 @@ local imgui_fm = imgui.OnFrame(
 								if #str(fwarnbuff) > 0 then
 									windows.imgui_fm[0] = false
 									sendchatarray(configuration.main_settings.playcd, {
-										{'/me {gender:достал|достала} КПК из кармана'},
+										{'/me {gender:достал|достала} планшет из кармана'},
 										{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 										{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
 										{'/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор'},
@@ -3250,8 +3228,8 @@ local imgui_fm = imgui.OnFrame(
 										if tonumber(fmuteint[0]) and tonumber(fmuteint[0]) > 0 then
 											windows.imgui_fm[0] = false
 											sendchatarray(configuration.main_settings.playcd, {
-												{'/me {gender:достал|достала} КПК из кармана'},
-												{'/me {gender:включил|включила} КПК'},
+												{'/me {gender:достал|достала} планшет из кармана'},
+												{'/me {gender:включил|включила} планшет'},
 												{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
 												{'/me {gender:выбрал|выбрала} нужного сотрудника'},
 												{'/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\''},
@@ -3356,7 +3334,7 @@ local imgui_settings = imgui.OnFrame(
 				imgui.PopStyleColor(3)
 				imgui.SetCursorPos(imgui.ImVec2(217, 23))
 				imgui.TextColored(imgui.GetStyle().Colors[imgui.Col.Border],'v. '..thisScript().version)
-				imgui.Hint('lastupdate','Обновление от 11.12.2021')
+				imgui.Hint('lastupdate','Обновление от 13.12.2021')
 				imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15,15))
 				if imgui.BeginPopupModal(u8'Все команды', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 					imgui.PushFont(font[16])
@@ -4327,7 +4305,7 @@ local imgui_settings = imgui.OnFrame(
 									imgui.PopFont()
 									imgui.Spacing()
 									if imgui.Button(u8'Проверить наличие обновлений') then
-										checkUpdates('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Updates/update.json')
+										checkUpdates('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Updates/update.json', true)
 									end
 								imgui.EndGroup()
 							end
@@ -5908,7 +5886,8 @@ function checkRules()
 	end)
 end
 
-function checkUpdates(json_url)
+function checkUpdates(json_url, show_notify)
+	show_notify = show_notify or false
 	local function getTimeAfter(unix)
 		local function plural(n, forms) 
 			n = math.abs(n) % 100
@@ -5960,7 +5939,9 @@ function checkUpdates(json_url)
 					if updateversion ~= thisScript().version then
 						addNotify('Обнаружено обновление на\nверсию {MC}'..updateversion..'{WC}. Подробности:\n{MC}/ashupd', 5)
 					else
-						addNotify('Обновлений не обнаружено!', 5)
+						if show_notify then
+							addNotify('Обновлений не обнаружено!', 5)
+						end
 					end
 					if configuration.main_settings.getbetaupd and info.beta_upd then
 						updateinfo = {
@@ -6016,12 +5997,7 @@ function main()
 		configuration.main_settings.changelog = false
 		inicfg.save(configuration, 'AS Helper.ini')
 	end
-
-	sampRegisterChatCommand('temp', function()
-		windows.imgui_fm[0] = not windows.imgui_fm[0]
-		fastmenuID = select(2,sampGetPlayerIdByCharHandle(playerPed))
-		windowtype[0] = 0
-	end)
+	
 	sampRegisterChatCommand('ash', function()
 		windows.imgui_settings[0] = not windows.imgui_settings[0]
 		alpha[0] = clock()
@@ -6070,7 +6046,7 @@ function main()
 		end
 		if withbl then
 			return sendchatarray(configuration.main_settings.playcd, {
-				{'/me {gender:достал|достала} КПК из кармана'},
+				{'/me {gender:достал|достала} планшет из кармана'},
 				{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
 				{'/do Раздел открыт.'},
 				{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
@@ -6082,11 +6058,11 @@ function main()
 			})
 		else
 			return sendchatarray(configuration.main_settings.playcd, {
-				{'/me {gender:достал|достала} КПК из кармана'},
+				{'/me {gender:достал|достала} планшет из кармана'},
 				{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
 				{'/do Раздел открыт.'},
 				{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
-				{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} КПК и {gender:положил|положила} его обратно в карман'},
+				{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} планшет и {gender:положил|положила} его обратно в карман'},
 				{'/uninvite %s %s', uvalid, reason},
 			})
 		end
@@ -6131,7 +6107,7 @@ function main()
 			return ASHelperMessage('Вы не можете менять ранг самому себе.')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:включил|включила} КПК'},
+			{'/me {gender:включил|включила} планшет'},
 			{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 			{'/me {gender:выбрал|выбрала} в разделе нужного сотрудника'},
 			{'/me {gender:изменил|изменила} информацию о должности сотрудника, после чего {gender:подтведрдил|подтвердила} изменения'},
@@ -6156,7 +6132,7 @@ function main()
 			return ASHelperMessage('Вы не можете внести в ЧС самого себя.')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:достал|достала} КПК из кармана'},
+			{'/me {gender:достал|достала} планшет из кармана'},
 			{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 			{'/me {gender:ввёл|ввела} имя нарушителя'},
 			{'/me {gender:внёс|внесла} нарушителя в раздел \'Чёрный список\''},
@@ -6178,7 +6154,7 @@ function main()
 			return ASHelperMessage('/unblacklist [id]')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:достал|достала} КПК из кармана'},
+			{'/me {gender:достал|достала} планшет из кармана'},
 			{'/me {gender:перешёл|перешла} в раздел \'Чёрный список\''},
 			{'/me {gender:ввёл|ввела} имя гражданина в поиск'},
 			{'/me {gender:убрал|убрала} гражданина из раздела \'Чёрный список\''},
@@ -6200,7 +6176,7 @@ function main()
 			return ASHelperMessage('/fwarn [id] [причина]')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:достал|достала} КПК из кармана'},
+			{'/me {gender:достал|достала} планшет из кармана'},
 			{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 			{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
 			{'/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор'},
@@ -6221,7 +6197,7 @@ function main()
 			return ASHelperMessage('/unfwarn [id]')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:достал|достала} КПК из кармана'},
+			{'/me {gender:достал|достала} планшет из кармана'},
 			{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
 			{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
 			{'/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор'},
@@ -6242,8 +6218,8 @@ function main()
 			return ASHelperMessage('/fmute [id] [время] [причина]')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:достал|достала} КПК из кармана'},
-			{'/me {gender:включил|включила} КПК'},
+			{'/me {gender:достал|достала} планшет из кармана'},
+			{'/me {gender:включил|включила} планшет'},
 			{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
 			{'/me {gender:выбрал|выбрала} нужного сотрудника'},
 			{'/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\''},
@@ -6264,8 +6240,8 @@ function main()
 			return ASHelperMessage('/funmute [id]')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/me {gender:достал|достала} КПК из кармана'},
-			{'/me {gender:включил|включила} КПК'},
+			{'/me {gender:достал|достала} планшет из кармана'},
+			{'/me {gender:включил|включила} планшет'},
 			{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
 			{'/me {gender:выбрал|выбрала} нужного сотрудника'},
 			{'/me {gender:выбрал|выбрала} пункт \'Включить рацию сотрудника\''},
@@ -6297,7 +6273,7 @@ function main()
 	end)
 
 	updatechatcommands()
-	
+
 	lua_thread.create(function()
 		local function sampIsLocalPlayerSpawned()
 			local res, id = sampGetPlayerIdByCharHandle(PLAYER_PED)
@@ -6571,7 +6547,9 @@ changelog = {
 				text = [[
  - Исправлен краш скрипта при изменении местоположения выключенной статистики
  - Исправлен баг с неработающей командой /ashupd
- - Исправлен баг с размером меню быстрого доступа при смене стиля]]
+ - Исправлен баг с размером меню быстрого доступа при смене стиля
+ - Исправлен баг с причиной увольнения через меню быстрого доступа
+ - Изменены некоторые отыгровки]]
 			},
 		},
 	},
