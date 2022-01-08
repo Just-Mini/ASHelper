@@ -1,7 +1,7 @@
 {
     "file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua",
-    "version":"3.0.2",
-    "change_log":" - Исправлен баг с причиной увольнения через меню быстрого доступа\n - Изменены некоторые отыгровки",
+    "version":"3.0.3",
+    "change_log":" - Добавлена поддержка 19-го сервера (Page)",
     "beta_upd":true,
     "beta_file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper%20beta.lua",
     "beta_version":"3.1 beta",

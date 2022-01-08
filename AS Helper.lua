@@ -33,7 +33,7 @@ script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
 script_version_number(46)
-script_version('3.0.2')
+script_version('3.0.3')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -5611,6 +5611,7 @@ function checkServer(ip)
 		['80.66.82.191'] = 'Gilbert',
 		['80.66.82.190'] = 'Show Low',
 		['80.66.82.188'] = 'Casa-Grande',
+		['80.66.82.168'] = 'Page',
 	}
 	return servers[ip] or false
 end
@@ -6541,6 +6542,7 @@ changelog = {
 				'Изменена система проверки и подкачки библиотек',
 				'Добавлены правила и проверка устава в зависимости от вашего сервера (правила были взяты с форума 13.11.2021, при изменении писать автору)',
 				'Добавлена вкладка \'Отыгровки\', в которой можно настроить: проверку мед. карты при продаже лицензии на оружие, охоту; замену слова \'Автошкола\' на \'ГЦЛ\'; выставить задержку между сообщениями',
+				'Добавлена поддержка 19-го сервера (Page)',
 			},
 			patches = {
 				active = false,
