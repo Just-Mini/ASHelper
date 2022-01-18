@@ -33,7 +33,7 @@ script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
 script_version_number(46)
-script_version('3.0.3')
+script_version('3.0.4')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -263,6 +263,12 @@ local configuration = inicfg.load({
 		'Помощник директора',
 		'Директор',
 		'Управляющий',
+	},
+	sobes_settings = {
+		pass = true,
+		medcard = true,
+		wbook = false,
+		licenses = false,
 	},
 	BindsName = {},
 	BindsDelay = {},
@@ -559,7 +565,13 @@ local departsettings = {
 local questionsettings = {
 	questionname					= new.char[256](),
 	questionhint					= new.char[256](),
-	questionques					= new.char[256]()
+	questionques					= new.char[256](),
+}
+local sobes_settings = {
+	pass							= new.bool(configuration.sobes_settings.pass),
+	medcard							= new.bool(configuration.sobes_settings.medcard),
+	wbook							= new.bool(configuration.sobes_settings.wbook),
+	licenses						= new.bool(configuration.sobes_settings.licenses),
 }
 local tagbuttons = {
 	{name = '{my_id}',text = 'Пишет Ваш ID.',hint = '/n /showpass {my_id}\n(( /showpass \'Ваш ID\' ))'},
@@ -1725,13 +1737,15 @@ local imgui_fm = imgui.OnFrame(
 						if imgui.Button(u8'Собеседование '..fa.ICON_FA_ELLIPSIS_V, imgui.ImVec2(285,30)) then
 							if configuration.main_settings.myrankint >= 5 then
 								imgui.SetScrollY(0)
-								passvalue = true
-								mcvalue = true
-								passverdict = ''
-								mcverdict = ''
 								sobesetap[0] = 0
 								sobesdecline_select[0] = 0
 								windowtype[0] = 9
+								sobes_results = {
+									pass = nil,
+									medcard = nil,
+									wbook = nil,
+									licenses = nil
+								}
 							else
 								ASHelperMessage('Данное действие доступно с 5-го ранга.')
 							end
@@ -2177,25 +2191,76 @@ local imgui_fm = imgui.OnFrame(
 							})
 						end
 						imgui.SetCursorPosX(7.5)
-						if imgui.Button(u8'Попросить документы '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
-							if not inprocess then
-								sendchatarray(0, {
-									{'Хорошо, покажите мне ваши документы, а именно: паспорт и мед.карту'},
-									{'/n Обязательно по рп!'},
-								})
-								sobesetap[0] = 1
-							else
-								ASHelperMessage('Не торопитесь, Вы уже отыгрываете что-то! Прервать отыгровку: {MC}Alt{WC} + {MC}U{WC}')
+						imgui.Button(u8'Попросить документы '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30))
+						if imgui.IsItemHovered() then
+							imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(5, 5))
+							imgui.BeginTooltip()
+							imgui.Text(u8'ЛКМ для того, чтобы продолжить\nПКМ для того, чтобы настроить документы')
+							imgui.EndTooltip()
+							imgui.PopStyleVar()
+
+							if imgui.IsMouseReleased(0) then
+								if not inprocess then
+									local s = configuration.sobes_settings
+									local out = (s.pass and 'паспорт' or '')..
+												(s.medcard and (s.pass and ', мед. карту' or 'мед. карту') or '')..
+												(s.wbook and ((s.pass or s.medcard) and ', трудовую книжку' or 'трудовую книжку') or '')..
+												(s.licenses and ((s.pass or s.medcard or s.wbook) and ', лицензии' or 'лицензии') or '')
+									sendchatarray(0, {
+										{'Хорошо, покажите мне ваши документы, а именно: %s', out},
+										{'/n Обязательно по рп!'},
+									})
+									sobesetap[0] = 1
+								else
+									ASHelperMessage('Не торопитесь, Вы уже отыгрываете что-то! Прервать отыгровку: {MC}Alt{WC} + {MC}U{WC}')
+								end
+							end
+							if imgui.IsMouseReleased(1) then
+								imgui.OpenPopup('##redactdocuments')
 							end
 						end
+						imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(10, 10))
+						if imgui.BeginPopup('##redactdocuments') then
+							if imgui.ToggleButton(u8'Проверять паспорт', sobes_settings.pass) then
+								configuration.sobes_settings.pass = sobes_settings.pass[0]
+								inicfg.save(configuration,'AS Helper')
+							end
+							if imgui.ToggleButton(u8'Проверять мед. карту', sobes_settings.medcard) then
+								configuration.sobes_settings.medcard = sobes_settings.medcard[0]
+								inicfg.save(configuration,'AS Helper')
+							end
+							if imgui.ToggleButton(u8'Проверять трудовую книгу', sobes_settings.wbook) then
+								configuration.sobes_settings.wbook = sobes_settings.wbook[0]
+								inicfg.save(configuration,'AS Helper')
+							end
+							if imgui.ToggleButton(u8'Проверять лицензии', sobes_settings.licenses) then
+								configuration.sobes_settings.licenses = sobes_settings.licenses[0]
+								inicfg.save(configuration,'AS Helper')
+							end
+							imgui.EndPopup()
+						end
+						imgui.PopStyleVar()
 					end
 			
 					if sobesetap[0] == 1 then
 						imgui.TextColoredRGB('Собеседование: Этап 2',1)
 						imgui.Separator()
-						imgui.TextColoredRGB(mcvalue and 'Мед.карта - не показана' or 'Мед.карта - показана ('..mcverdict..')',1)
-						imgui.TextColoredRGB(passvalue and 'Паспорт - не показан' or 'Паспорт - показан ('..passverdict..')',1)
-						if not mcvalue and mcverdict == ('в порядке') and not passvalue and passverdict == ('в порядке') then
+						if configuration.sobes_settings.pass then
+							imgui.TextColoredRGB(sobes_results.pass and 'Паспорт - показан ('..sobes_results.pass..')' or 'Паспорт - не показан',1)
+						end
+						if configuration.sobes_settings.medcard then
+							imgui.TextColoredRGB(sobes_results.medcard and 'Мед. карта - показана ('..sobes_results.medcard..')' or 'Мед. карта - не показана',1)
+						end
+						if configuration.sobes_settings.wbook then
+							imgui.TextColoredRGB(sobes_results.wbook and 'Трудовая книжка - показана' or 'Трудовая книжка - не показана',1)
+						end
+						if configuration.sobes_settings.licenses then
+							imgui.TextColoredRGB(sobes_results.licenses and 'Лицензии - показаны ('..sobes_results.licenses..')' or 'Лицензии - не показаны',1)
+						end
+						if (configuration.sobes_settings.pass == true and sobes_results.pass == 'в порядке' or configuration.sobes_settings.pass == false) and
+						(configuration.sobes_settings.medcard == true and sobes_results.medcard == 'в порядке' or configuration.sobes_settings.medcard == false) and
+						(configuration.sobes_settings.wbook == true and sobes_results.wbook == 'присутствует' or configuration.sobes_settings.wbook == false) and
+						(configuration.sobes_settings.licenses == true and sobes_results.licenses ~= nil or configuration.sobes_settings.licenses == false) then
 							imgui.SetCursorPosX(7.5)
 							if imgui.Button(u8'Продолжить '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 								if not inprocess then
@@ -2232,10 +2297,9 @@ local imgui_fm = imgui.OnFrame(
 							end
 						end
 						imgui.SetCursorPosX(7.5)
-						if imgui.Button(u8'Работали Вы уже в организациях ЦА? '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
+						if imgui.Button(u8'Работали Вы у нас ранее? '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 							if not inprocess then
-								sampSendChat('Работали Вы уже в организациях ЦА? Если да, то расскажите подробнее')
-								sampSendChat('/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк]')
+								sampSendChat('Работали Вы у нас ранее? Если да, то расскажите подробнее')
 								sobesetap[0] = 3
 							else
 								ASHelperMessage('Не торопитесь, Вы уже отыгрываете что-то! Прервать отыгровку: {MC}Alt{WC} + {MC}U{WC}')
@@ -2321,32 +2385,30 @@ local imgui_fm = imgui.OnFrame(
 						imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.30, 0.00, 0.00, 1.00))
 						if imgui.Button(u8'Отклонить', imgui.ImVec2(285,30)) then
 							if not inprocess then
-								if not mcvalue or not passvalue then
-									if mcverdict == ('наркозависимость') or mcverdict == ('не полностью здоровый') or passverdict == ('меньше 3 лет в штате') or passverdict == ('не законопослушный') or passverdict == ('игрок в организации') or passverdict == ('был в деморгане') or passverdict == ('в чс автошколы') or passverdict == ('есть варны') then
-										windows.imgui_fm[0] = false
-										if mcverdict == ('наркозависимость') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы слишком наркозависимый.')
-										elseif mcverdict == ('не полностью здоровый') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы не полностью здоровый.')
-										elseif passverdict == ('меньше 3 лет в штате') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы не проживаете в штате 3 года.')
-										elseif passverdict == ('не законопослушный') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы недостаточно законопослушный.')
-										elseif passverdict == ('игрок в организации') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.')
-										elseif passverdict == ('был в деморгане') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.')
-											sampSendChat('/n обновите мед. карту')
-										elseif passverdict == ('в чс автошколы') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.')
-										elseif passverdict == ('есть варны') then
-											sampSendChat('К сожалению я не могу продолжить собеседование. Вы проф. непригодны.')
-											sampSendChat('/n есть варны')
-										end							
-									else
-										lastsobesetap[0] = sobesetap[0]
-										sobesetap[0] = 7
+								local reasons = {
+									pass = {
+										['меньше 3 лет в штате'] = {'К сожалению я не могу продолжить собеседование. Вы не проживаете в штате 3 года.'},
+										['не законопослушный'] = {'К сожалению я не могу продолжить собеседование. Вы недостаточно законопослушный.'},
+										['игрок в организации'] = {'К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.'},
+										['в чс автошколы'] = {'К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.'},
+										['есть варны'] = {'К сожалению я не могу продолжить собеседование. Вы проф. непригодны.', '/n есть варны'},
+										['был в деморгане'] = {'К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.', '/n обновите мед. карту'}
+									},
+									mc = {
+										['наркозависимость'] = {'К сожалению я не могу продолжить собеседование. Вы слишком наркозависимый.'},
+										['не полностью здоровый'] = {'К сожалению я не могу продолжить собеседование. Вы не полностью здоровый.'},
+									},
+								}
+								if reasons.pass[sobes_results.pass] then
+									for k, v in pairs(reasons.pass[sobes_results.pass]) do
+										sampSendChat(v)
 									end
+									windows.imgui_fm[0] = false
+								elseif reasons.mc[sobes_results.medcard] then
+									for k, v in pairs(reasons.mc[sobes_results.medcard]) do
+										sampSendChat(v)
+									end
+									windows.imgui_fm[0] = false
 								else
 									lastsobesetap[0] = sobesetap[0]
 									sobesetap[0] = 7
@@ -2551,25 +2613,76 @@ local imgui_fm = imgui.OnFrame(
 								})
 							end
 							imgui.SetCursorPosX(7.5)
-							if imgui.Button(u8'Попросить документы '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
-								if not inprocess then
-									sendchatarray(0, {
-										{'Хорошо, покажите мне ваши документы, а именно: паспорт и мед.карту'},
-										{'/n Обязательно по рп!'},
-									})
-									sobesetap[0] = 1
-								else
-									ASHelperMessage('Не торопитесь, Вы уже отыгрываете что-то! Прервать отыгровку: {MC}Alt{WC} + {MC}U{WC}')
+							imgui.Button(u8'Попросить документы '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30))
+							if imgui.IsItemHovered() then
+								imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(5, 5))
+								imgui.BeginTooltip()
+								imgui.Text(u8'ЛКМ для того, чтобы продолжить\nПКМ для того, чтобы настроить документы')
+								imgui.EndTooltip()
+								imgui.PopStyleVar()
+
+								if imgui.IsMouseReleased(0) then
+									if not inprocess then
+										local s = configuration.sobes_settings
+										local out = (s.pass and 'паспорт' or '')..
+													(s.medcard and (s.pass and ', мед. карту' or 'мед. карту') or '')..
+													(s.wbook and ((s.pass or s.medcard) and ', трудовую книжку' or 'трудовую книжку') or '')..
+													(s.licenses and ((s.pass or s.medcard or s.wbook) and ', лицензии' or 'лицензии') or '')
+										sendchatarray(0, {
+											{'Хорошо, покажите мне ваши документы, а именно: %s', out},
+											{'/n Обязательно по рп!'},
+										})
+										sobesetap[0] = 1
+									else
+										ASHelperMessage('Не торопитесь, Вы уже отыгрываете что-то! Прервать отыгровку: {MC}Alt{WC} + {MC}U{WC}')
+									end
+								end
+								if imgui.IsMouseReleased(1) then
+									imgui.OpenPopup('##redactdocuments')
 								end
 							end
+							imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(10, 10))
+							if imgui.BeginPopup('##redactdocuments') then
+								if imgui.ToggleButton(u8'Проверять паспорт', sobes_settings.pass) then
+									configuration.sobes_settings.pass = sobes_settings.pass[0]
+									inicfg.save(configuration,'AS Helper')
+								end
+								if imgui.ToggleButton(u8'Проверять мед. карту', sobes_settings.medcard) then
+									configuration.sobes_settings.medcard = sobes_settings.medcard[0]
+									inicfg.save(configuration,'AS Helper')
+								end
+								if imgui.ToggleButton(u8'Проверять трудовую книгу', sobes_settings.wbook) then
+									configuration.sobes_settings.wbook = sobes_settings.wbook[0]
+									inicfg.save(configuration,'AS Helper')
+								end
+								if imgui.ToggleButton(u8'Проверять лицензии', sobes_settings.licenses) then
+									configuration.sobes_settings.licenses = sobes_settings.licenses[0]
+									inicfg.save(configuration,'AS Helper')
+								end
+								imgui.EndPopup()
+							end
+							imgui.PopStyleVar()
 						end
 					
 						if sobesetap[0] == 1 then
 							imgui.TextColoredRGB('Собеседование: Этап 2',1)
 							imgui.Separator()
-							imgui.TextColoredRGB(mcvalue and 'Мед.карта - не показана' or 'Мед.карта - показана ('..mcverdict..')',1)
-							imgui.TextColoredRGB(passvalue and 'Паспорт - не показан' or 'Паспорт - показан ('..passverdict..')',1)
-							if not mcvalue and mcverdict == ('в порядке') and not passvalue and passverdict == ('в порядке') then
+							if configuration.sobes_settings.pass then
+								imgui.TextColoredRGB(sobes_results.pass and 'Паспорт - показан ('..sobes_results.pass..')' or 'Паспорт - не показан',1)
+							end
+							if configuration.sobes_settings.medcard then
+								imgui.TextColoredRGB(sobes_results.medcard and 'Мед. карта - показана ('..sobes_results.medcard..')' or 'Мед. карта - не показана',1)
+							end
+							if configuration.sobes_settings.wbook then
+								imgui.TextColoredRGB(sobes_results.wbook and 'Трудовая книжка - показана' or 'Трудовая книжка - не показана',1)
+							end
+							if configuration.sobes_settings.licenses then
+								imgui.TextColoredRGB(sobes_results.licenses and 'Лицензии - показаны ('..sobes_results.licenses..')' or 'Лицензии - не показаны',1)
+							end
+							if (configuration.sobes_settings.pass == true and sobes_results.pass == 'в порядке' or configuration.sobes_settings.pass == false) and
+							(configuration.sobes_settings.medcard == true and sobes_results.medcard == 'в порядке' or configuration.sobes_settings.medcard == false) and
+							(configuration.sobes_settings.wbook == true and sobes_results.wbook == 'присутствует' or configuration.sobes_settings.wbook == false) and
+							(configuration.sobes_settings.licenses == true and sobes_results.licenses ~= nil or configuration.sobes_settings.licenses == false) then
 								imgui.SetCursorPosX(7.5)
 								if imgui.Button(u8'Продолжить '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 									if not inprocess then
@@ -2606,10 +2719,9 @@ local imgui_fm = imgui.OnFrame(
 								end
 							end
 							imgui.SetCursorPosX(7.5)
-							if imgui.Button(u8'Работали Вы уже в организациях ЦА? '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
+							if imgui.Button(u8'Работали Вы у нас ранее? '..fa.ICON_FA_ARROW_RIGHT, imgui.ImVec2(285,30)) then
 								if not inprocess then
-									sampSendChat('Работали Вы уже в организациях ЦА? Если да, то расскажите подробнее')
-									sampSendChat('/n ЦА - Центральный аппарат [Автошкола, Правительство, Банк]')
+									sampSendChat('Работали Вы у нас ранее? Если да, то расскажите подробнее')
 									sobesetap[0] = 3
 								else
 									ASHelperMessage('Не торопитесь, Вы уже отыгрываете что-то! Прервать отыгровку: {MC}Alt{WC} + {MC}U{WC}')
@@ -2698,32 +2810,30 @@ local imgui_fm = imgui.OnFrame(
 							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(0.30, 0.00, 0.00, 1.00))
 							if imgui.Button(u8'Отклонить', imgui.ImVec2(285,30)) then
 								if not inprocess then
-									if not mcvalue or not passvalue then
-										if mcverdict == ('наркозависимость') or mcverdict == ('не полностью здоровый') or passverdict == ('меньше 3 лет в штате') or passverdict == ('не законопослушный') or passverdict == ('игрок в организации') or passverdict == ('был в деморгане') or passverdict == ('в чс автошколы') or passverdict == ('есть варны') then
-											windows.imgui_fm[0] = false
-											if mcverdict == ('наркозависимость') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы слишком наркозависимый.')
-											elseif mcverdict == ('не полностью здоровый') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы не полностью здоровый.')
-											elseif passverdict == ('меньше 3 лет в штате') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы не проживаете в штате 3 года.')
-											elseif passverdict == ('не законопослушный') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы недостаточно законопослушный.')
-											elseif passverdict == ('игрок в организации') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.')
-											elseif passverdict == ('был в деморгане') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.')
-												sampSendChat('/n обновите мед. карту')
-											elseif passverdict == ('в чс автошколы') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.')
-											elseif passverdict == ('есть варны') then
-												sampSendChat('К сожалению я не могу продолжить собеседование. Вы проф. непригодны.')
-												sampSendChat('/n есть варны')
-											end							
-										else
-											lastsobesetap[0] = sobesetap[0]
-											sobesetap[0] = 7
+									local reasons = {
+										pass = {
+											['меньше 3 лет в штате'] = {'К сожалению я не могу продолжить собеседование. Вы не проживаете в штате 3 года.'},
+											['не законопослушный'] = {'К сожалению я не могу продолжить собеседование. Вы недостаточно законопослушный.'},
+											['игрок в организации'] = {'К сожалению я не могу продолжить собеседование. Вы уже работаете в другой организации.'},
+											['в чс автошколы'] = {'К сожалению я не могу продолжить собеседование. Вы находитесь в ЧС АШ.'},
+											['есть варны'] = {'К сожалению я не могу продолжить собеседование. Вы проф. непригодны.', '/n есть варны'},
+											['был в деморгане'] = {'К сожалению я не могу продолжить собеседование. Вы лечились в псих. больнице.', '/n обновите мед. карту'}
+										},
+										mc = {
+											['наркозависимость'] = {'К сожалению я не могу продолжить собеседование. Вы слишком наркозависимый.'},
+											['не полностью здоровый'] = {'К сожалению я не могу продолжить собеседование. Вы не полностью здоровый.'},
+										},
+									}
+									if reasons.pass[sobes_results.pass] then
+										for k, v in pairs(reasons.pass[sobes_results.pass]) do
+											sampSendChat(v)
 										end
+										windows.imgui_fm[0] = false
+									elseif reasons.mc[sobes_results.medcard] then
+										for k, v in pairs(reasons.mc[sobes_results.medcard]) do
+											sampSendChat(v)
+										end
+										windows.imgui_fm[0] = false
 									else
 										lastsobesetap[0] = sobesetap[0]
 										sobesetap[0] = 7
@@ -3288,13 +3398,15 @@ local imgui_fm = imgui.OnFrame(
 								if imgui.AnimButton(v.name, imgui.ImVec2(162,35)) then
 									if newwindowtype[0] ~= k then
 										newwindowtype[0] = k
-										passvalue = true
-										mcvalue = true
-										passverdict = ''
-										mcverdict = ''
 										sobesetap[0] = 0
 										sobesdecline_select[0] = 0
 										lastq[0] = 0
+										sobes_results = {
+											pass = nil,
+											medcard = nil,
+											wbook = nil,
+											licenses = nil
+										}
 									end
 								end
 								imgui.PopStyleColor(3)
@@ -4039,6 +4151,7 @@ local imgui_settings = imgui.OnFrame(
 										imgui.SetColumnWidth(-1, 75)
 										imgui.NextColumn()
 										imgui.Text(u8(button))
+										imgui.NextColumn()
 									end
 									imgui.Columns(1)
 									imgui.Separator()
@@ -4333,6 +4446,10 @@ local imgui_settings = imgui.OnFrame(
 							if testCheat('dev') then
 								configuration.main_settings.myrankint = 10
 								addNotify('{20FF20}Режим разработчика включён.', 5)
+								sampRegisterChatCommand('ash_temp',function()
+									fastmenuID = select(2, sampGetPlayerIdByCharHandle(playerPed))
+									windows.imgui_fm[0] = true
+								end)
 							end
 							imgui.PushFont(font[15])
 							imgui.TextColoredRGB('Автор - {MC}JustMini')
@@ -5236,25 +5353,22 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 
 	elseif dialogId == 1234 then
 		if find(text, 'Срок действия') then
-			if mcvalue then
+			if configuration.sobes_settings.medcard and sobes_results and not sobes_results.medcard then
 				if not find(text, 'Имя: '..sampGetPlayerNickname(fastmenuID)) then
 					return {dialogId, style, title, button1, button2, text}
 				end
 				if not find(text, 'Полностью здоровый') then
-					mcvalue = false
-					mcverdict = ('не полностью здоровый')
+					sobes_results.medcard = ('не полностью здоровый')
 					return {dialogId, style, title, button1, button2, text}
 				end
 				for DialogLine in gmatch(text, '[^\r\n]+') do
 					local statusint = DialogLine:match('{CEAD2A}Наркозависимость: (%d+)')
 					if tonumber(statusint) and tonumber(statusint) > 5 then
-						mcvalue = false
-						mcverdict = ('наркозависимость')
+						sobes_results.medcard = ('наркозависимость')
 						return {dialogId, style, title, button1, button2, text}
 					end
 				end
-				mcvalue = false
-				mcverdict = ('в порядке')
+				sobes_results.medcard = ('в порядке')
 			end
 			if skiporcancel then
 				if find(text, 'Имя: '..sampGetPlayerNickname(tempid)) then
@@ -5285,49 +5399,65 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 				end
 			end
 		elseif find(text, 'Серия') then
-			if passvalue then
+			if configuration.sobes_settings.pass and sobes_results and not sobes_results.pass then
 				if not find(text, 'Имя: {FFD700}'..sampGetPlayerNickname(fastmenuID)) then
 					return {dialogId, style, title, button1, button2, text}
 				end
 				if find(text, '{FFFFFF}Организация:') then
-					passvalue = false
-					passverdict = ('игрок в организации')
+					sobes_results.pass = ('игрок в организации')
 					return {dialogId, style, title, button1, button2, text}
 				end
 				for DialogLine in gmatch(text, '[^\r\n]+') do
 					local passstatusint = DialogLine:match('{FFFFFF}Лет в штате: {FFD700}(%d+)')
 					if tonumber(passstatusint) and tonumber(passstatusint) < 3 then
-						passvalue = false
-						passverdict = ('меньше 3 лет в штате')
+						sobes_results.pass = ('меньше 3 лет в штате')
 						return {dialogId, style, title, button1, button2, text}
 					end
 				end
 				for DialogLine in gmatch(text, '[^\r\n]+') do
 					local zakonstatusint = DialogLine:match('{FFFFFF}Законопослушность: {FFD700}(%d+)')
 					if tonumber(zakonstatusint) and tonumber(zakonstatusint) < 35 then
-						passvalue = false
-						passverdict = ('не законопослушный')
+						sobes_results.pass = ('не законопослушный')
 						return {dialogId, style, title, button1, button2, text}
 					end
 				end
 				if find(text, 'Лечился в Психиатрической больнице') then
-					passvalue = false
-					passverdict = ('был в деморгане')
+					sobes_results.pass = ('был в деморгане')
 					return {dialogId, style, title, button1, button2, text}
 				end
 				if find(text, 'Состоит в ЧС{FF6200} Инструкторы') then
-					passvalue = false
-					passverdict = ('в чс автошколы')
+					sobes_results.pass = ('в чс автошколы')
 					return {dialogId, style, title, button1, button2, text}
 				end
 				if find(text, 'Warns') then
-					passvalue = false
-					passverdict = ('есть варны')
+					sobes_results.pass = ('есть варны')
 					return {dialogId, style, title, button1, button2, text}
 				end
-				passvalue = false
-				passverdict = ('в порядке')
+				sobes_results.pass = ('в порядке')
 			end
+		elseif find(title, 'Лицензии') then
+			if configuration.sobes_settings.licenses and sobes_results and not sobes_results.licenses then
+				for DialogLine in gmatch(text, '[^\r\n]+') do
+					if find(DialogLine, 'Лицензия на авто') then
+						if find(DialogLine, 'Нет') then
+							sobes_results.licenses = ('нет на авто')
+							return {dialogId, style, title, button1, button2, text}
+						end
+					end
+					if find(DialogLine, 'Лицензия на мото') then
+						if find(DialogLine, 'Нет') then
+							sobes_results.licenses = ('нет на мото')
+							return {dialogId, style, title, button1, button2, text}
+						end
+					end
+				end
+				sobes_results.licenses = ('в порядке')
+				return {dialogId, style, title, button1, button2, text}
+			end
+		end
+	elseif dialogId == 0 then
+		if find(title, 'Трудовая книжка '..sampGetPlayerNickname(fastmenuID)) then
+			sobes_results.wbook = ('присутствует')
 		end
 	end
 
@@ -5978,16 +6108,6 @@ function main()
 	createJsons()
 	checkRules()
 
-	if not checkServer(select(1, sampGetCurrentServerAddress())) then
-		print('{FF0000}Скрипт был запущен не на Arizona RP. Скрипт был выгружен.')
-		ASHelperMessage('Скрипт работает только на серверах Arizona RP. Скрипт выгружен.')
-		NoErrors = true
-		thisScript():unload()
-		while NoErrors do
-			wait(0)
-		end
-	end
-
 	getmyrank = true
 	sampSendChat('/stats')
 	print('{00FF00}Успешная загрузка')
@@ -6542,7 +6662,8 @@ changelog = {
 				'Изменена система проверки и подкачки библиотек',
 				'Добавлены правила и проверка устава в зависимости от вашего сервера (правила были взяты с форума 13.11.2021, при изменении писать автору)',
 				'Добавлена вкладка \'Отыгровки\', в которой можно настроить: проверку мед. карты при продаже лицензии на оружие, охоту; замену слова \'Автошкола\' на \'ГЦЛ\'; выставить задержку между сообщениями',
-				'Добавлена поддержка 19-го сервера (Page)',
+				'Добавлена проверка трудовой книжки и лицензий в собеседовании.',
+				'Удалена система проверки сервера, теперь скрипт работает на всех серверах.',
 			},
 			patches = {
 				active = false,
