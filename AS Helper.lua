@@ -1,11 +1,11 @@
 --[[
-             _      ____      _   _          _                       
-            / \    / ___|    | | | |   ___  | |  _ __     ___   _ __ 
+             _      ____      _   _          _
+            / \    / ___|    | | | |   ___  | |  _ __     ___   _ __
            / _ \   \___ \    | |_| |  / _ \ | | | '_ \   / _ \ | '__|
-          / ___ \   ___) |   |  _  | |  __/ | | | |_) | |  __/ | |   
-         /_/   \_\ |____/    |_| |_|  \___| |_| | .__/   \___| |_|   
-                                                |_|      
-            
+          / ___ \   ___) |   |  _  | |  __/ | | | |_) | |  __/ | |
+         /_/   \_\ |____/    |_| |_|  \___| |_| | .__/   \___| |_|
+                                                |_|
+
 	[стили imgui]
 		1-ый imgui стиль (переделан под лад mimgui): https://www.blast.hk/threads/25442/post-310168
 		2-ой imgui стиль (переделан под лад mimgui): https://www.blast.hk/threads/25442/post-262906
@@ -32,8 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version_number(46)
-script_version('3.0.4')
+script_version('3.1')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -49,7 +48,7 @@ local monetluacheck, monetlua 	= pcall(require, 'MoonMonet')
 local lfscheck, lfs 			= pcall(require, 'lfs')
 local sampevcheck, sampev		= pcall(require, 'lib.samp.events')
 
-if not imguicheck or not sampevcheck or not encodingcheck or not lfscheck or not monetluacheck or not doesFileExist('moonloader/AS Helper/Images/binderblack.png') or not doesFileExist('moonloader/AS Helper/Images/binderwhite.png') or not doesFileExist('moonloader/AS Helper/Images/lectionblack.png') or not doesFileExist('moonloader/AS Helper/Images/lectionwhite.png') or not doesFileExist('moonloader/AS Helper/Images/settingsblack.png') or not doesFileExist('moonloader/AS Helper/Images/settingswhite.png') or not doesFileExist('moonloader/AS Helper/Images/changelogblack.png') or not doesFileExist('moonloader/AS Helper/Images/changelogwhite.png') or not doesFileExist('moonloader/AS Helper/Images/departamentblack.png') or not doesFileExist('moonloader/AS Helper/Images/departamenwhite.png') then
+if not imguicheck or not sampevcheck or not encodingcheck or not lfscheck or not monetluacheck or not doesFileExist('moonloader/AS Helper/Images/ASH_Images.png') then
 	function main()
 		if not isSampLoaded() or not isSampfuncsLoaded() then return end
 		while not isSampAvailable() do wait(1000) end
@@ -61,9 +60,20 @@ if not imguicheck or not sampevcheck or not encodingcheck or not lfscheck or not
 		local progressbar = {
 			max = 0,
 			downloaded = 0,
+			downloadedvisual = 0,
+			downloadedclock = 0,
 			downloadinglibname = '',
 			downloadingtheme = '',
 		}
+
+		function bringFloatTo(from, to, start_time, duration)
+			local timer = os.clock() - start_time
+			if timer >= 0.00 and timer <= duration then
+				local count = timer / (duration / 100)
+				return from + (count * (to - from) / 100), true
+			end
+			return (timer > duration) and to or from, false
+		end
 
 		function DownloadFiles(table)
 			progressbar.max = #table
@@ -73,6 +83,7 @@ if not imguicheck or not sampevcheck or not encodingcheck or not lfscheck or not
 				downloadUrlToFile(table[k].url,table[k].file,function(id,status)
 					if status == dlstatus.STATUSEX_ENDDOWNLOAD then
 						progressbar.downloaded = k
+						progressbar.downloadedclock = os.clock()
 						if table[k+1] then
 							progressbar.downloadinglibname = table[k+1].name
 						end
@@ -82,25 +93,26 @@ if not imguicheck or not sampevcheck or not encodingcheck or not lfscheck or not
 					wait(500)
 				end
 			end
-			progressbar.max = 0
-			progressbar.downloaded = 0
+			progressbar.max = nil
+			progressbar.downloaded = 1
 		end
 		
 		lua_thread.create(function()
 			local x = select(1,getScreenResolution()) * 0.5 - 100
 			local y = select(2, getScreenResolution()) - 70
 			while true do
-				if progressbar and progressbar.max ~= 0 and progressbar.downloadinglibname and progressbar.downloaded and progressbar.downloadingtheme then
+				if progressbar and progressbar.max ~= nil and progressbar.downloadinglibname and progressbar.downloaded and progressbar.downloadingtheme then
 					local jj = (200-10)/progressbar.max
-					local downloaded = progressbar.downloaded * jj
+					local downloaded = progressbar.downloadedvisual * jj
 					renderDrawBoxWithBorder(x, y-39, 200, 20, 0xFFFF6633, 1, 0xFF808080)
 					renderFontDrawText(ASHfont, 'AS Helper', x+ 5, y - 37, 0xFFFFFFFF)
 					renderDrawBoxWithBorder(x, y-20, 200, 70, 0xFF1C1C1C, 1, 0xFF808080)
-					renderFontDrawText(progressfont, 'Скачивание: '..progressbar.downloadingtheme, x + 5, y - 15, 0xFFFFFFFF)
+					renderFontDrawText(progressfont, string.format('Скачивание: %s', progressbar.downloadingtheme), x + 5, y - 15, 0xFFFFFFFF)
 					renderDrawBox(x + 5, y + 5, downloaded, 20, 0xFF00FF00)
-					renderFontDrawText(progressfont, 'Progress: '..progressbar.downloaded..'/'..progressbar.max, x + 100 - renderGetFontDrawTextLength(progressfont,'Progress: '..progressbar.downloaded..'/'..progressbar.max) * 0.5, y + 7, 0xFFFFFFFF)
-					renderFontDrawText(downloadingfont, 'Downloading: \''..progressbar.downloadinglibname..'\'', x + 5, y + 32, 0xFFFFFFFF)
+					renderFontDrawText(progressfont, string.format('Progress: %s%%', math.ceil(progressbar.downloadedvisual / progressbar.max * 100), progressbar.max), x + 100 - renderGetFontDrawTextLength(progressfont, string.format('Progress: %s%%', progressbar.downloaded, progressbar.max)) * 0.5, y + 7, 0xFFFFFFFF)
+					renderFontDrawText(downloadingfont, string.format('Downloading: \'%s\'', progressbar.downloadinglibname), x + 5, y + 32, 0xFFFFFFFF)
 				end
+				progressbar.downloadedvisual = bringFloatTo(progressbar.downloaded-1, progressbar.downloaded, progressbar.downloadedclock, 0.2)
 				wait(0)
 			end
 		end)
@@ -163,21 +175,12 @@ if not imguicheck or not sampevcheck or not encodingcheck or not lfscheck or not
 			print('{00FF00}lfs успешно скачан')
 		end
 
-		if not doesFileExist('moonloader/AS Helper/Images/binderblack.png') or not doesFileExist('moonloader/AS Helper/Images/binderwhite.png') or not doesFileExist('moonloader/AS Helper/Images/lectionblack.png') or not doesFileExist('moonloader/AS Helper/Images/lectionwhite.png') or not doesFileExist('moonloader/AS Helper/Images/settingsblack.png') or not doesFileExist('moonloader/AS Helper/Images/settingswhite.png') or not doesFileExist('moonloader/AS Helper/Images/changelogblack.png') or not doesFileExist('moonloader/AS Helper/Images/changelogwhite.png') or not doesFileExist('moonloader/AS Helper/Images/departamentblack.png') or not doesFileExist('moonloader/AS Helper/Images/departamenwhite.png') then
+		if not doesFileExist('moonloader/AS Helper/Images/ASH_Images.png') then
 			print('{FFFF00}Скачивание: PNG Файлы')
 			createDirectory('moonloader/AS Helper')
 			createDirectory('moonloader/AS Helper/Images')
 			DownloadFiles({theme = 'PNG Файлы',
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/binderblack.png', file = 'moonloader/AS Helper/Images/binderblack.png', name = 'binderblack.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/binderwhite.png', file = 'moonloader/AS Helper/Images/binderwhite.png', name = 'binderwhite.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/lectionblack.png', file = 'moonloader/AS Helper/Images/lectionblack.png', name = 'lectionblack.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/lectionwhite.png', file = 'moonloader/AS Helper/Images/lectionwhite.png', name = 'lectionwhite.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/settingsblack.png', file = 'moonloader/AS Helper/Images/settingsblack.png', name = 'settingsblack.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/settingswhite.png', file = 'moonloader/AS Helper/Images/settingswhite.png', name = 'settingswhite.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/departamentblack.png', file = 'moonloader/AS Helper/Images/departamentblack.png', name = 'departamentblack.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/departamenwhite.png', file = 'moonloader/AS Helper/Images/departamenwhite.png', name = 'departamenwhite.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/changelogblack.png', file = 'moonloader/AS Helper/Images/changelogblack.png', name = 'changelogblack.png'},
-				{url = 'https://github.com/Just-Mini/biblioteki/raw/main/Images/changelogwhite.png', file = 'moonloader/AS Helper/Images/changelogwhite.png', name = 'changelogwhite.png'},
+				{url = 'https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Images/ASH_Images.png', file = 'moonloader/AS Helper/Images/ASH_Images.png', name = 'ASH_Images.png'},
 			})
 			print('{00FF00}PNG Файлы успешно скачаны')
 		end
@@ -203,7 +206,6 @@ local configuration = inicfg.load({
 		fmtype = 0,
 		playcd = 2000,
 		fmstyle = nil,
-		updatelastcheck = nil,
 		myname = '',
 		myaccent = '',
 		astag = 'Автошкола',
@@ -214,6 +216,7 @@ local configuration = inicfg.load({
 		replacechat = true,
 		replaceash = false,
 		dofastscreen = true,
+		dofastexpel = true,
 		noscrollbar = true,
 		playdubinka = true,
 		changelog = true,
@@ -222,8 +225,11 @@ local configuration = inicfg.load({
 		statsvisible = false,
 		checkmcongun = true,
 		checkmconhunt = false,
+		bodyrank = false,
+		chatrank = false,
 		usefastmenu = 'E',
 		fastscreen = 'F4',
+		fastexpel = 'G',
 		avtoprice = 5000,
 		motoprice = 10000,
 		ribaprice = 30000,
@@ -238,10 +244,12 @@ local configuration = inicfg.load({
 		monetstyle = -16729410,
 		monetstyle_chroma = 1.0,
 	},
+
 	imgui_pos = {
 		posX = 100,
 		posY = 300
 	},
+
 	my_stats = {
 		avto = 0,
 		moto = 0,
@@ -252,6 +260,7 @@ local configuration = inicfg.load({
 		klad = 0,
 		taxi = 0
 	},
+
 	RankNames = {
 		'Стажёр',
 		'Консультант',
@@ -264,12 +273,50 @@ local configuration = inicfg.load({
 		'Директор',
 		'Управляющий',
 	},
+
+	Checker = {
+    	state = true,
+    	delay = 10,
+    	afk_max_l = 300,
+    	afk_max_h = 600,
+    	posX = 200,
+    	posY = 400,
+
+    	col_title = 0xFFFF6633,
+    	col_default = 0xFFFFFFFF,
+    	col_no_work = 0xFFAA3333,
+    	col_afk_max = 0xFFFF0000,
+    	col_note = 0xFF909090,
+
+		font_name = 'Arial',
+    	font_size = 9,
+    	font_flag = 5,
+    	font_offset = 14,
+    	font_alpha = 255,
+
+    	show_id = true,
+    	show_rank = true,
+    	show_afk = true,
+    	show_warn = false,
+    	show_mute = false,
+    	show_uniform = true,
+    	show_near = false,
+
+		[1] = true, [6] = true,
+    	[2] = true, [7] = true,
+    	[3] = true, [8] = true,
+    	[4] = true, [9] = true,
+    	[5] = true, [10] = true,
+	},
+	Checker_Notes = {},
+	
 	sobes_settings = {
 		pass = true,
 		medcard = true,
 		wbook = false,
 		licenses = false,
 	},
+
 	BindsName = {},
 	BindsDelay = {},
 	BindsType = {},
@@ -341,6 +388,8 @@ local configuration = inicfg.load({
 		['ICON_FA_CHECK'] = '\xee\x80\xba',
 		['ICON_FA_LIGHT_COG'] = '\xee\x80\xbb',
 		['ICON_FA_LIGHT_INFO_CIRCLE'] = '\xee\x80\xbc',
+		['ICON_FA_DESKTOP'] = '\xee\x80\xbd',
+		['ICON_FA_TIMES_CIRCLE'] = '\xee\x80\xbe',
 	}
 
 	setmetatable(fa, {
@@ -365,7 +414,7 @@ local configuration = inicfg.load({
 				if i == 'min_range' then
 					return 0xe000
 				elseif i == 'max_range' then
-					return 0xe03c
+					return 0xe03e
 				end
 			end
 		
@@ -373,6 +422,25 @@ local configuration = inicfg.load({
 		end
 	})
 -- icon fonts
+
+function imgui.ColorConvertFloat4ToARGB(float4)
+	local abgr = imgui.ColorConvertFloat4ToU32(float4)
+	local a, b, g, r = explode_U32(abgr)
+	return join_argb(a, r, g, b)
+end
+
+function changeColorAlpha(argb, alpha)
+	local _, r, g, b = explode_U32(argb)
+	return join_argb(alpha, r, g, b)
+end
+
+function explode_U32(u32)
+	local a = bit.band(bit.rshift(u32, 24), 0xFF)
+	local r = bit.band(bit.rshift(u32, 16), 0xFF)
+	local g = bit.band(bit.rshift(u32, 8), 0xFF)
+	local b = bit.band(u32, 0xFF)
+	return a, r, g, b
+end
 
 function join_argb(a, r, g, b)
 	local argb = b
@@ -388,6 +456,22 @@ function explode_argb(argb)
 	local g = bit.band(bit.rshift(argb, 8), 0xFF)
 	local b = bit.band(argb, 0xFF)
 	return a, r, g, b
+end
+
+function vec4ToFloat4(vec4, type)
+	type = type or 1
+	if type == 1 then
+		return new.float[4](vec4.x, vec4.y, vec4.z, vec4.w)
+	else
+		return new.float[4](vec4.z, vec4.y, vec4.x, vec4.w)
+	end
+end
+
+function ARGBtoStringRGB(abgr)
+	local a, r, g, b = explode_U32(abgr)
+	local argb = join_argb(a, r, g, b)
+	local color = ('%x'):format(bit.band(argb, 0xFFFFFF))
+	return ('{%s%s}'):format(('0'):rep(6 - #color), color)
 end
 
 function ColorAccentsAdapter(color)
@@ -449,7 +533,7 @@ local fwarnbuff						= new.char[256]()
 local fmutebuff						= new.char[256]()
 local fmuteint						= new.int(0)
 local lastq							= new.int(0)
-local autoupd						= new.int(0)
+local autoupd						= new.int(-600)
 local now_zametka					= new.int(1)
 local zametka_window				= new.int(1)
 local search_rule					= new.char[256]()
@@ -499,24 +583,25 @@ local bindersettings = {
 	bindercmd 						= new.char[15](),
 	binderbtn						= '',
 }
-local matthewball, matthewball2, matthewball3 = imgui.ColorConvertU32ToFloat4(configuration.main_settings.RChatColor), imgui.ColorConvertU32ToFloat4(configuration.main_settings.DChatColor), imgui.ColorConvertU32ToFloat4(configuration.main_settings.ASChatColor)
 local chatcolors = {
-	RChatColor 						= new.float[4](matthewball.x, matthewball.y, matthewball.z, matthewball.w),
-	DChatColor 						= new.float[4](matthewball2.x, matthewball2.y, matthewball2.z, matthewball2.w),
-	ASChatColor 					= new.float[4](matthewball3.x, matthewball3.y, matthewball3.z, matthewball3.w),
+	RChatColor 						= vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.main_settings.RChatColor)),
+	DChatColor 						= vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.main_settings.DChatColor)),
+	ASChatColor 					= vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.main_settings.ASChatColor)),
 }
-local mq = ColorAccentsAdapter(configuration.main_settings.monetstyle):as_vec4()
 local usersettings = {
 	createmarker 					= new.bool(configuration.main_settings.createmarker),
 	dorponcmd						= new.bool(configuration.main_settings.dorponcmd),
 	replacechat						= new.bool(configuration.main_settings.replacechat),
 	replaceash						= new.bool(configuration.main_settings.replaceash),
 	dofastscreen					= new.bool(configuration.main_settings.dofastscreen),
+	dofastexpel						= new.bool(configuration.main_settings.dofastexpel),
 	noscrollbar						= new.bool(configuration.main_settings.noscrollbar),
 	playdubinka						= new.bool(configuration.main_settings.playdubinka),
 	statsvisible					= new.bool(configuration.main_settings.statsvisible),
 	checkmcongun					= new.bool(configuration.main_settings.checkmcongun),
 	checkmconhunt					= new.bool(configuration.main_settings.checkmconhunt),
+	bodyrank						= new.bool(configuration.main_settings.bodyrank),
+	chatrank						= new.bool(configuration.main_settings.chatrank),
 	playcd							= new.float[1](configuration.main_settings.playcd / 1000),
 	myname 							= new.char[256](configuration.main_settings.myname),
 	myaccent 						= new.char[256](configuration.main_settings.myaccent),
@@ -525,10 +610,8 @@ local usersettings = {
 	fmstyle							= new.int(configuration.main_settings.fmstyle or 2),
 	expelreason						= new.char[256](u8(configuration.main_settings.expelreason)),
 	usefastmenucmd					= new.char[256](u8(configuration.main_settings.usefastmenucmd)),
-	moonmonetcolorselect			= new.float[4](mq.x, mq.y, mq.z, mq.w),
+	moonmonetcolorselect			= vec4ToFloat4(ColorAccentsAdapter(configuration.main_settings.monetstyle):as_vec4()),
 }
-matthewball, matthewball2, matthewball3, mq = nil, nil, nil, nil
-collectgarbage()
 local pricelist = {
 	avtoprice 						= new.char[7](tostring(configuration.main_settings.avtoprice)),
 	motoprice 						= new.char[7](tostring(configuration.main_settings.motoprice)),
@@ -575,8 +658,8 @@ local sobes_settings = {
 }
 local tagbuttons = {
 	{name = '{my_id}',text = 'Пишет Ваш ID.',hint = '/n /showpass {my_id}\n(( /showpass \'Ваш ID\' ))'},
-	{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я '..u8:decode(configuration.main_settings.myname)..'.'},
-	{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = '/do На груди бейджик {my_rank}\nНа груди бейджик '..configuration.RankNames[configuration.main_settings.myrankint]},
+	{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я Ваше имя.'},
+	{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = format('/do На груди бейджик {my_rank}\nНа груди бейджик %s', configuration.RankNames[configuration.main_settings.myrankint])},
 	{name = '{my_score}',text = 'Пишет Ваш уровень.',hint = 'Я проживаю в штате уже {my_score} лет!\n- Я проживаю в штате уже \'Ваш уровень\' лет!'},
 	{name = '{H}',text = 'Пишет системное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в чч'},
 	{name = '{HM}',text = 'Пишет системное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в чч:мм будет концерт!'},
@@ -588,7 +671,7 @@ local tagbuttons = {
 }
 local buttons = {
 	{name='Настройки',text='Пользователь, вид\nскрипта, цены',icon=fa.ICON_FA_LIGHT_COG,y_hovered=10,timer=0},
-	{name='Дополнительно',text='Правила, заметки,\nотыгровки',icon=fa.ICON_FA_FOLDER,y_hovered=10,timer=0},
+	{name='Дополнительно',text='Правила, заметки,\nотыгровки, чекер',icon=fa.ICON_FA_FOLDER,y_hovered=10,timer=0},
 	{name='Информация',text='Обновления, автор,\nо скрипте',icon=fa.ICON_FA_LIGHT_INFO_CIRCLE,y_hovered=10,timer=0},
 }
 local fmbuttons = {
@@ -607,33 +690,75 @@ local additionalbuttons = {
 	fa.ICON_FA_BOOK_OPEN..u8(' Правила'),
 	fa.ICON_FA_QUOTE_RIGHT..u8(' Заметки'),
 	fa.ICON_FA_HEADING..u8(' Отыгровки'),
+	fa.ICON_FA_DESKTOP..u8(' Чекер'),
 }
 local infobuttons = {
 	fa.ICON_FA_ARROW_ALT_CIRCLE_DOWN..u8(' Обновления'),
 	fa.ICON_FA_AT..u8(' Автор'),
 	fa.ICON_FA_CODE..u8(' О скрипте'),
 }
-local whiteashelper, blackashelper, whitebinder, blackbinder, whitelection, blacklection, whitedepart, blackdepart, whitechangelog, blackchangelog, rainbowcircle
+local checker_variables = {
+	state = imgui.new.bool(configuration.Checker.state),
+	delay = imgui.new.int(configuration.Checker.delay),
+	note_input = imgui.new.char[256](),
+
+	font_input = imgui.new.char[256](u8(configuration.Checker.font_name)),
+	font_size = imgui.new.int(configuration.Checker.font_size),
+	font_flag = imgui.new.int(configuration.Checker.font_flag),
+	font_offset = imgui.new.int(configuration.Checker.font_offset),
+	font_alpha = imgui.new.int(configuration.Checker.font_alpha / 2.55),
+
+	afk_max_l = imgui.new.int(configuration.Checker.afk_max_l),
+	afk_max_h = imgui.new.int(configuration.Checker.afk_max_h),
+
+	show = {
+		id = imgui.new.bool(configuration.Checker.show_id),
+		rank = imgui.new.bool(configuration.Checker.show_rank),
+		afk = imgui.new.bool(configuration.Checker.show_afk),
+		warn = imgui.new.bool(configuration.Checker.show_warn),
+		mute = imgui.new.bool(configuration.Checker.show_mute),
+		uniform = imgui.new.bool(configuration.Checker.show_uniform),
+		near = imgui.new.bool(configuration.Checker.show_near),
+	},
+
+	col = {
+		title = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.Checker.col_title), 2),
+		default = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.Checker.col_default), 2),
+		no_work = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.Checker.col_no_work), 2),
+		afk_max = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.Checker.col_afk_max), 2),
+		note = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.Checker.col_note), 2),
+	},
+
+	online = {afk = 0, online = 0},
+	bodyranks = {},
+
+	await = {
+		members = false,
+		next_page = {
+			bool = false,
+			i = 0
+		}
+	},
+
+	temp_player_data = nil,
+	last_check = 0,
+	dontShowMeMembers = false,
+	lastDialogWasActive = clock(),
+	font = renderCreateFont(configuration.Checker.font_name, configuration.Checker.font_size, configuration.Checker.font_flag)
+}
+
+local ash_image
 local font = {}
 
 imgui.OnInitialize(function()
 	-- >> BASE85 DATA <<
 		local circle_data = '\x89\x50\x4E\x47\x0D\x0A\x1A\x0A\x00\x00\x00\x0D\x49\x48\x44\x52\x00\x00\x00\x30\x00\x00\x00\x30\x08\x06\x00\x00\x00\x57\x02\xF9\x87\x00\x00\x00\x06\x62\x4B\x47\x44\x00\xFF\x00\xFF\x00\xFF\xA0\xBD\xA7\x93\x00\x00\x09\xC8\x49\x44\x41\x54\x68\x81\xED\x99\x4B\x6C\x5C\xE7\x75\xC7\x7F\xE7\x7C\x77\x5E\xE4\x50\x24\x25\xCA\x7A\x90\xB4\x4D\xD3\x92\x9C\xBA\x8E\x8B\x48\xB2\xA4\xB4\x40\xEC\x04\x79\xD4\x81\xD1\x64\x93\x3E\x9C\x45\xBC\x71\x1D\xD7\x06\x8A\xAE\x5A\x20\x0B\x25\x6D\x36\x45\xBB\x69\xA5\xB4\x46\x90\x02\x2E\xEC\x3E\x50\x20\xC9\xA6\x8B\x3A\x80\xA3\x45\x92\x56\xAA\x92\x58\x71\x6D\x90\x52\x6C\xD9\xA2\x45\x51\xA2\x24\x4A\x7C\x0D\xE7\xF1\x9D\xD3\xC5\xCC\x90\x33\x73\x47\x7C\xA4\x41\xBB\xA8\x0E\xF0\xE1\xBB\x73\xEE\xBD\xDF\xFD\xFD\xBF\x73\xBE\xC7\xBD\x03\x77\xED\xAE\xFD\xFF\x36\xF9\x65\x34\xE2\x1C\xD7\x89\x47\x26\x8F\x54\xA9\x7D\xCC\x6B\x7E\x38\xE2\xFB\xDC\x6C\xC4\xCC\xB6\xED\x1B\x75\x73\xF3\x45\xDC\xA7\xCD\x6D\x52\x22\x67\x1D\xFF\xFE\xF6\x1F\x1E\x39\x23\x1C\xB7\xFF\x53\x01\x17\x8E\x3C\x3D\xE2\x15\x79\xC1\x2C\x3E\x6D\xEE\x23\xD1\x0C\x33\xC3\xDC\x30\x73\xCC\x8C\x07\x87\x0D\xDC\x71\x37\x30\xC7\xAD\x59\xFB\x07\xE6\xF1\x95\xA0\x76\x72\xC7\xE9\x53\x1F\xFC\xAF\x0A\x98\x3E\xF8\xEC\x50\x49\x2A\x7F\xE6\x1E\x9F\x31\xB3\x6C\x1D\xDA\xE9\x2A\x60\x6F\xEC\x02\x6F\xAB\x3E\x33\xAB\xA8\xD9\xDF\x95\xCB\xE5\xAF\x8C\x4C\x9C\xB9\xB1\x55\x16\xDD\xEA\x0D\x97\x8E\x3D\xF3\xBB\x95\x50\x9D\x14\xFC\xF7\x81\xEC\x46\xD7\xAF\x07\xEF\x66\x88\x59\xD6\xCC\x9F\xCB\x84\x64\x72\xE6\x43\x47\x7E\x67\xAB\x3C\x9B\x8E\x80\x1F\x7C\x36\x73\x39\x6B\x27\xCC\xED\xD9\x66\xEF\xD6\x7B\xBA\xD9\xEB\xDD\x23\x30\xBE\xAB\x72\x47\x78\xCC\x70\xF3\x46\x6D\xB8\x3B\x78\xFC\xDB\xDD\x7B\x8A\x2F\xCA\xA9\x53\xB5\xCD\x70\x6D\x2A\x02\xDF\x7F\xF8\x64\xF1\x52\x2E\xF9\x37\xE0\xD9\xCD\x0A\x5E\x15\xBE\x15\x78\x33\x3C\xF2\xDC\x95\x4B\xF3\xDF\xBD\xF6\xFC\xCE\xE2\x66\xDA\xDF\x30\x02\x2F\x1D\x3C\x9B\x59\x9C\xBB\xFD\xDD\x87\x7A\xDF\x7E\xF2\xD1\xE2\xB9\xB6\xDE\x6D\x8F\x00\x50\xC8\xA2\xFD\x45\xA4\x58\x80\x44\x21\x97\xB0\x77\xD0\xF0\x95\x32\x56\x2E\x63\xB7\xE7\x89\xD7\x6F\xE2\x0B\x0B\xDD\xE1\x1B\xBE\xFC\x93\xD3\xE4\x3F\x31\x7B\xAA\x30\x10\x3F\x29\x4F\xB0\x6E\x24\x92\x8D\x04\x54\x16\x4A\x27\x42\x08\x4F\x4E\x2C\xFD\x0A\xE6\xCE\xA3\xC5\x37\x52\x7D\x90\x0C\xF6\x91\x1D\xDE\x05\x85\xEC\x5A\x1A\x35\x04\xA2\x02\xF9\x2C\x9A\xCD\x20\xBD\x3D\xE8\xEE\x7B\xF0\xE5\x12\xB5\xF7\xA6\x88\xB3\xD7\xD3\xF0\xBF\x39\x4D\xCF\x93\x33\x00\x8F\x97\x97\x39\x01\x3C\xB7\x1E\xDF\xBA\x11\x78\xE9\x91\xD3\xBF\x57\x8B\xF1\xD5\x18\x23\x66\x91\x18\x23\xFB\x0A\xFF\xC5\x87\x7B\xDF\xC0\xCC\x20\x9B\x90\x1F\x1F\x81\x9E\x5C\x3D\x2A\x6E\x29\x01\x7B\x06\x6B\x6B\x29\x64\x8D\x29\xB5\x91\x42\x36\xBF\x40\x75\xE2\xE7\x58\x69\xA5\x0E\xFF\x99\x69\x0A\x75\xF8\x56\xC2\xA7\x0B\x9F\xE5\x1F\xB6\x2C\xE0\xE5\xC7\x4E\xEF\x58\x59\x96\x09\xC7\x87\x62\x03\x7E\x55\x44\xFE\x4D\x7E\x6D\xD7\x24\xF9\x7D\xA3\x78\xD0\x06\xF4\x1D\x04\xF4\x57\xBB\xC2\x37\x7B\xDC\x2A\x15\xAA\x13\x17\xC8\x1E\x9D\xA4\xF0\x99\x99\x34\x88\x70\xB3\x26\x1C\xD8\xF6\x14\xD7\xBB\x71\xDE\x71\x10\x57\xAB\xC9\xD7\x35\xE8\x90\x88\x10\x34\x10\x42\x40\x1B\xF5\x54\xF6\x23\xCC\xDC\xFB\x38\x92\xD9\x30\x03\xD7\x85\x77\x33\x44\x95\xE2\x33\x03\xF4\x3C\xB5\x02\x46\xBA\x44\xB6\x67\x6A\x7C\xED\x4E\xED\x77\x8D\xC0\x37\x3F\x7C\x6E\x24\x04\x7B\xC7\xDC\xB2\xEE\xF5\x01\xEB\xEE\x44\x8B\x48\x02\xF7\x3C\x5C\xC4\x83\x31\x9A\x79\x87\xB1\xFC\x85\x75\x23\xB0\xAB\xB7\x74\x47\x78\xCC\xC8\x1E\xBE\x4E\xF6\xE8\x4D\xDC\xAA\xC4\xAB\x3F\x81\x58\xEA\xDA\x9F\x92\x30\xDE\xF3\x39\xA6\x3A\x4F\x74\xED\xC2\x24\xE3\x2F\xE0\x92\x55\x14\xC3\x50\x55\xCC\x8C\xA0\x81\xA1\x87\x7A\xC9\xE4\x95\x18\x23\x53\xD5\x71\xDC\x9D\xFB\x72\xE7\x57\xEF\xD5\x42\x8E\xEC\xD0\x20\x5A\xEC\xC1\x73\x09\xB9\xDE\x88\x95\x56\xB0\xB9\x39\x6A\x33\xD7\x60\x71\x69\x0D\xFE\xD0\x75\xB2\x8F\xDD\x04\x03\x21\x43\x18\xFC\x10\xF1\xDA\x4F\xBA\x21\x65\xA8\xF0\x3C\xF0\x27\x1B\x46\xE0\x38\xAE\xF7\x1F\xFC\xD9\xFB\xC0\x88\xBB\xE3\x5E\xEF\x59\x77\x27\x37\x98\xB0\x63\xBC\xA7\x3E\x7D\xBA\x11\x63\x24\x5A\x64\x6F\xF8\x39\xF7\xE7\xCF\x93\xBD\x77\x17\x61\x68\x70\x35\x0A\xD1\x8C\xC1\xDE\xB8\xD6\xFB\x31\x52\x9B\xBE\x4A\xED\xE2\xFB\x64\x3E\x72\x8D\xEC\xE1\x9B\x29\x52\xBB\xF1\x16\xB6\x32\xDB\x4D\xC4\x54\xEF\x04\xF7\xCB\x71\xDA\x36\x80\xA9\x08\x8C\x3D\xF6\xE6\x11\x4C\x46\xDC\x1D\x91\xBA\xBE\x66\x24\xB6\x8F\xF6\x20\x2A\xA8\x35\x86\x4E\xA8\x57\x57\xFC\x41\xB6\x8F\xDD\xC3\xDE\xA1\x39\x62\x8C\x6D\xED\xAD\xA5\x4E\xBD\x13\x74\xD7\x10\x85\x47\x97\x91\x9D\x93\x78\xB7\xBD\x68\xDF\x18\x2C\x75\x15\x30\x5A\xDA\xC7\x21\xE0\x4C\xAB\x33\x3D\x88\xCD\x9F\x00\x56\xE1\x45\x04\x11\x21\x57\xCC\x90\x14\x02\x2A\x5A\x17\x21\x8A\x8A\x12\x42\x60\x68\x6C\x1B\x8B\x7D\x63\x5C\xAD\xEE\x49\x3F\xB6\x09\xDF\x28\xC9\x03\xF3\x64\x1E\x09\x84\xBE\x07\x21\x92\x2A\x22\x3D\x78\xE8\xC3\x8D\x54\xA9\x19\x1F\xEB\x6C\x3E\x2D\xC0\xF5\x50\xF3\xB0\x55\x44\x61\x7B\x06\x9A\x11\x69\x11\x91\xEB\xC9\xD0\xBF\xBB\x80\xAA\x72\xDB\xF6\x30\x5B\xDB\xDB\xDE\x5C\x2B\xFC\xD8\x3C\xC9\xD8\x42\x3D\xE7\xF3\xC3\x10\x8A\x5D\x41\x25\xB7\xA3\xAB\x1F\xE3\xB1\x8D\x05\x88\xEF\x6F\x1D\x1A\x4D\x11\xB9\x62\x68\x3A\xDA\x44\x14\x77\xE5\xD6\x22\xA2\xCA\x3C\xC3\xDC\x88\xC3\x29\x01\xE1\xBE\x79\xC2\x7D\x0B\x78\xA4\x5E\x0C\x24\xBF\xBB\x7B\x14\xC2\x40\x57\x3F\x91\x7D\x9D\xB8\xA9\x31\x20\x22\x7B\xDC\xA1\x2E\xC2\x57\x45\x68\x56\xD7\x3C\x22\xE0\x8E\x8A\x52\x18\xC8\x00\x82\x48\x7D\xAC\xA0\xB0\x60\x23\xB8\x3B\xFD\x5C\xAA\xC3\xDF\x3B\x4F\xB8\xB7\x0E\xDF\xFE\xF4\xED\x5D\xC7\x81\x4B\xB6\xFB\xF8\x80\xE1\x4E\x47\x4A\x80\x09\xFD\x0A\xA4\x44\xE4\x02\xE0\x29\x11\x92\xD3\xC6\x61\xBB\x88\x45\x1B\xC5\x3D\x32\x30\x7A\x86\x30\x5A\x4F\x9B\xB4\xE5\xD2\xA2\x1A\xFE\xEE\xD7\xD3\xB7\xA1\x80\x17\x46\x66\x22\xAB\xF3\xCB\x9A\x7D\x74\xA8\x42\xE8\xB2\x6E\xFF\x7A\xBF\x74\xF5\x03\xD0\x3F\xCE\x6F\x3C\xF0\x2E\xC7\x0A\x09\x1A\x72\x48\xC8\x81\x34\x9B\x16\x70\x23\xB7\xA3\x65\xE1\x6A\xA4\x27\x6E\x30\x5E\xE8\x98\xE4\x05\xDC\x03\xBC\xB6\xBE\x00\x11\x16\x81\xED\x9D\xFE\x9A\x19\x99\x24\xA5\x8B\x4A\x34\x7A\xBB\xF8\xBD\x2F\x8F\x0C\xE4\xF9\x69\x65\x27\x88\x70\x2C\x3F\x87\x42\x8B\x08\x07\x2B\x77\xDC\xE4\x0D\x11\xD5\xC6\x6F\x5A\x44\x38\x88\xDC\xEA\x7C\x4E\x4A\x80\xAA\x4E\xE3\x9E\x16\x10\x1D\xD5\xF4\xCE\x63\x71\x39\xD2\xDF\x93\x69\xF3\xC5\x62\x16\xB6\xE5\x91\xC6\xF5\x6F\x54\xEF\x41\x44\x38\x9A\xBB\xD9\x2E\xA2\x36\x87\x7B\x0D\x91\x16\x0C\x77\xB0\xEA\x1A\x7D\xBB\x88\x2B\x29\xDE\x4E\x47\x40\xCE\xAB\xD6\x67\x94\xD6\x32\x5F\xB2\x94\x4F\x55\xB9\x32\x57\x21\xA8\x92\x84\x40\x12\x02\xBE\x2D\x8F\x37\xE0\x5B\x05\x9F\x8B\xBB\x38\x5D\xD9\x81\xC5\x32\x1E\xCB\xE0\x35\xAC\x7C\x19\x62\x05\xF7\x8E\x77\x96\xB8\xD0\x04\x6E\xAB\x40\x26\x36\x14\x20\x2A\xFF\xA9\x8D\x87\xB7\x96\x5B\x8B\x35\x92\xA0\xA9\x52\xA9\x39\x57\x6F\x57\xC9\x24\x81\x58\xCC\x11\x8B\xD9\x55\xF8\xCE\x88\x9D\xB3\xDD\x9C\xA9\x0D\x61\xB1\x4C\x5C\x7A\x17\xAF\xCE\xE1\x56\x4E\x89\xF0\x6A\xEB\x16\xA3\x45\x84\xF3\xE3\x4E\xDE\x54\x0A\x25\x09\xA7\xDC\xD3\xA3\x72\xB9\x62\x94\xAB\x4E\x4F\x3E\x9D\xEF\x17\x67\x4A\xE4\x76\x16\x28\xF4\x26\x6D\xF0\xD2\x65\x70\x9F\xF3\x3D\xD4\x56\x16\x38\x5A\x7A\x0B\xD1\xB5\xD4\x13\xC0\x03\x88\x95\xF1\xDA\x6D\xD0\x2C\xA2\x4D\xBC\x46\x1E\x99\xBC\xDE\xD9\x5E\xEA\x11\x57\x5F\x7D\xFC\x74\x08\xFA\x7E\x08\x4A\x5B\x51\x65\x6A\xB6\xBC\x9A\x2A\xAD\xA5\x32\x98\xE7\xEC\x92\x33\xB3\x54\x5B\x15\x20\x4A\x2A\x02\xEE\x30\xB3\x7C\x8B\x97\x6F\x28\xDF\xAE\x8C\xE3\x56\xC1\x63\xB9\x5E\x37\x22\x61\xCB\xE7\xC1\x9A\xBE\xD6\xD4\xF2\x4B\x3C\x7C\x74\xE3\x08\x80\x78\x08\x3F\xF8\x47\x90\x3F\xEE\x3C\x73\x63\xA9\xCA\x72\xD9\xD8\xD6\xB3\x76\xDB\x72\x5F\x96\x72\x7F\x16\x05\xDE\xB9\x55\xE5\x5A\xC9\xD8\xB3\x2D\xC3\xF6\xDE\x40\x4F\x10\xDC\x8D\x4A\xAD\xCA\xFC\xCA\x0A\xD7\xCB\xF3\xAC\x78\x0D\x51\xE5\x35\xDB\x8F\x54\x85\xCF\x67\x2E\xAC\x21\xC6\xDB\xF8\xCA\x65\x44\xB3\x2D\x2B\x10\xF5\x48\x08\xAF\x88\xA4\x3F\x45\x76\x7F\xA5\x32\x3D\x91\x64\xE4\x8F\xE8\xF2\xE1\x6A\xE2\x83\x25\x0E\xEF\x1F\x20\x9B\x28\x0B\xBD\x09\xA5\xBE\x0C\x2A\x6B\x3D\xBE\x1C\x9D\x8B\xB7\xAB\xBC\xB7\x50\x43\x14\xB2\x99\x0B\x48\x50\x44\xEB\x45\x5B\x16\x8D\xD7\xFC\x00\x44\xE1\xF3\x9C\xAF\x8F\x81\xA5\x73\x2D\xD8\xAD\xCB\x28\x65\xC9\xC8\x37\xBA\xA1\x76\x5D\x82\x3E\xF8\xFB\x8F\x5E\x4E\x82\x7E\x2B\x95\x46\x41\xA9\x46\xE7\xED\xA9\x45\x16\x7A\x12\x96\x3A\xE0\xD7\xD2\xA7\x7B\x0A\x75\xB3\xEF\xF1\x10\xDF\x89\xE3\xD8\xFC\x8F\xB1\xEA\x7C\x4B\x4A\x55\xF0\x58\x69\xA6\xD3\x37\xE5\xC0\xEB\x97\x37\x2D\x00\x20\x17\xE3\x57\x92\x10\xAE\x77\xCB\xF9\x2B\xF9\x2C\x3F\x2A\x19\x35\x63\x5D\xF8\xE6\x46\x70\x3D\xAB\x79\xE4\xAF\x6E\x0D\x70\xA2\xB4\xBF\x05\xBC\x4D\xC4\x0D\xAD\xAC\x7C\xF5\x4E\xF7\xA7\xA7\x94\x86\xCD\xFE\xF4\x5B\xA5\xDD\xC7\x9E\xBB\x18\x54\xBE\x10\x54\x68\x96\xC5\xC1\x3C\x0B\x83\x79\xAA\x06\x37\xCB\x91\xFE\x42\x20\x9F\xD1\xAE\xF0\xAA\x82\x70\xAE\xEE\x6F\xBC\x57\xB4\x1E\x2F\xD6\xCA\x4C\xDC\xBA\xCC\x72\xAC\xF0\xA6\x0C\x53\x71\xE5\xB0\x5C\x5A\x83\x10\x41\xC4\xBF\x14\x0E\xBD\x79\x76\xCB\x02\x00\x66\xCF\xBC\xF4\xF6\x9E\x63\xCF\xEF\x0E\xAA\x87\x54\x95\x5B\xFD\x39\x6E\x0F\xE4\x56\x67\x99\x88\x70\x6D\xD9\x28\x45\x28\xE6\x94\x6C\x46\xDA\xE1\x15\xF0\xB4\x80\x95\x58\xE1\xBD\x85\x6B\x5C\x5A\xBA\x4E\xC4\x56\xCF\xFD\x4C\x46\x1A\x22\xDE\xAF\xF3\x23\x27\x33\x47\x2E\xFE\xC5\x7A\x8C\x1B\x7E\x17\xD9\x3F\x3D\xF9\xC2\xBB\xF7\xFF\xEA\x03\x37\x7B\xF5\x53\xB7\x8A\xC9\x2A\x58\x6B\xCA\xDC\x28\x45\xE6\xCA\x46\x5F\x3E\x30\xD4\x1B\x18\x2C\x24\xE4\x33\xD0\x13\x20\xBA\x51\x8D\x35\x2A\xD1\x59\xA8\x96\x98\xAF\x95\x58\x8E\xD5\x7A\x1B\x41\xE9\x7C\x2D\x7F\x45\x8E\x20\x2E\x7C\xD9\xFE\xE3\x5F\x33\xD5\xD9\x3F\xDC\x88\x6F\x53\x5F\xA7\x77\x1E\x7F\xAB\x58\x2E\xE6\xFE\x49\x55\x3E\xDB\x09\x2F\x42\x4B\xFA\x08\xAA\xB4\x44\x40\x08\xFA\xA7\xF5\x73\x8D\x99\x48\xB5\x39\x23\x49\xFB\xEC\xA4\xB2\x7A\x5C\xD4\xEA\xEB\x2F\xC6\x7F\xFF\xAD\x2F\x3C\x71\x6A\x71\x23\xB6\x4D\x7D\x9D\x9E\x3D\xFE\xF0\xE2\xFC\xE2\xD4\xE7\x24\xF0\x37\x5B\x81\xEF\xB6\x12\x6F\x64\x82\x7C\x23\xC4\xDC\xA7\x37\x03\x5F\xBF\x7E\x8B\xB6\xF3\xAF\x2F\xFE\x36\x41\x4E\x88\x30\xB4\x11\xBC\xAA\x80\x7D\x6D\x53\x11\x10\x95\x1B\x2A\xF2\xE5\x37\x3E\xF1\xF5\x7F\xD9\x0A\xCF\x96\xFB\x68\xF6\xC5\xB1\x7F\xCE\x65\xC3\x01\x55\x3D\x29\x2A\xE5\xF5\xE0\x9B\xDB\xE9\x0D\xAC\x0C\x9C\x8C\xB5\xEC\xFE\xAD\xC2\xC3\xFF\xF0\x4F\xBE\x91\x97\xA7\x86\xC5\xFD\x0F\x40\xBF\xA8\x2A\xA3\x9D\xF0\x22\x82\x55\x8F\xDF\x21\x02\x5C\xD2\x44\x5F\xAD\x06\x3D\x31\xF9\xA9\x3F\x9F\xFE\x45\x19\x7E\x29\x7F\xB3\x72\xDC\x75\x6C\xDF\xCC\x21\x11\xFF\x38\x41\x0E\xAA\xC8\x01\x11\x19\x16\xF5\xFE\x58\xFE\x6A\x4D\x54\x97\x44\x65\x8A\xA0\x17\x54\xE4\x4C\x92\x24\xA7\xDE\x7A\xEA\x2F\xCF\x22\x2D\xFB\x86\xBB\x76\xD7\xEE\xDA\x2F\x64\xFF\x0D\xB3\xFD\xCF\x34\x8B\x75\x5E\xF4\x00\x00\x00\x00\x49\x45\x4E\x44\xAE\x42\x60\x82'
-		local font85 = "7])#######n=K?d'/###[),##1xL$#Q6>##e@;*>foaj4/]%/1:A'o/fY;99)M7%#>(m<-r:Bk0'Tx-3D0?Jj7+:GDAk=qAqV,-GS)pOn;MH`a'hc98<gXG-$ogl8+`_;$D6@?$%J%/GT_Ae?OP(eN:6jW%,5LsCW]cT#()A'PL.mV[b';9C)j0n5#9^ooU2cD4Eo3R/q#prHHoTS.V3dW.;h^`I)JEf_H$4>d+]Adso6Q<Ba.T<6cAxV%`0bjL0iR/G[Bm7[-$D2:Uwg?-qmnUCko,.D#WajL8(&Da@C=GH%Fd*-IWb&uZe5AO>gj?KW<CE36ie<6&%iZ#u@58.=<xog_@#-j8=)`sh)@DN-$cw''DFcMO&QpLnh+5vdLQ_#hF4v-1ZMUMme$AOYBNMMChk)#,HbGM_F6##U:k(N]1CkLVF$##tDAX#;0xfLS^HF#>>DX-M3GF%W?)&+*JNfLblMv#@7Xh#.47uu7+B.$NBr<9)@r6lA;iD#OYU7#:vgK-'r.>-1.GDNlVG&#56u6#<(d<-'oVE-Lh3r0^]WS7#/>##n4XS7?L,F%6(Lk+?+*/$<Rd--r;I]uCUP&#ihHMM;sZ=.Jk+Y#<Dv1q_?l-$FhG&#N02'#Rjn@#pT9)NVxH]-dS=RECC=_J#d./LfxaS7KcCR<0.lA#OWG-Mh$SS%N*H&#*pRF%.ZC_&3R,F@--a9DO.Y]+)%>A+>hWk+,4%xKq3n0#Y:RS%#fB#$@MR&,Z2c'&.B.;6_Du'&hF;;$,.=X(MS:;$l9r&l`)>>#YvEuu=m*.-H####Y4+GMPiYW-.BmtL==B.$)Hub%jF>4.QX`mLN1M'#(@-TIxvaT#(t(G#w$7S#qv1c#'Iuu#%Aq+$r-W@$Nn?O$ewx]$F2oh$2;Qv$0CxP%PNR@%aI$K%FR]X%d+;0&(BhN&A2rC&M6&]&r;^m&'Amv&09GF'K%OA'Ot)h'BZNT'47X*(=3uu'0S%1(]m+B([d#Z(xA[*.dw9hLS$]N#&6>##`$At[:^/@66RG##Pui/%Iq8;]`>(C&Okk2$7U$Z$AGs8].#KxtA:u+M]5oO(meGH3Fm3bNit7I#4qe]('1Iq;Q;P:vfQ>JLt3J_&viSY,bQcp.CJa)#`qPK)1vQJ(,39Z-]p*P(u3YD#v,;o0eAGA#PJ))3Kp-`&5[=,4skY)4S)ZA#e?N>J'Jw['<N)H&hEl;d$Ud('AIFqAf]<9%;Z(v#p:MZuPfOZ-+Oj'&?hbm&:3OH;wA4&>5-Sp&Q(-tLR/'L6vDw_s5e;##[Ifc)ftho.05r%4m(8C4lYWI)$qcT3]#:u$a]Q_#FLeY#;X^:/@AAC4DmG,*k:8Ye)-8>/2ekp/'[[x,4_Z:02<b72(f>C+H]_e$gMCf$%v'C(Iowe+sYT&,?./N0)%hm:<g2'MG=?C+:Hg;-OGg;-)D[20wfS=u/:hl8Wh8qVL?4J*O7%s$b4[s$dE/<7&pk-$G5ZA#cVjfLSP9+KJHBu$w1QwJJB'Y$8;`['<n-@'KJqwM+QohCq*gb.o,9%#.uQS%;L:`s99=8%,s:D37-CG)PEZd3`nVs-PNXA#[Q:a#_R(f)R35N'xh]g%KK:a#d1xv$vu/+*l_oC#d,;mQ.urp:+S-9.KE>3'sb(@,g]@L(2[hr&jSc1:J-N`+71RP/G0w]QqZ59%Z9,3'[2MO'O696&ej==$EIwo%0$AE+ZIt*MX,$8/Tmcs-%/P:vEs%p7-QLJ(E4$##0_(f)rkh8.eQ=g1IUFb3rEmGMMx;9/>%q`$B3M+*f1oH)sb.S<AXw8%WITj'j)-A'F%WNT-Zqf(@TM)'hA-$$4fl>#wUF,2_`uYuxA7<$qjcn&Ah9h($fZ-HRtOK1Yd0'#(NA.*0Zc8/BSsBos)8f39F<dX0BF:.Rkr;-G]%+1iBV)+0J/P'2(_T7-PNh#W)Y?#b;Zk+Un5R*mS[YmceMw&<-.L,E$@ENVb&o#<^U7#^?O&#swbI)[(Ls-b3NZ6%K3jL+Ua.3jpB:%qGU7/kTMv5,(*9%bEB:%els4:q3rGZ9eq6&0=?7;)VY_$N+J&,=wRu-AJ0kL1(Jg>]6#9%@cp1;<H:;$Ylc=l2tOcVQiou,<@,87'M`x-j,5e35IL,3l5MG)1BEYPEv3+NW]9,N?9EYPkgxW$9cl>#(M,W-]c6`&L$^p%=Da1B#YkA#&BD9.b]Z5/Qq0I$$S^%OEa`v%G5Kb.vOkxu0@D9.'/###nHNJVlgjxKJjK/)VI<#6IvtM(ZX;X-YxdAT[Ah8%OGE;PjX>;-uw5B#Bl;m/V*1I$#Sg%O*@c(NK_?.8(J-g)AD-wPLQm<-krsv%**KGW$pBq7O4l%l>n`ca.ikA#W_+%&O&A^H^_$##%&>uuPchR#QZI%#((;YPc(YD#x3YD#w:H>#XmgM's3vr-(g&W&6Y79%fkn9%>-h(*f-W@#]*>F)knd6O;<34':h[(<$8=rZBQ7iL[=SS%:I:`sV?RS.bS5-3i+h.*[*'u$l+8=7B.<9/`&PA#KD,G4a?T:%hl2T%kYo.Cc7dZ,'PE=(?IgK2g_-I#a(V?76+Wm/2InWAZTuM#P2CT&%,MC&/<TN0`V]iB<knW0DQbV.wA3DflQ+C.7DQ%b5-B&5[/T,365qKG/`OcMHt@C#IV/)*W<7f33i4sL2mmhMpSl]##<(C&6jE.3wb7F40/3-)PEkx#uX>J&@kgsL$MEs%OLit-,4>gLgVv/(S53E*L)7'42b?W&CH@T*$BIe)Gsi`'jE^2'&K`t(uVX9[7q7T%l^:0(pj)B(k`tT[N=S%#',Y:v'h8E#rqm(#SoA*#TkP]4)>WD#W*1T&/M0+*CdA=%_wkj1#&;9/[7%s$x)Qv$o+Q-3[cJD*-V&E#;Z^k93V]=%F%r8.,grk'dx+G4Mn24%a#=w91ACW-DQ?=La<]j0hOLs-F_nS%Hkjp%[ljE*Fqew#H%iv#cg'[7_k7NWPbcE#g`]#,JaId)[#?3';YB@%<.aC&2@aN=DEgq%%J8L(#FGN'jkCw,lRE5&bOml/iF'NBRx((93YZd)b5f;%/-Y`3$&>uuX4>>#>;F&#N;+G4v:^Y,bv./08bUa4?a2@$57fT%de75/r#W)'fRgO;r1<=.Pw<p%dqh[,q;T&,>q7?#*K:3'7m#p%)g*61qX8V%9r8,31d24';l1s'/lIH%C>Jb-f5a9D>O,/L^N78.84,876a=T82$.m0`9Ss-wHil87=P)4G-LB-<bH29eYpJ)f;)B'JM/)*TvtxFC_39%'5h;-2jsv5iU>7;J+1=//qDJ)H*.%,3nx9.72M3&ZTXp%djDC&u7v?0sMJOE='oK)DmPO0uXk0(8)Lm'k@'eZI-2BZn9+o9-gG,*6x_caIlplT[Ec-Qb[1_#nv-cr_tcxO5kS'Jnm7f30sxiLuoYA#^nr?#8ekD#<G[Z$grKp7B6V>78QW@,==D?#Z?_a<7)'Y&8iNE&%NtM&H.)Zu(;OR/V&q6&(,Rn&QVhJ)P5pp&UcgZP3L>;)N####vc+:vdD3L#UC>d$jEOA#he#T/?TMm$U/_p.F?uD#p>kKPO<>`#SdL;$K%v>uU4@H)&2Z/$*tH)4o>)^u4u?%-:7fCWb-A<$[;Vo&T+>J&_^0q%a8[%-efH988K[A5IoW:,QRh`.9DH%b#`:5/E,W]+3HSs7YDlA#9KB5)grc>e44pfLiP]S#Pm*$M,x(hL+Fr2:($_>$jFm;-Z-Kg1::tD#DMn;%*vZ]4f[I>:$o0B>(f>C+t4de$I<Qg(<4I'PoN1K(YZ`::=rcG*Mk'i#%'5<$RjwF4ERR8%M####xwP50IG;F47@&s$$d(T/b.i?#Mu6:R$Y^L$@I@<$1h'?$@1r;$FveYLGhxP&6lhV$S,1I$nII<$[2Puux+Yu#ZB*1#b2h'#u^M3VfRDU8i-$Z$F+i;-43n#)IXIh&o:SW?ZkuN':1[`<*aWE*@OTk1];;o&Kn+A'.eF^&D37o[NYRW?+VRD&IW4d.S3Z&#=rcERb?%p7>/MJ(3ufr6I7n`SGQPA#J@[s$k^<c4x?7f3Jc7C#QL-.MO%NT/WUrt-a_5GM01L+*T>([-%41:)NN3E3*0vs81nYR&+YN/2[H-u%o&pn/@,&-):F<p%r]Dk'ab7<$sWs20w1Z(+^Z#r%[%te)3QgJ)#]`s69BcgP)A8W$cDR)*cY#$6qZrG)[)>+BEl7W$M<tt$X9Ck10e4t$RUIs$R,C308koW$RKXX$o#pW$:%_58=`Q_#A&.8#PvK'#;(3]-YrIjiriSF4hlwU/>;gF41rSfLRpC$%lf/+*8S@`a,E'2)'q)9'/rZT8a2?r%25jl0RJ<e)lb7Z7Gwlx46)J-)6v1p/$SV?#P@ce)A0KW$R9A&,29qm&(2qKG(+#VdlGI?%[#`=%lxIA40k'u$VluhMw93B6[VUi#'VtGMK?LSMxQP7e:-n(#$),##_q5V#,I24#xjP]49`Z=7&[&r8vZW/2ck2b5D)+P(]::8.`=WAbo5k-$9UhhL*,dY'f>QN'PGOhUW$v-M6)rU%M[hfu+muN'qtSVIn)@`AwoC.;3Lj9D'*YA#LF8Z$QfA_4Vd1JUsYO]lF3pG*.pia-'QV$BIYClIMA4kbJ,Y:vxiqR#'uCl-aiHRaFY@C#kK(E#B99T.Ec7C#FuuHOoNw1Kt+2[Be8Yuu2Zqn#pkh7#Iqn%#SPUV$f8t1):N.)*Z[)Q/A$G)<,+)H*>nE)<P[D-**.qX6j)K.$?<P)3atep%X@x;Qi:Jt%AWW#&'HAcNR1_KMbiTm(`2Afhfsf*%68Fq&05qDNp`ub%l,PT%*Bdp%g7KgLQ02iL8?6##Cw3<-D(m<-Z5Sn$1IE:.oBpTVh%AA48>F$%7NZ,2bbgs$WLIT%UM3T%n6[s&q[i8.0a7X$8_6Z$#Q842n:/o#;WL7#>=#+#(+Bk$mEZd3-OS,*9`:5/B.i?#Z+hkL^0#V/w^v)4P:.6/DUcI)g7+gLP]XjL<[tD#4Le;-`DL[-Abln*gO&9.o;d31lqkd?:mi,)1xqv#M'S@#I5,j)@ekX$<Usl&n,0+EZ?W8&_g)B#X;rsLbj^VKs:(X%lcZr%37(x5k2S$9O/mX$EWUg(_/20(Z+K>-%Z&03'>cuu$8YY#P*[0#FVs)#YaqpL>U-1M&OrB#l5MG)*Dei$UekD#X7KgL.`,c4CY@C#g3YD#,]0v56W8x,r<;W-O9ki0SBo8%q>Ib3#C7f30d%H)nGSF4nGUv-[YWI)ue0h2&iv8%6C3p%qre-)q(J-)X##+%E'd**I17s$n%f;6kRl_+L9N*.#SiZukh,##dG.P'Y>l@5CbjP&U(1s-e$8@#N^[h(bYR1(>k/Q&A-5/(SmGr%Fvfe*6lJ-)x*?h>nr24'_GnI2ulWa*ln9n'+C36/](o*3/K7L(.O1v#^_-X-,Be61#5'F*9oUv#)Auu#XLVS%*C3L#A,^*#=aX.#mp@.*&@*Q/*W8f3<U/[#,eAj0V::8.6iZx6S4-J*CANBomuYD4v2(H*n0ldtHx6%-B#mG;8;;H*rHRF4#$650WH5<.vu/+*^l-F%pVGq;c7%s$*C&s$:'ihL`DN`#O8@F#%RL1;5S>C+@_oi'')539'?@F#`FC.*stq<-,kuN'u/:'-q.;?%7<9a<ujJ7/;JT0MTW]L=BNX4SiYh&=p?j20*SN/2G<At#0XFT%au6s$FI@w#kr2x-oU-##%b$M;4UD%6B0^30,0mj']*JI4LhR>#eu.P'nT8n/dNl/(f3E6/n?^6&=2&_4+N[f)>k>F#fa:L;vM(&=AUwS%)<bF=WXtJ2R,U'##soXu/%YS7Gt^`*e>(T.fvUO'm(Ud1(`d5/[j:9/ccor6'I'*#x<pa#?=di9s4Xs/s5^Q2Px0??[M3&+]Q>7&H-W.P^QKq%;.`v#:.ua40Bxb4J+R98Xd/BFXoE9%/8+5_W-f<$Aba5&GC:$vgWGJLx35;6hE%##gBow@oV(u$HIYQ's3vr-QTWjLnoOZ6m('J3?t>V/kK(E#SrU%6VmS,3bONU2+t%],f*Zg)7c7%-LMwIqO?q9&LP.<?_v^_,K(Aa+=(35M=(b31l^<t&$UQ0)3>`6&b/qT7)IqN(kqg@OXG[W$0Gb50UQp6&RG>Y-DFYw5[aR60g,T9.%f*A'xJEb7F/34';T_8._IT>/P*-??bpcq9QL?>#bl9'#]#<X(mrUC,elqB#OgHd)E7Kv-OU+naD)h*%e-YD#$Re+4Ni)I-'TID*@b1*Ne/=,N+@j?#xo<F7w)iw0(cR79_Y?C#NLlZ,/4$o1T^WN94=[iLn^DKC%%bN0O+s;&8XA30q-2kLFb.q.w:+.)aA[q)KRVL3rk?.NBFo/R>`3B-%0IA-n^DM/',Y:v(M'%M_@d&#DJa)#pPUV$R4r?#cJ?C#G>CQ9fh1T/j:2mLOiYA#qd8x,OgGj'>#Me2Jva.3ig'u$^#:u$BKc8/j5='ml%Li^>kfM'IY1,`tpkgLX0As$7&lY(-NU8/k6.>/VOaP&g*+6&,_W$TPNbe$]eJ2'NCNq2SnU)$*o(9.i<B994],=Rq)R)4g$Px-=Nv7&886QS$f?MM[H2i/(2###%b_S7Y(u;%Npxjk$h@M9TbBv-q<8O6nbU@,abLs-YBSP/]::8.*W8f3;#K+*uW^u.:0s2/*-T%6=R]w'lIxe2dHt]#N$v[-DNaa4nQXA#BjUp/Jg4',90>nElv#Z.Od>3'd[jo9brW9&9dK9%e&vx4F..L*F]:v#,;=a*`n36/QsB%bw8md/_JqS2kV_pLg5q(,4k*M&`?L-)f;3u/#=I-)XhXVdrRDS(Z+)S&ra?W&1;P>#MZhrI;?K[#dmx0*/]kV7+C%##:wE<-17w2&*)sFPg<S+%Yh),>Y)E.33D2T.v5Zv&h%,)NSSx3%d=Ou(0jU5MO8?uu+'pV%*@W:.MN>m/Rq@.*dZ'u$bJPD%^=Ip.Dh+%,0E9I$'9PF%J4X#-.f4GMT4/cV]:q0MM+d<-;'FK478qCa<G?`a;'GJ(;NHD*W_d5/`UW`<i0wC#[=fOo^]%@#%apf'$-mK5iNj?#Bx37/MHPn&BbjjL>ID=-Tlk*>.L%a+o8o6W[jp5/h=K,3nM#lLtGGA#L,/;M;9rx0+s$C#B4;ZuuL.GVg3%dM1T7U.V5/$5_eHG>l&=#-HW4<-b@)*%Bv:9/d>6$6urGA#atr?#&_va$lx*iHa:nJ#:YDm&F-%w%/%Lp7WLO]uh.2i15D6t63*?('J1F=%)FPgL`]ZY#K1*]b*ag(amK^/1MFn8%`B&s$ZpB:%0)&b-PD6F%?d0<7al+c43v+G4[5ZA#O59f3inL+*o%^F*^4-XLiq[s$+d]D#(BcJ(-@Sj0K]N^4KX7a+-fd5/k3AN0-)TKM;9BN0n()a4,K:V%52HAk[x):8:%]5&7C&<$;mqd2G3,n&m*(r&_q[8%:'TW$-u9N(U<fY-D5ti,p;E&+o4:kLd@*:8';G##[*Zr#p@)4#8&*)#Z7p*#hPPA#ON>V.-opr6qGcL';=1)N:^k4:T7Z;%571B#D24>-hkfT%CI$,*104b+$150Lj=g^+EZP.U(f>C+-;/)*C1@<$`eY>#At3R/0*)H*_v,40qLEN0_@9K2bPQ>>ZJOJMAK8a+taJV/FV<Z8F/96]+rk&#%/5##M0o^fJR,,)JC$##,;Rv$t@0+*5HSF4gc[:/KGW/2SX7%-X*Zs?>8``bu`,-&)gZ6&A,>q%K3/%,^la1B&r9B#=dcYu,p@/MWF1#&l0T$lIJ6K)uN)%,D@CC#$:8rm<lQiT7`###rY5lLoKPA#bDVBQF-s:1doWDb[Pe)*#v1jTf<^;-A:iT.-[1Wb4:2=-Phc-M=F5gL5C9C-+=9C-;Xp$.-J+gLb`7C#[j:9/ZZVA.llA>,'P8;[nRNWJ[`C.;w@$$$l@AC#.P@k=_7%s$OQ9.;J.KKM`X<**mF?^9.YPs-CF.-;ml'^uxKdQ&5+>R*6U^JDdwn>'rV8>,(Z*^#KA%K1[Luw5n@5c4TMrB#1eU_A>P_a+/hUu?t*uq&xCtS7mv$%B^,w6*N#<daJVQaNeO4gLW`#n>_[N_5jK%##,R(f)-<Tv-k/169+O(E4+._C4='K,*Le&-*Yo%&4YaKW$72pb4i9(Z>BZ^/)+*NO+*/]I)O:h(EWVrq'[-Jw#ES211bANS0pZXK1W2n`*QfSB+H?VO;)tBI4q3kt$AL<p%N;9bQ@<)r.,'tU.n32*Kr;=G#U2`K(;L<:8WH`K(qpP0(#s5%-th%xS``Mv#T;[d)]N2DfX)CH0?TG40l08%#41%wuL/sW#<,JnLNh*F3pBj;-^1X/%df%&4TtG;)Vi2U.BsMF3a8mp%/tFA#bg'B#jVXp%WIl<MH.d`OQH8u-1_4V?*:@2LJ%O3&pVfr0HQ*_O7XDY&$,PV-:vpQa9_Aj0_T^:/[M1E4k&B.*W6#8&a>#d3'MoC,Yt6##^*-12EKIJ)uN)%,(A/[ul0x5/ej0/'5//;MLUbm-^**%,$qV1,K[uq&;XKfLWwH##:d-o#E&.8#h>$(#N8u>@LL)m1PF@<.Xh1f)Hq_F*Ek3Q/kHuD#iapi'&#[]4FJd,*dI+gLnT]s$j:Ls-iE(E#6,IT%rXfQ&7aiS&h@BQ&nf]^7S=LI2,&7n&gn*b+F.av#mVom8->%[#oXt.)XRNVRq4<9))fNnSt3vN'/@(V&7=1V&mK6K1Sl7:Ln.fJE(5&C46f8p0^RVZ#pZ^t8+<Ov#_BOe+s$rw,0FZSJN)b1)W-/L5iq.%#.+_j%ub_S7=-&v#5FNP&K&@D*@%$##0G2T/aw(a4N$s8.CeL+*u*mV-vc(T/HD]=%7hJrmXR`N2Bn)K9IHVQC`vcV$/.g`*^Hc>##b[Nj?1dcaxcAG2ED:v#$v4uu,7958%P:v#t=58.$,Y:vBJHs-M5^l8bj(9/vf%&4n0Yo&(:k=.Y((*>)9Bj0nJn_>?#-eQPH^@#CG0H);l%n&>%'I,7&$9%V3=MCK:lgLL0W=-YZ+Z-L[t05@<A?Pv-8u-lRPM9:]R&,-qAAeAO4s%Zrk@?*%gG3*55p'TaeC#-^v7A0LPN'^]/B+u5+%,/<#LQ]e/GV1^[N8u<CH2&t@E+jwu0Lo=_Y(o:%?7QO?>#QSViK4E0A=LKu`4aeO,2S(Ls-22'9%mTgU%L=Zd)5*j<%oQl)*E`j)*/bY,M.R@T.&`X]u)Jg9;gFjl&0ixFr#I187[9AVHKG'##8=Nc+NqR*5;'&i)(??A4AaAf3$fNT/+kRP/oGUv-Nki?#_Qo8%l(KF*97#`4oo/f)+2pb4$,]]477DB%P5#l9PO-C#-duJ(5+7X-D45@5c@nM05kJ30kh6X-7X=5T?1^P'4F4g1=QWh)C6ihL#[Z(+bvZ;)?m(q<rTF+5?S39/st+E&QN)R'W^Kq%oHpM'oN/7/Wjpq%QDbl($=cgLJ6GhUhv[).Jki%,PP?w-hTBq%B0ZA4hXP_+OaFm'UsX-H6]aOD`CT8/TAiA=.31V&b6ai0Vh$##bl@d)^^D.3FH7l1'/dt$p&A+4@vTs-l9]c;cD^v-wHeF4Dk:B#&SwvK(mL5/+ugfQ0t.'M4.VH2r^?3:*+l.)eBA@#6V`iL^2oiLvN2DfxvnT%K5a:M^&_m&JTbG%ZtLrZT.FcM_v]%#c@`T.-Yu##;A`T.,Mc##QsG<-5X`=-nsG<-*fG<-:B`T.8.`$#m#XN03c:?#-5>##_RFgLNJhkL0=`T.6:r$#34xU.3xL$#AsG<-5X`=-YsG<-*fG<-&B`T.H9F&#@tG<-JPI+3Ze/*#Xst.#e)1/#I<x-#-#krL;,;'#2_jjL/u@(#0Q?(#Xp/kL<LoqL0xc.#wC.v6F+U.G5E+7DHX5p/W%C,38q:417=vLFa-'##jS3rLP@]qLbqP.#pm-qL5T->>9l7FH5m?n2MT4oLkL#.#6^mL-Kr;Y0BvZ6D.gcdGBh%nLPKCsL3T,.#+W;qLFm%hEgdJX9J%Un=p&Ck=%8)_Sk+=L5B+?']l<4eHR`?F%X<8w^egCSC7;ZhFhXHL28-IL2ce:qWG/5##vO'#vMnBHM4c^;-SU=U%R9YY#*J(v#.c_V$2%@8%6=wo%:UWP&>n82'B0pi'FHPJ(Ja1,)N#ic)R;ID*VS*&+Zla]+_.B>,cF#v,g_YV-kw:8.o9ro.sQRP/wj320%-ki0)EKJ1-^,,21vcc258DD39P%&4=i[]4A+=>5ECtu5I[TV64+*WHnDmmLF[#<-WY#<-XY#<-YY#<-ZY#<-[Y#<-]Y#<-^Y#<-_Y#<-`Y#<-hY#<-iY#<-jY#<-kY#<-lY#<-m`>W-hrQF%WuQF%%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2'0O,3rX:d-juQF%&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3(9kG3rX:d-kuQF%'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3)?tG3?:w0#H,P:vb&ij;[-<$#i(ofL^@6##0F;=-345dM,MlCj[O39MdX4Fh5L*##1c+@j@t@AtH,ECQ"
+		local font85 = "7])#######-Nudj'/###[),##1xL$#Q6>##e@;*>mnM]g8g@J1NA'o/fY;99)M7%#>(m<-0;Bk0'Tx-3HTVck7+:GDAk=qAqV,-GU;P1oK3Qlf&bY98<gXG-$ogl8T(ofL,i;;$%J%/GT_Ae?eaQ3UZAkW%,5LsCaOZ2@<3bKV9*U2Ub';9C8A'YS#9^ooU2cD4AJr9.wYhlJ5drV.V3dW.;h^`I(A_4fH$4>d.hiW%o6Q<B8nXJ;)qBe*T4b(N0iR/G^Hm7[)nC2:V'q?-qmnUCko,.D39N?6O'WHa@C=GH+?k=YJ^k&u^hmiUn_>C#*lpFA=Jws'alVP&S9w0#7EL37WZ3N0*2@&v-HUn#P96&M[bm##>-Lt:EE,WebMcf1G$i--$MBDNgmH&#f:J88u0p88R+vr$8OL^#$,>>#sn&W74xD_&OG:;$W'.;Ql_o6*NT[fCuK1m9+.Vp.2h[%#?I]6E$2ffL5D,s-:pwFM8wA,2.,<6CpYw:#YZA`ah`cf1R3hP97@cA#2o&i#k7?>#EGMJ(+hX]YR;:2Lwos#v^X/&v#,###FLV2M1M#<-6q.>-?XT;-ITiiLv=lCNjCZY#P-4F7'nS2LMlw+M;p)*M_VjfLKI(DN2c7`aR:@`a]v8.$S?mxu.]]F-KWs#0P3w,vf[/&v#*tnLoU@`aT]Uk+$A=gLO%g+MrY#<-.fG<-3NvD-3r0@/*%4A#Y'N+NDET%P?CYcM9BN/NdaW^O*:$##Zp8.$c+?>#(ok&#cHwu#Fle&,GP4;-2Iq>$exdw'mA%&vYfGxkCJOV-Bbu&#*`$s$TGxjLO:?>#(WI&#%DbA#[.@W&0Q/@#<Vtn-'C<L#(I`0#SUu>#Y'9M#9i+u#w:o1$`7a%$YwQO$of0F$9C:r$5(3d$]]i4%iLH(%@`;<%Sq]E%q+]l%kYB^%_C'#&RF]9&kAEl&*un-'&[hr&$KR%'$_F6'C/`G'FSiO'I'YY'Lj?o':[BF(gKx9(%]Kb(]hg')lsfnLxA6##L5Ev5i(),#-Mc##Y@2##HJ8K%G(7B3hq^`jmb%Z#'fX&#rax6*7fx6*`Hbs$f&:;]G]eF3V$nO(]ax9.E';sC4x(cuj+CD3w45w$8A6`ai+`%b:aBj(VcQEn1.f(#d,>>#ZO1x5OZ'u$ZVd8/)$fF4R#s'4P4vr-;`tw5?3lD#XMc7*6#Ui)6gE.3Z_[@#fCb6&n/)ZuOluN'Bobs&i_gi#7+W*%Hr^B%gqk:&mpN?M;<Ilfbm_&PK-kT%ZR`e$%=4C&(_s)%%1]jLX]WV$+QX+`H_0SeUi8>,v)BJ1Xn$##6/QA#*r+gLd^xD*L@[s$tPYx69?RF4PDRv$X_EG%Dl*x'`'6(Q`cEc<<5Wk'II3LDdv2k'CPl.)A]<F3a&<;R>'wC#VB$pKHHKW7L_p]$xDF:Ks9[eur4Cw-BXbRMO=qKMvxuOMRR?>#<s%#,#*%/Cx,3(#Av.l'[cZ_#aY?C#[HSP/W>uD4R`>lLD5M.2m<2W$Zg6d)hDMs$l])mJ?@g*%@/Q,*JaiX-Blx7*YbPg1;>uu#IOxUd,Bo._Uh`i0Vh$##`bLs-;va.3Y?]s$;Go_4twC.3ig'u$&Pto7rLd&4x?7f3x8Qv$a&SF48u_qQ996DfT=Pw$`W49%]8;4'ro%L(g;vn&KR[x,wkR8/EN]a+ISg'/1b5]7Tj#;%PHT6&]Z>3'bClZ,R9,n&O;%1(u8X?6=vkZ-lPwTMOFZY#WY,]k`Qg(WV4lr-Zg>A4t(4I)YEo8%8>%&4+J,G46FVt-/,698rGt87q+gY,d;v3'e?)Q&ObHXJ;K'E<7h3I)nL3GVCRMZuMSKU%X4*p%IXD%&4F=@$s=Id%`c`W%?39A=M[wo%glLW&kZW$#]qbf(0k'u$ok&Y.%<:H*dxrB#7(RW-ep3achtGWM3Txo%D9Ou-cW,n&Jfl-$$vp>?%GnjQZtT;.S=8*+O*Lo&cjsa*Qr2d*(f.;5<:G>#Sg[%#jrgo.^nr?#&Y@C#8n&s$i<a>0bR(f)N0D.3g].HF`RP%tTv5;%T(qB%uS,>JFE-<1?AKAt95k0Eb`o6*?:5gL#W20(e6Fr.u*T*5vn4R*g0@.#'5P:vqDG`a*<li'r)#,2c6%##d#f<CA)'J3TEW@,bkh8.7Lm<-Me`=-We`=-=-f6/EUET%^@F,MCYk[t&c-NUC_39%a6We$pnd6Oenh^%KGKb.wUkA#0@D9.>5u;-Qq0I$#Sg%OU[;;$WooE[sqLF[&6+#(.gIkXs)eR*[%`AP[p7S[)i@W@;:@W$ie#W-qScDS:=(?%R%)@0vOkxu-%H<-$OsM-Kqeg+.%&?7fb&4QN0Iq7]UE=_B/EdFIPcd$_;kb[BRoC&]wC'8aXbxujtFH2%/5##9ZhR#Q`U7#[?O&#`%.63xZ*G4[m5%-IckV-a-ji0Xfgs7omrXI`DuZGAiuYucFs.Li%'/)Jg=A#Eo];1dDI-)oXV]=R9DC+EJt;0HF]:d,Bo._+c`$'w6$`48tFA#lL*L>e?85/85xD*RtC.3[5ZA#xflMri:3D#HC+[.e,_6&&VgQ&Z^(99AE&2B6L_X%g,16&n%:bQ`CYE9osC0(5Q([,0`%C#jkW999f5gLXX:T7BA$vLU,qXuHi:kk`Ia$'A#QA#Gt@m'II#d0c<jv6Z)YA#M$+mLtk*J-^(29.b6FA#^MlD4w3::)#5r1TOq[W$m`w1(gYBu$Osus-EBniL+uKb*.x_5/Lw*t$*b1hL(^p@#6kGR&W<;@G]HkT%hmT/)NUupoH]Dd*?9T'M_])w$trF,ikj5c*M3fS(?>cuu:g-o#'_U7#EPj)#cUG+#$2QA#g'ok92%?g)6f<X(@eA7/+IA8%L@Gm'VAqB#9`]q)K:n=7Z&PA#w0`.3Sh+<%VT4J*33w,*obQP//p^I*$sun&%rqX%e5_6&5<Zv#txvN'dPDg(AnN9%H*Tm&W9tP&Q*X=$;$D?Y7sM)3dew/W4Rp:%Qe3*,`lNa*Uiqm9R1s20H@L-2PObV$tNA30.:>Y%Sj(0(7_P:&D'Ot$(FK/L*oaPoRAj6tVH6I6#&JfLXq-##Wh5r#u_V4#V$(,)oQW@,t-pfL=T]s$kHuD#T^WjLOa`221n,Y%0tSc3fFs_,A8od)=Ln8%f&/F4tMFT[r;^lSD#-b<pGc40i^iB>_Q>n&cP>B,Irl>#LOT6&[VhhLXMvu#P4)eahuC`argai0c6%##O?jb$-2ZZeYAOZ6%vYT%:;gF4Woc;-#LHa$M=-Q8+`<$6N/ob4PF[p%hCBTTh2P,OM?0rm95k0EqW)J<HY.cV/Fwe4r>;@.D7u;-9,lC/XaaJ2H]k0;*6$f4D[r%,=d)J<']T.Zlv?D*3v5.Z9lh;-rVPd$6^UaSoH<eQXtDQOIkr]KO/P:vqrX>#q2dc)VaFN(K)'J3M[jJ1n`aI)`Ld5/OwAv-IBap'dvT-%,&AA4fTTM'`S[e,7)$9%FI4]u*Ki?#2muN'L(CTNwxe`*&HhH296a*.RW&F.@Z$I2-*c6&FbU'#%2Puu0HUn#]9i+9r-6Z$>(J'J`**/:P5P3D42.a3IJJ]$(Tu58/7Wd$GW>7&Bp%*'Wg53'kPU&5J:?O2]KVX,@J#v,J0.%,CUwW$T7D?#ptA'+veBG-N%r-4J`psZR:ov$`5VhLf;$##h^YfLQ*88%>u###G]o[+FFvq7o<Zcaf)P=-%Ti].4/sW#+2QD-OY@Q-r^_t%h#&R1K%h,N0UL+*Zj:9/ql4Z,o(b.3-/5[$wmm.)m7-R]e#iEOFO.W$ffew$fhq8.hb:x$P3Ih,MHB$dG-9U%R53K(W5L'#.0L`J-D]aJ@K7l17@[s$Fc7C#^oJF*&2V92/QNp%n:iDF^hsp%<1I'PLGKTS>F@W$)VnQ0:Tf=%iud(#%,Y:v*`(?#d5i$#d$(,)1Dh;-avF%&FDwW]>'af:,ZY>%Bae],MG,@&Z$VgCX;[q&]d^Q&@T_Q&*'YK1CwHC#otC0(D]Vn&J4a6&,Q,nA>)973IG:;$42I9fq@5P][bHP/]]P`<S&Ou.]*'u$`S6C#&R:a#/]NT/<PsD#FOit-puk/Mfd6l13Xrt-6hH&O.NAf3U+X=_2k3B6ENwY%OX<p%rQv@5mesP&ato60IR.W$ab:@,rU0/)NvHH)vP(n)s5hU%NXEp%)B0I$g<n=hs6E`/++t^/RG*I)qs,m:etYb-QB=X$^tm.+?_ap%mndT.#S3X.YAIL((`oC4]3570KE(K(vptg1X>IL(U%15%U8G>#B7>##eH?D*<w4x#'Ga01u?lD#/_v)4na&],4nmk%8CFA#KfZ@-MS[s/%PDZugco$5V%bK(`pVQ1wK8W$e5Zn&:q1E#N4M?-dD24'`2FP(515-3]#4_5#<kB,XfvW.JXi$#S,Qd*?sZxXlee,;nNN?6NfB.*bj9^#]ru8.KRpQ0)PkA#4.m<-QV`X-x0*+%Z####)DluulD:R#7)+&#Rb<9/#&AA4EddI%1QQJ(+w9j0)U5N'ePU:%^L4H)&4d;%AL*N0$W:<-aBND%s>seMZPr.2I+@8%1x<M&J=D?#nl,?#VYAs.USc`%GKg,*E[.O90+dg)UHuD#d@^&BgtG%B:+5gLpP#v,(d[]uaZP$B<aR#v`BmV#Zq=<MRBT_4_)wv-ZI:E4W/Ke=AcvS/KYn3QpLji-cMR#LFnZ)#v]x9vlcaL#Gh1$#j&U'#vu:9/nfZ%-DU`v#q%fX/ELsY$%-U:%erar&kC)?#2HT<$>m'-M1==2K$SRD&$UST%gVw8@<);?#Gr><-jZ9S//.0m&`c>w#3eH_u,U8&&pBop%?iXg1*G'i<A(DeNAO5hL'/6h-r=ge=>d7iLWvJO9+M)<%.;Rv$Sko;7#eXg;Nx.(63U@#:Uj=vGW'3)%/TEt&>N&r0En*IH%]]q)#QU<H'_9N0=:G>#_Yt&#`G>M9&5Kv-POEn<I3rhLZNs?#`xJ+*bX[6/w4NT/'APjLIXTC4^nr?#/xc<-Q+)X-NB@k;5Hr-MHx9+*.i)F7Akdi9A&=61M=l9/?lG>#Cwo2'dcse)x`lj)I:e8%Os5r%[^N3,e3d*7&=+K15#t^-nwr?9%m]^+[<5N'Iq:+*Qjc?6Eo_;$_`wd)6[l]UDe(HMBf$##&#5>#'8G>#0qm(#abY+#nqdT-Z-uG/-]U@,:^9a<r_l8/agocNN%,t6)&Vv-ZI:E4*NYx6?J))3)+ro.Khkj1s3vr-8GTkLTQU&$*/rv-udnX-;X^:/x<j?#BW[iLu]sFr7u$s$Y(0+*twU<-C`5>#TP.K:g/$r%4%@8%'vct$/%lM(aOrr&$^u_)=taX$.&.['2Z(6&>Rn8%w*ci(=&gU'_TBq%TOR8%A[N5&Ckns$ub:@,_l/C4j.d6<&7bs-63Nl(Fe1/)S6Op%4AXi(H(jP0Q^M7'K*#Q#2uq;$=6DhLqIci(Wn7<$/AP>#Sr[+MYV?_#',[0#n0;,#<->>#AV9+*Cid8/@n>V/a%K+*d)UM':]d8/&,]]4#cx:/.BTk+=%k^obRoU/<vKW-B1BnhM1;*%E1B]$EU@lLT$(E#?;Rv$S-2E4):Z;%+73n'*o&02SiWI)j,/]%<[^`3G/?I426w6'^nV?#</m#>+;tE4dc(/:5Emn&@02;&,/s#56-jW))ljp%:Sd9%r#:Q&FwkU%mE/g)M8Co/D@xN'`Qf8%N+AC#j+vw-h(3%$?e<t$&w@.*mu%m0NiTh3Ga',;$*og)K2Ke*G6`E4x0G4:@T$H)_996&-Y<s%J$Xp%21'X%f]V8&@M+mfx`Do&6B(:8HEV,33V`2'Y1%O=6s^=-$(nY#P5YY#@;xu,rNclAS_P_HmVl]#uF]fLl-F<%:q'E#qI[%-$V/)*t:3T%=^WI)R3*7BI&_W7dv@)GjnBH)Ym=]#jPE>/Bqmk'IXEp%9AalA&>dF+H5P?6L#;Q&jbv@&LBHT0:YtH)DONp%(cQ-Hg>6`aj+`%bN?`l8ggN^,T>V/1-<Tv-/.ji0vR7C#_Tld2gc``3J)TF43h;E4x<7f3trLI$UEW@,V])<-an@8%vA+G4Ug$&4bx&X6vjuN's1FV&[7'U)J;<^4lR4U%r>f8'9h:K(XChT7+VRD&<4K-)sH^m&'e7d$IKN8;1N_6&1V=w53+6_+TUW_&4;vP9g)$N'M(gn/?rpq/3lE]'^`49[P`mY#L-&##9*,Q/:WL7#F[P+#[N;t.26MG)`7.[#sSg*%PXkD#TgZ;.[GYd3IPsD#n`h*%]h=^,p*5gLP0vhLoMh<.ms#E36tFe-_+7g)RHKs$TSm0'2v$E3)b'n/;g=[&H.;t-`XrjM<%KB1LP4q&Lk197oTE$P,F?C+D95%lb,Fj180F#P`xP<-%w$iM,U_8Mi9MhL1_duu9^hR#*4mx3(pm(#T%T*#GEOA#B.i?#a1[s$2-Ch$Gc7C#FwIf0[Z*G4pM.)*gCSfL$#9f3bR(f)[/*E*lAqB#.v+G46`W01;?x;$D*K2'OCXk$3o(9.J=HiP3V#=R6$8]Io8@v$b=&NKw2FSR9R8/M+:HZ$UlS#,TeIv?]2ofL_KAw#OHiY(3SB[5g.t3;q,XP(f#Dk']^2IMji&gL.tVV$8;-`as+$kkkGSY,@G*T8W#r6*ffk/M3o,x#l5MG)YAOZ6aA6N':]d8/xE(E#EiaF30ACkLup'E#sJ))3a>BK24vPA#r6eKu9g+G4V1x;%lpKB#RBs%,995Y'NrKa3C<dJ(Oq@@#Z9''PZnqR[=l(?#u4ej'K$u=$js]r.Mk/B-maDgCX@w:%@ooA,.ij?#J`#Z%Id:^u)eGnAdD24'%QmB&T$]<$0>TH*G9R0%IYP>#$5D?#d&_H2kR,E4l,N6f/Lna1651S8eDeK<hR[/;=/$Z$dWq#>=a,g)Jk*W-o*6`Q71A%'F2HlLS-W,;PD3/MB9Ap&/w%'.Ylp:>m^X&#Zt6J=7_XD#<)]L(VS6N:W;Ee+?]x%B.+CJ)wObA#@hh$'@4CJ):3+V.H*.%,(*xfM)rJfLdxQ:v9q;##AQ=8%4V###CX@8%:q'E#.4Kg%R*R2L6[*#'B(`?#_R]?5i9:n/ni$qLkBa?#^ULJ#aL>-M>$;-M=u+8&,,h9;Vk,#AAvN1)`3lD#bF%U.VRI@#@u$:McYCJ)en]m&3iD1'(E*1a2[mxLFNir&KWdgL.0vL'_E0QC_F&@>w06Z$Lw9e?fJ))3oxJ+*%ABp7a/l*X[&KMXJLc>>au7p&3bLg(*tM'%BSm&M/NHMX#-Bs$o@SZP)aAB+?1$=05e+/(-Ga.qOcnW/slU:%fZX,2FsHd)sRF,MI#NT/eMXV/Z?85/1c<9/SP,G4[^<c4OJ,G4osFA#0j5F%a>_,*Q$F[TP?O2&drvv$>&cu-Njv:&>oAt%dmfw#]$<v#bt7Y-HEv3+d,]&Or])w$$O-32H[.LM:Ib70_@#G*mZaZ#GXE5&;`G(+7e:*4[c*M(KBeIM*)4a*Vd/9&1)q;.L2(E5?@%##'&>uu]4>>#JL6(#I]&*#=sgo.0X<-X,fm=7ST.29c9mG*ES%Q-WMN/%7MN=(-tx>*;iS?R$0t>-s)U:%2d7-)&KM-)&cj<%@Cp.)Cos'4L*/@#jQ[-'dtKHM-C:Q$]%WX.$_7tJ<<.k(^&Y:.eOdu-S_%u-QP:%MZL?C+&U,T%s_@C&G####R3n0#4=O5L^hHP/Y'3:.rM[L(Lov[-u?lD#TMrB#S/DD3Gq6Elg754%F>nM>%u.eaB0?MR1S+fa.+CJ)`0Ne$^f,$&8bfCMFl:p.,3h(,[Jw6*'2>;-DluNFopV]+08>5/)WHG)dR&E#^v7B.R4r?#.8'gLoeZd3$M4H)HC)?#97(wL5KihLtk9i%A2;gLBHr-MIt.>-S#fJM+e7iL9mBgMhS3<%f$g;/=V&E#,:3iMtrbI)vEjV;([xV;dPG<-ZvR/&ea*G43>km'-1em'JNXA#SH;2%@vN*']ggQ&8([gLk)JHDHH;2%1rv<_[2vR&Gbp*%i)%t?.KFm'#0$f?:Jl^??gNH*PJ))3?[^:/x)Qv$8^t'>Pp#8/W%am&ob*9%uAg8%WB_ihURxa+HU+`&owr8%(t&4MX$?d$(L@M9VB')3ig'u$C]R_#=qj7%8jE.3TDj?BG?,na_w6u6-E1l:0xoG3w3Tgsia+,%lsRF4K)^/LdB]@#gYgu:P,'F*lKfN0>jD+=Dn8@#wrdN'EUrV$)G6,EAgxkE0uBX%L[<9%cK,m:TxA5=+DAL(tgJ@#Q1iB78(Gj':4P@5Xd52*q:npIDu(v#kI?b>],kI,>nSm&pEEm/jMRiuO^C/)@bL/)9),##kw>V#aC)4#-'Vl-93$4ixVwZ?8&[#6<TIg)rXd+u-GrB#ANU1;#ki-*[*'u$($_O-C_39%l?^;-pMcpRhIblA5Zs>&GiI-?>abA#-oYGMu;gL:bc9N(nN*20KUNK)55%&4Z&:I$(%x[-&8b5A0;nw'*0F6jSNCD3U+BJ)u'nofu1>;-E$V0,PE;61LG+t&hC5Y#or3R/uV?L2Y[3VR`Uo&,Jgma3+_AG2'&>uu@Rl>#TN7%#6&*)#)$B?&qP[]4wj`a4G+^C4D2$w-YpVa4Bl$],Soxu,E'Yt(jtn8%>B940NT^:%PEZd3gtONDlr1jr#4l:&)KqV(5P3(7Z]hQEWFFb3:?)G#,'Vw.'=.g:n7X_$Oj?H)(Jb.)?$Ym&cAJu.XfrS)bDVO'6^`S&xt#I6G,OL)Z8MsA5GeT%kiLA=fR:J)@Le<$^&hg:VF6T.PEHR&r2Z(-LXnq.9&.Qkfx5Q'k4+gL`2Rha'_A`a-l68%?3GJ(Wo8>,;NHD*R<*H*'k$H3@.OF3(@*Q/P$8s$Wt'E#4`d5/v5qSC2OCau$$4n<Ye&[Jreci9rYtL#<iBWJI@,@')$s<Mq]g%u*85##<vHo#e37:vUoIfLG@Huuq#AsT0C=)#Z]e^$5GU%6(K2^>KC,H3o]d8/;60T.kiic)`'Nu&ML*/3?4HN<?TtD<(vvE3V9LE<7,9u&>oT4(Ppx8RM,bbN'3hQ&cVBp&-h](P[4$##D%`a%E&3>5?n<Q8IuJ,3evTS%3D-T8l?e1,<nS^)=lXZ%SQ^6&g*Td<.+CJ)AOMe2JeGJ)nMOW'voQN'kFe),csJ_/9oF&#&k=m/';P>#cWGG)G&JJ&.%Vu&`9*?#L5koX^V2<%LZL:qvfGb%.6=(jE$qAXl*7T.8LVX-1P)C&':rk%(`c@$Frd@b/v,Da%gf%FlDq1K;8q2:vk>)4uueV%8drk'ds>V/AHaa4PdGg1Q0g://sId)a[2Q/MNBu$lYe)*;2QA#C`WF3U:Ix6_s$-3Y#c;-*^?.%Eg>G(pnO6')uBF*+kRlL-OY2(p2GX$XOmY##md11-;N[$-h)[,C1Z(+4>58.C8rh1NMWm/*dm(5&J)h3u'^:/cTf$5#0%-)u$-0)Gqe<$uSdj'#n4k05B.-)'#9;-)F:)4X',b+;eM`+G%Yi(uR&A$u%IN'K?mV);>cKhtGP&5'*U-HBkA?7FH)M%wE(,),s:D3F]tr-iL0+*I5^+4sUlo7t'vG*+'V*uEiUC,kKe6%RXkD#3^4.-NT_r?RU#pL1e3IfQ+;mQOg]j-<D:I$o,K9.(f>C+Tf=WM[Eo>-c&-p/o,UiIOE,n&YQ>s-q%TH:1]'^#7)hs-Z>?j:n@Im0G=61MJE:Z-+dfF47of1;F8`I3hbtM(ft(%,$xUC(<kuN'KmLEMMxg6(M8kn/4-Vo7kpHJ)*:V9..EVO'ZA,L2?SOS7Hr.cV$lQ=lM3l1+Q:ENrUG6^=032H*Z%AA4VC8j0q_.<8duiW%cljv%)@vV%v>[h*0ViIRqGojLpA$##5=S5#+.MT.<e[%#c@`T.-Yu##;A`T.,Mc##QsG<-5X`=-nsG<-*fG<-:B`T.8.`$#m#XN03c:?#-5>##_RFgLOJhkL0=`T.6:r$#34xU.3xL$#AsG<-5X`=-YsG<-*fG<-&B`T.H9F&#@tG<-JPI+3Ze/*#Xst.#e)1/#I<x-#-#krL;,;'#2_jjL/u@(#0Q?(#Xp/kL<LoqL0xc.#wC.v6F+U.G5E+7DHX5p/W%C,38q:417=vLFa-'##jS3rLP@]qLbqP.#pm-qL5T->>9l7FH5m?n2MT4oLkL#.#6^mL-Kr;Y0BvZ6D.gcdGBh%nLPKCsL3T,.#+W;qLFm%hEgdJX9J%Un=p&Ck=%8)_Sk+=L5B+?']l<4eHR`?F%X<8w^egCSC7;ZhFhXHL28-IL2ce:qWG/5##vO'#vMnBHM4c^;-UU=U%V9YY#*J(v#.c_V$2%@8%6=wo%:UWP&>n82'B0pi'FHPJ(Ja1,)N#ic)R;ID*VS*&+Zla]+_.B>,cF#v,g_YV-kw:8.o9ro.sQRP/wj320%-ki0)EKJ1-^,,21vcc258DD39P%&4=i[]4A+=>5ECtu5I[TV6Mt58761*WHnDmmLJ[#<-WY#<-XY#<-YY#<-ZY#<-[Y#<-]Y#<-^Y#<-_Y#<-`Y#<-hY#<-iY#<-jY#<-kY#<-lY#<-m`>W-hrQF%WuQF%%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2'0O,3rX:d-juQF%&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3(9kG3rX:d-kuQF%'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3)?tG3A:w0#H,P:vv039B[-<$#i(ofL^@6##0F;=-345dM,MlCj[O39MdX4Fh5L*##G)-Fq93;At30+:D"
 	-- >> BASE85 DATA <<
 
 	imgui.GetIO().IniFilename = nil
 
-	whiteashelper = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\settingswhite.png')
-	blackashelper = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\settingsblack.png')
-	whitebinder = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\binderwhite.png')
-	blackbinder = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\binderblack.png')
-	whitelection = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\lectionwhite.png')
-	blacklection = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\lectionblack.png')
-	whitedepart = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\departamenwhite.png')
-	blackdepart = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\departamentblack.png')
-	whitechangelog = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\changelogwhite.png')
-	blackchangelog = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\changelogblack.png')
+	ash_image = imgui.CreateTextureFromFile(getGameDirectory()..'\\moonloader\\AS Helper\\Images\\ASH_Images.png')
 	rainbowcircle = imgui.CreateTextureFromFileInMemory(new('const char*', circle_data), #circle_data)
 	
 	local config = imgui.ImFontConfig()
@@ -646,7 +771,7 @@ imgui.OnInitialize(function()
 	imgui.GetIO().Fonts:AddFontFromFileTTF(font_path, 13.0, nil, glyph_ranges)
 	imgui.GetIO().Fonts:AddFontFromMemoryCompressedBase85TTF(font85, 13.0, config, faIconRanges)
 	
-	for k,v in pairs({8, 11, 15, 16, 25}) do
+	for k,v in pairs({8, 11, 15, 16, 20, 25}) do
 		font[v] = imgui.GetIO().Fonts:AddFontFromFileTTF(font_path, v, nil, glyph_ranges)
 		imgui.GetIO().Fonts:AddFontFromMemoryCompressedBase85TTF(font85, v, config, faIconRanges)
 	end
@@ -682,6 +807,7 @@ function checkstyle()
 		colors[clr.ChildBg] 				= ImVec4(0.10, 0.09, 0.12, 0.50)
 		colors[clr.PopupBg] 				= ImVec4(0.07, 0.07, 0.09, 1.00)
 		colors[clr.Border] 					= ImVec4(0.40, 0.40, 0.53, 0.50)
+		colors[clr.Separator]				= ImVec4(0.40, 0.40, 0.53, 0.50)
 		colors[clr.BorderShadow] 			= ImVec4(0.92, 0.91, 0.88, 0.00)
 		colors[clr.FrameBg] 				= ImVec4(0.15, 0.14, 0.16, 0.50)
 		colors[clr.FrameBgHovered] 			= ImVec4(0.24, 0.23, 0.29, 1.00)
@@ -719,6 +845,7 @@ function checkstyle()
 		colors[clr.ChildBg]		  			= ImVec4(0.14, 0.14, 0.14, 1.00)
 		colors[clr.PopupBg]					= ImVec4(0.14, 0.14, 0.14, 1.00)
 		colors[clr.Border]				 	= ImVec4(1.00, 0.28, 0.28, 0.50)
+		colors[clr.Separator]			 	= ImVec4(1.00, 0.28, 0.28, 0.50)
 		colors[clr.BorderShadow]		   	= ImVec4(1.00, 1.00, 1.00, 0.00)
 		colors[clr.FrameBg]					= ImVec4(0.22, 0.22, 0.22, 1.00)
 		colors[clr.FrameBgHovered]		 	= ImVec4(0.18, 0.18, 0.18, 1.00)
@@ -777,7 +904,7 @@ function checkstyle()
 		colors[clr.Header]			   		= ImVec4(0.00, 0.49, 1.00, 0.78)
 		colors[clr.HeaderHovered]			= ImVec4(0.00, 0.49, 1.00, 0.71)
 		colors[clr.HeaderActive]		 	= ImVec4(0.00, 0.49, 1.00, 0.78)
-		colors[clr.Separator]			  	= ImVec4(0.00, 0.00, 0.00, 0.51)
+		colors[clr.Separator]			  	= ImVec4(0.00, 0.49, 1.00, 0.78)
 		colors[clr.SeparatorHovered]	   	= ImVec4(0.00, 0.00, 0.00, 0.51)
 		colors[clr.SeparatorActive]			= ImVec4(0.00, 0.00, 0.00, 0.51)
 		colors[clr.ResizeGrip]		   		= ImVec4(0.00, 0.39, 1.00, 0.59)
@@ -795,6 +922,7 @@ function checkstyle()
 		colors[clr.ChildBg]		 			= ImVec4(0.30, 0.20, 0.39, 0.00)
 		colors[clr.PopupBg]					= ImVec4(0.05, 0.05, 0.10, 0.90)
 		colors[clr.Border]					= ImVec4(0.89, 0.85, 0.92, 0.30)
+		colors[clr.Separator]				= ImVec4(0.89, 0.85, 0.92, 0.30)
 		colors[clr.BorderShadow]			= ImVec4(0.00, 0.00, 0.00, 0.00)
 		colors[clr.FrameBg]					= ImVec4(0.30, 0.20, 0.39, 1.00)
 		colors[clr.FrameBgHovered]			= ImVec4(0.41, 0.19, 0.63, 0.68)
@@ -832,6 +960,7 @@ function checkstyle()
 		colors[clr.ChildBg]		  			= ImVec4(0.10, 0.10, 0.10, 1.00)
 		colors[clr.PopupBg]					= ImVec4(0.08, 0.08, 0.08, 1.00)
 		colors[clr.Border]				 	= ImVec4(0.70, 0.70, 0.70, 0.40)
+		colors[clr.Separator]			 	= ImVec4(0.70, 0.70, 0.70, 0.40)
 		colors[clr.BorderShadow]		   	= ImVec4(0.00, 0.00, 0.00, 0.00)
 		colors[clr.FrameBg]					= ImVec4(0.15, 0.15, 0.15, 1.00)
 		colors[clr.FrameBgHovered]		 	= ImVec4(0.19, 0.19, 0.19, 0.71)
@@ -853,7 +982,6 @@ function checkstyle()
 		colors[clr.Header]				 	= ImVec4(0.00, 0.69, 0.33, 1.00)
 		colors[clr.HeaderHovered]		  	= ImVec4(0.00, 0.76, 0.37, 0.57)
 		colors[clr.HeaderActive]		   	= ImVec4(0.00, 0.88, 0.42, 0.89)
-		colors[clr.Separator]			  	= ImVec4(1.00, 1.00, 1.00, 0.40)
 		colors[clr.SeparatorHovered]	   	= ImVec4(1.00, 1.00, 1.00, 0.60)
 		colors[clr.SeparatorActive]			= ImVec4(1.00, 1.00, 1.00, 0.80)
 		colors[clr.ResizeGrip]			 	= ImVec4(0.00, 0.69, 0.33, 1.00)
@@ -872,6 +1000,7 @@ function checkstyle()
 		colors[clr.ChildBg] 				= ImVec4(0, 0, 0, 1)
 		colors[clr.PopupBg] 				= ImVec4(0, 0, 0, 1)
 		colors[clr.Border] 					= ImVec4(0.51, 0.51, 0.51, 0.6)
+		colors[clr.Separator]				= ImVec4(0.51, 0.51, 0.51, 0.6)
 		colors[clr.BorderShadow] 			= ImVec4(0.35, 0.35, 0.35, 0.66)
 		colors[clr.FrameBg] 				= ImVec4(1, 1, 1, 0.28)
 		colors[clr.FrameBgHovered] 			= ImVec4(0.68, 0.68, 0.68, 0.67)
@@ -893,7 +1022,6 @@ function checkstyle()
 		colors[clr.Header] 					= ImVec4(0.72, 0.72, 0.72, 0.54)
 		colors[clr.HeaderHovered] 			= ImVec4(0.92, 0.92, 0.95, 0.77)
 		colors[clr.HeaderActive] 			= ImVec4(0.82, 0.82, 0.82, 0.8)
-		colors[clr.Separator] 				= ImVec4(0.73, 0.73, 0.73, 1)
 		colors[clr.SeparatorHovered] 		= ImVec4(0.81, 0.81, 0.81, 1)
 		colors[clr.SeparatorActive] 		= ImVec4(0.74, 0.74, 0.74, 1)
 		colors[clr.ResizeGrip] 				= ImVec4(0.8, 0.8, 0.8, 0.3)
@@ -913,6 +1041,7 @@ function checkstyle()
 		colors[clr.ChildBg]					= ColorAccentsAdapter(generated_color.accent2.color_800):as_vec4()
 		colors[clr.PopupBg]					= ColorAccentsAdapter(generated_color.accent2.color_700):as_vec4()
 		colors[clr.Border]					= ColorAccentsAdapter(generated_color.accent3.color_300):apply_alpha(0xcc):as_vec4()
+		colors[clr.Separator]					= ColorAccentsAdapter(generated_color.accent3.color_300):apply_alpha(0xcc):as_vec4()
 		colors[clr.BorderShadow]			= imgui.ImVec4(0.00, 0.00, 0.00, 0.00)
 		colors[clr.FrameBg]					= ColorAccentsAdapter(generated_color.accent1.color_600):apply_alpha(0x60):as_vec4()
 		colors[clr.FrameBgHovered]			= ColorAccentsAdapter(generated_color.accent1.color_600):apply_alpha(0x70):as_vec4()
@@ -1037,7 +1166,7 @@ function changePosition(table)
 		}
 		ChangePos = true
 		sampSetCursorMode(4)
-		ASHelperMessage('Нажмите {MC}ЛКМ{WC} чтобы сохранить местоположение, или {MC}ПКМ{WC} чтобы отменить')
+		addNotify('Нажмите {MC}ЛКМ{WC}, чтобы сохранить\nместоположение, или {MC}ПКМ{WC},\nчтобы отменить', 5)
 		while ChangePos do
 			wait(0)
 			local cX, cY = getCursorPos()
@@ -1299,7 +1428,7 @@ function imgui.Hint(str_id, hint_text, color, no_center)
 end
 
 function bringVec4To(from, to, start_time, duration)
-	local timer = os.clock() - start_time
+	local timer = clock() - start_time
 	if timer >= 0.00 and timer <= duration then
 		local count = timer / (duration / 100)
 		return imgui.ImVec4(
@@ -1310,6 +1439,41 @@ function bringVec4To(from, to, start_time, duration)
 		), true
 	end
 	return (timer > duration) and to or from, false
+end
+
+function getNote(note, post_color)
+	local color = ARGBtoStringRGB(configuration.Checker.col_note)
+	local post_c = ARGBtoStringRGB(post_color)
+
+	note = note:gsub('\n.*', '...')
+	note = note:gsub('{%x+}', '')
+
+	return string.format('%s // %s%s', color, note, post_c)
+end
+
+function getAfk(rank, afk, post_color)
+	local color = ARGBtoStringRGB(configuration.Checker.col_afk_max)
+	local post_c = ARGBtoStringRGB(post_color)
+	if rank <= 4 then
+		if configuration.Checker.afk_max_l > 0 and afk >= configuration.Checker.afk_max_l then
+			return string.format(' - %sAFK: %s%s', color, afk, post_c)
+		end
+	else
+		if configuration.Checker.afk_max_h > 0 and afk >= configuration.Checker.afk_max_h then
+			return string.format(' - %sAFK: %s%s', color, afk, post_c)
+		end
+	end
+	return string.format(' - AFK: %s', afk)
+end
+
+function getAfkCount()
+	local count = 0
+	for _, v in ipairs(checker_variables.online) do
+		if v.afk > 0 then
+			count = count + 1
+		end
+	end
+	return count
 end
 
 function imgui.AnimButton(label, size, duration)
@@ -1339,7 +1503,7 @@ function imgui.AnimButton(label, size, duration)
 	local pool = UI_ANIMBUT[label]
 
 	if pool['hovered']['clock'] ~= nil then
-		if os.clock() - pool['hovered']['clock'] <= duration then
+		if clock() - pool['hovered']['clock'] <= duration then
 			pool['color'] = bringVec4To( pool['color'], pool['hovered']['cur'] and cols.hovered or cols.default, pool['hovered']['clock'], duration)
 		else
 			pool['color'] = pool['hovered']['cur'] and cols.hovered or cols.default
@@ -1357,7 +1521,7 @@ function imgui.AnimButton(label, size, duration)
 	pool['hovered']['cur'] = imgui.IsItemHovered()
 	if pool['hovered']['old'] ~= pool['hovered']['cur'] then
 		pool['hovered']['old'] = pool['hovered']['cur']
-		pool['hovered']['clock'] = os.clock()
+		pool['hovered']['clock'] = clock()
 	end
 
 	return result
@@ -1379,6 +1543,8 @@ function imgui.ToggleButton(str_id, bool)
 		LastActive[tostring(str_id)] = true
 	end
 
+	local hovered = imgui.IsItemHovered()
+
 	imgui.SameLine()
 	imgui.SetCursorPosY(imgui.GetCursorPosY()+3)
 	imgui.Text(str_id)
@@ -1395,7 +1561,7 @@ function imgui.ToggleButton(str_id, bool)
 		end
 	end
 
-	local col_bg = imgui.ColorConvertFloat4ToU32(bool[0] and imgui.GetStyle().Colors[imgui.Col.CheckMark] or imgui.ImVec4(100 / 255, 100 / 255, 100 / 255, 180 / 255))
+	local col_bg = imgui.ColorConvertFloat4ToU32(bool[0] and imgui.GetStyle().Colors[imgui.Col.CheckMark] or imgui.ImVec4(100 / 255, 100 / 255, 100 / 255, hovered and 220 or 180 / 255))
 
 	draw_list:AddRectFilled(imgui.ImVec2(p.x, p.y + (height / 6)), imgui.ImVec2(p.x + width - 1.0, p.y + (height - (height / 6))), col_bg, 10.0)
 	draw_list:AddCircleFilled(imgui.ImVec2(p.x + (bool[0] and radius + 1.5 or radius - 3) + t * (width - radius * 2.0), p.y + radius), radius - 6, imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Text]))
@@ -1617,7 +1783,7 @@ local imgui_fm = imgui.OnFrame(
 									{'/do Ключи от шкафчика в кармане.'},
 									{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
 									{'/me {gender:передал|передала} ключ человеку напротив'},
-									{'Добро пожаловать! Раздевалка за дверью.'},
+									{'Добро пожаловать! Переодеться вы можете в раздевалке.'},
 									{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
 									{'/invite %s', fastmenuID},
 								})
@@ -2171,9 +2337,7 @@ local imgui_fm = imgui.OnFrame(
 							imgui.Hint('notallparamsquesteditor','Вы ввели не все параметры. Перепроверьте всё.')
 						end
 						imgui.SameLine()
-						if imgui.Button(u8'Отменить##questeditor', imgui.ImVec2(150, 25)) then
-							imgui.CloseCurrentPopup()
-						end
+						if imgui.Button(u8'Отменить##questeditor', imgui.ImVec2(150, 25)) then imgui.CloseCurrentPopup() end
 						imgui.Spacing()
 						imgui.EndPopup()
 					end
@@ -2320,7 +2484,7 @@ local imgui_fm = imgui.OnFrame(
 									{'/do Ключи от шкафчика в кармане.'},
 									{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
 									{'/me {gender:передал|передала} ключ человеку напротив'},
-									{'Добро пожаловать! Раздевалка за дверью.'},
+									{'Добро пожаловать! Переодеться вы можете в раздевалке.'},
 									{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
 									{'/invite %s', fastmenuID},
 								})
@@ -2742,7 +2906,7 @@ local imgui_fm = imgui.OnFrame(
 										{'/do Ключи от шкафчика в кармане.'},
 										{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
 										{'/me {gender:передал|передала} ключ человеку напротив'},
-										{'Добро пожаловать! Раздевалка за дверью.'},
+										{'Добро пожаловать! Переодеться вы можете в раздевалке.'},
 										{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
 										{'/invite %s', fastmenuID},
 									})
@@ -3056,9 +3220,7 @@ local imgui_fm = imgui.OnFrame(
 								imgui.Hint('notallparamsquesteditor','Вы ввели не все параметры. Перепроверьте всё.')
 							end
 							imgui.SameLine()
-							if imgui.Button(u8'Отменить##questeditor', imgui.ImVec2(150, 25)) then
-								imgui.CloseCurrentPopup()
-							end
+							if imgui.Button(u8'Отменить##questeditor', imgui.ImVec2(150, 25)) then imgui.CloseCurrentPopup() end
 							imgui.Spacing()
 							imgui.EndPopup()
 						end
@@ -3074,7 +3236,7 @@ local imgui_fm = imgui.OnFrame(
 										{'/do Ключи от шкафчика в кармане.'},
 										{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
 										{'/me {gender:передал|передала} ключ человеку напротив'},
-										{'Добро пожаловать! Раздевалка за дверью.'},
+										{'Добро пожаловать! Переодеться вы можете в раздевалке.'},
 										{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
 										{'/invite %s', fastmenuID},
 									})
@@ -3431,7 +3593,7 @@ local imgui_settings = imgui.OnFrame(
 		imgui.Begin(u8'#MainSettingsWindow', windows.imgui_settings, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoCollapse)
 			imgui.SetCursorPos(imgui.ImVec2(15,15))
 			imgui.BeginGroup()
-				imgui.Image(configuration.main_settings.style ~= 2 and whiteashelper or blackashelper,imgui.ImVec2(198,25))
+			imgui.Image(ash_image,imgui.ImVec2(198,25),imgui.ImVec2(0.25,configuration.main_settings.style ~= 2 and 0.8 or 0.9),imgui.ImVec2(1,configuration.main_settings.style ~= 2 and 0.9 or 1))
 				imgui.SameLine(510)
 				imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 				imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
@@ -3446,7 +3608,7 @@ local imgui_settings = imgui.OnFrame(
 				imgui.PopStyleColor(3)
 				imgui.SetCursorPos(imgui.ImVec2(217, 23))
 				imgui.TextColored(imgui.GetStyle().Colors[imgui.Col.Border],'v. '..thisScript().version)
-				imgui.Hint('lastupdate','Обновление от 13.12.2021')
+				imgui.Hint('lastupdate','Обновление от 13.03.2021')
 				imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15,15))
 				if imgui.BeginPopupModal(u8'Все команды', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 					imgui.PushFont(font[16])
@@ -3482,20 +3644,20 @@ local imgui_settings = imgui.OnFrame(
 						if configuration.main_settings.fmtype == 0 then
 							imgui.TextColoredRGB('ПКМ + '..configuration.main_settings.usefastmenu..' - Меню взаимодействия с клиентом')
 						end
+						if configuration.main_settings.dofastexpel then
+							imgui.TextColoredRGB('ПКМ + '..configuration.main_settings.fastexpel..' - Быстрый /expel')
+						end
 						imgui.TextColoredRGB(configuration.main_settings.fastscreen..' - Быстрый скриншот')
-						imgui.TextColoredRGB('Alt + I - Информировать, что делать при отсутствии мед. карты')
+						imgui.TextColoredRGB('Alt + O - Информировать, что делать при отсутствии мед. карты')
 						imgui.TextColoredRGB('Alt + U - Остановить отыгровку')
 					imgui.EndGroup()
 					imgui.Spacing()
-					if imgui.Button(u8'Закрыть##команды', imgui.ImVec2(-1, 30)) then 
-						imgui.CloseCurrentPopup()
-					end
+					if imgui.Button(u8'Закрыть##команды', imgui.ImVec2(-1, 30)) then imgui.CloseCurrentPopup() end
 					imgui.EndPopup()
 				end
 				imgui.PopStyleVar()
 			imgui.EndGroup()
-			local p = imgui.GetCursorScreenPos()
-			imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y), imgui.ImVec2(p.x + 600, p.y + 4), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.ChildBg]), 0)
+			imgui.PushStyleVarFloat(imgui.StyleVar.ChildRounding, 0)
 			imgui.BeginChild('##MainSettingsWindowChild',imgui.ImVec2(-1,-1),false, imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoScrollWithMouse)
 				if mainwindow[0] == 0 then
 					imgui.PushStyleVarFloat(imgui.StyleVar.Alpha, ImSaturate(1 / (alphaAnimTime / (clock() - alpha[0]))))
@@ -3563,13 +3725,14 @@ local imgui_settings = imgui.OnFrame(
 					imgui.BeginGroup()
 						imgui.PushStyleVarVec2(imgui.StyleVar.ButtonTextAlign, imgui.ImVec2(0.05,0.5))
 						for k, i in pairs(settingsbuttons) do
+							local clr = imgui.GetStyle().Colors[imgui.Col.Text].x
 							if settingswindow[0] == k then
 								local p = imgui.GetCursorScreenPos()
 								imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y + 10),imgui.ImVec2(p.x + 3, p.y + 25), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Border]), 5, imgui.DrawCornerFlags.Right)
 							end
-							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,settingswindow[0] == k and 0.1 or 0))
-							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0.15))
-							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0.1))
+							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(clr,clr,clr,settingswindow[0] == k and 0.1 or 0))
+							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(clr,clr,clr,0.15))
+							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(clr,clr,clr,0.1))
 							if imgui.AnimButton(i, imgui.ImVec2(162,35)) then
 								if settingswindow[0] ~= k then
 									settingswindow[0] = k
@@ -3660,8 +3823,8 @@ local imgui_settings = imgui.OnFrame(
 									imgui.SameLine(100)
 								
 									if configuration.main_settings.fmtype == 0 then
-										imgui.Text(u8' ПКМ + ')
-										imgui.SameLine(140)
+										imgui.Text(u8' ПКМ +')
+										imgui.SameLine(nil, 5)
 										imgui.SetCursorPosY(imgui.GetCursorPosY() - 4)
 										imgui.HotKey('меню быстрого доступа', configuration.main_settings, 'usefastmenu', 'E', find(configuration.main_settings.usefastmenu, '+') and 150 or 75)
 									
@@ -3698,7 +3861,6 @@ local imgui_settings = imgui.OnFrame(
 										configuration.main_settings.statsvisible = usersettings.statsvisible[0]
 										inicfg.save(configuration,'AS Helper')
 									end
-									imgui.SetCursorPosY(imgui.GetCursorPosY()-3)
 									if imgui.Button(fa.ICON_FA_ARROWS_ALT..'##statsscreenpos') then
 										if configuration.main_settings.statsvisible then
 											changePosition(configuration.imgui_pos)
@@ -3707,7 +3869,6 @@ local imgui_settings = imgui.OnFrame(
 										end
 									end
 									imgui.SameLine()
-									imgui.SetCursorPosY(imgui.GetCursorPosY()+3)
 									imgui.Text(u8'Местоположение')
 								imgui.EndGroup()
 								imgui.NewLine()
@@ -3722,6 +3883,16 @@ local imgui_settings = imgui.OnFrame(
 										configuration.main_settings.replacechat = usersettings.replacechat[0]
 										inicfg.save(configuration,'AS Helper')
 									end
+
+									if imgui.ToggleButton(u8'Показывать ранг перед сообщением в рации', usersettings.chatrank) then
+										configuration.main_settings.chatrank = usersettings.chatrank[0]
+										inicfg.save(configuration,'AS Helper')
+									end
+
+									if imgui.ToggleButton(u8'Показывать ранг на груди сотрудника', usersettings.bodyrank) then
+										configuration.main_settings.bodyrank = usersettings.bodyrank[0]
+										inicfg.save(configuration,'AS Helper')
+									end
 								
 									if imgui.ToggleButton(u8'Быстрый скрин на', usersettings.dofastscreen) then
 										configuration.main_settings.dofastscreen = usersettings.dofastscreen[0]
@@ -3730,6 +3901,16 @@ local imgui_settings = imgui.OnFrame(
 									imgui.SameLine()
 									imgui.SetCursorPosY(imgui.GetCursorPosY() - 4)
 									imgui.HotKey('быстрого скрина', configuration.main_settings, 'fastscreen', 'F4', find(configuration.main_settings.fastscreen, '+') and 150 or 75)
+
+									if imgui.ToggleButton(u8'Быстрый expel на', usersettings.dofastexpel) then
+										configuration.main_settings.dofastexpel = usersettings.dofastexpel[0]
+										inicfg.save(configuration,'AS Helper')
+									end
+									imgui.SameLine(nil, 20)
+									imgui.Text(u8'ПКМ +')
+									imgui.SameLine(nil, 5)
+									imgui.SetCursorPosY(imgui.GetCursorPosY() - 4)
+									imgui.HotKey('быстрый /expel', configuration.main_settings, 'fastexpel', 'G', find(configuration.main_settings.fastexpel, '+') and 150 or 75)
 
 									imgui.PushItemWidth(85)
 									if imgui.InputText(u8'##expelreasonbuff',usersettings.expelreason,sizeof(usersettings.expelreason)) then
@@ -3750,37 +3931,37 @@ local imgui_settings = imgui.OnFrame(
 								imgui.PopFont()
 								imgui.SetCursorPosX(25)
 								imgui.BeginGroup()
-									if imgui.CircleButton('##choosestyle0', configuration.main_settings.style == 0, imgui.ImVec4(1.00, 0.42, 0.00, 0.53)) then
+									if imgui.CircleButton('##choosestyle0', configuration.main_settings.style == 0, imgui.ImVec4(1.00, 0.42, 0.00, 0.90)) then
 										configuration.main_settings.style = 0
 										inicfg.save(configuration, 'AS Helper.ini')
 										checkstyle()
 									end
 									imgui.SameLine()
-									if imgui.CircleButton('##choosestyle1', configuration.main_settings.style == 1, imgui.ImVec4(1.00, 0.28, 0.28, 1.00)) then
+									if imgui.CircleButton('##choosestyle1', configuration.main_settings.style == 1, imgui.ImVec4(1.00, 0.28, 0.28, 0.90)) then
 										configuration.main_settings.style = 1
 										inicfg.save(configuration, 'AS Helper.ini')
 										checkstyle()
 									end
 									imgui.SameLine()
-									if imgui.CircleButton('##choosestyle2', configuration.main_settings.style == 2, imgui.ImVec4(0.00, 0.35, 1.00, 0.78)) then
+									if imgui.CircleButton('##choosestyle2', configuration.main_settings.style == 2, imgui.ImVec4(0.00, 0.35, 1.00, 0.90)) then
 										configuration.main_settings.style = 2
 										inicfg.save(configuration, 'AS Helper.ini')
 										checkstyle()
 									end
 									imgui.SameLine()
-									if imgui.CircleButton('##choosestyle3', configuration.main_settings.style == 3, imgui.ImVec4(0.41, 0.19, 0.63, 0.31)) then
+									if imgui.CircleButton('##choosestyle3', configuration.main_settings.style == 3, imgui.ImVec4(0.41, 0.19, 0.63, 0.90)) then
 										configuration.main_settings.style = 3
 										inicfg.save(configuration, 'AS Helper.ini')
 										checkstyle()
 									end
 									imgui.SameLine()
-									if imgui.CircleButton('##choosestyle4', configuration.main_settings.style == 4, imgui.ImVec4(0.00, 0.69, 0.33, 1.00)) then
+									if imgui.CircleButton('##choosestyle4', configuration.main_settings.style == 4, imgui.ImVec4(0.00, 0.69, 0.33, 0.90)) then
 										configuration.main_settings.style = 4
 										inicfg.save(configuration, 'AS Helper.ini')
 										checkstyle()
 									end
 									imgui.SameLine()
-									if imgui.CircleButton('##choosestyle5', configuration.main_settings.style == 5, imgui.ImVec4(0.51, 0.51, 0.51, 0.6)) then
+									if imgui.CircleButton('##choosestyle5', configuration.main_settings.style == 5, imgui.ImVec4(0.51, 0.51, 0.51, 0.90)) then
 										configuration.main_settings.style = 5
 										inicfg.save(configuration, 'AS Helper.ini')
 										checkstyle()
@@ -3883,8 +4064,7 @@ local imgui_settings = imgui.OnFrame(
 									if imgui.Button(u8'Сбросить##RCol',imgui.ImVec2(65,25)) then
 										configuration.main_settings.RChatColor = 4282626093
 										if inicfg.save(configuration, 'AS Helper.ini') then
-											local temp = imgui.ColorConvertU32ToFloat4(configuration.main_settings.RChatColor)
-											chatcolors.RChatColor = new.float[4](temp.x, temp.y, temp.z, temp.w)
+											chatcolors.RChatColor = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.main_settings.RChatColor))
 										end
 									end
 									imgui.SameLine(265)
@@ -3905,8 +4085,7 @@ local imgui_settings = imgui.OnFrame(
 									if imgui.Button(u8'Сбросить##DCol',imgui.ImVec2(65,25)) then
 										configuration.main_settings.DChatColor = 4294940723
 										if inicfg.save(configuration, 'AS Helper.ini') then
-											local temp = imgui.ColorConvertU32ToFloat4(configuration.main_settings.DChatColor)
-											chatcolors.DChatColor = new.float[4](temp.x, temp.y, temp.z, temp.w)
+											chatcolors.DChatColor = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.main_settings.DChatColor))
 										end
 									end
 									imgui.SameLine(265)
@@ -3927,8 +4106,7 @@ local imgui_settings = imgui.OnFrame(
 									if imgui.Button(u8'Сбросить##SCol',imgui.ImVec2(65,25)) then
 										configuration.main_settings.ASChatColor = 4281558783
 										if inicfg.save(configuration, 'AS Helper.ini') then
-											local temp = imgui.ColorConvertU32ToFloat4(configuration.main_settings.ASChatColor)
-											chatcolors.ASChatColor = new.float[4](temp.x, temp.y, temp.z, temp.w)
+											chatcolors.ASChatColor = vec4ToFloat4(imgui.ColorConvertU32ToFloat4(configuration.main_settings.ASChatColor))
 										end
 									end
 									imgui.SameLine(265)
@@ -4012,13 +4190,14 @@ local imgui_settings = imgui.OnFrame(
 					imgui.BeginGroup()
 						imgui.PushStyleVarVec2(imgui.StyleVar.ButtonTextAlign, imgui.ImVec2(0.05,0.5))
 						for k, i in pairs(additionalbuttons) do
+							local clr = imgui.GetStyle().Colors[imgui.Col.Text].x
 							if additionalwindow[0] == k then
 								local p = imgui.GetCursorScreenPos()
 								imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y + 10),imgui.ImVec2(p.x + 3, p.y + 25), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Border]), 5, imgui.DrawCornerFlags.Right)
 							end
-							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,additionalwindow[0] == k and 0.1 or 0))
-							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0.15))
-							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0.1))
+							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(clr,clr,clr,additionalwindow[0] == k and 0.1 or 0))
+							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(clr,clr,clr,0.15))
+							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(clr,clr,clr,0.1))
 							if imgui.AnimButton(i, imgui.ImVec2(186,35)) then
 								if additionalwindow[0] ~= k then
 									additionalwindow[0] = k
@@ -4228,9 +4407,7 @@ local imgui_settings = imgui.OnFrame(
 									if imgui.BeginPopupModal(u8'Редактор текста заметки', nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 										imgui.Text(u8'Текст:')
 										imgui.InputTextMultiline(u8'##zametkatexteditor', zametkisettings.zametkatext, sizeof(zametkisettings.zametkatext), imgui.ImVec2(435,200))
-										if imgui.Button(u8'Закрыть', imgui.ImVec2(-1, 25)) then
-											imgui.CloseCurrentPopup()
-										end
+										if imgui.Button(u8'Закрыть', imgui.ImVec2(-1, 25)) then imgui.CloseCurrentPopup() end
 										imgui.EndPopup()
 									end
 									imgui.PopStyleVar()
@@ -4331,6 +4508,215 @@ local imgui_settings = imgui.OnFrame(
 
 							imgui.EndGroup()
 						imgui.EndChild()
+					elseif additionalwindow[0] == 4 then
+						imgui.BeginChild('##checkerwindow',_,false)
+							local p = imgui.GetWindowPos()
+							imgui.SetCursorPos(imgui.ImVec2(25, 20))
+							imgui.BeginGroup()
+								imgui.SetCursorPosX(15)
+								imgui.PushFont(font[16])
+								imgui.Text(u8'Основное')
+								imgui.PopFont()
+								if imgui.ToggleButton(u8'Включить чекер', checker_variables.state) then
+									configuration.Checker.state = checker_variables.state[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+
+								if imgui.Button(fa.ICON_FA_ARROWS_ALT..'##checkerpos') then
+									if configuration.Checker.state then
+										changePosition(configuration.Checker)
+									else
+										addNotify('Включите чекер.', 5)
+									end
+								end
+								imgui.SameLine()
+								imgui.Text(u8'Местоположение')
+							
+								imgui.SetCursorPosY(imgui.GetCursorPosY() + 4)
+								imgui.Text(u8'Лимит АФК сотрудников(s):')
+								imgui.SameLine()
+								imgui.SetCursorPosY(imgui.GetCursorPosY() - 4)
+
+								imgui.PushItemWidth(50)
+								if imgui.InputInt('##AFKMax_low', checker_variables.afk_max_l, 0, 0) then
+									if checker_variables.afk_max_l[0] < 0 then checker_variables.afk_max_l[0] = 0 end
+									if checker_variables.afk_max_l[0] > 3599 then checker_variables.afk_max_l[0] = 3599 end
+									configuration.Checker.afk_max_l = checker_variables.afk_max_l[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Hint('hint_slider_int_1', ('Младшие ранги (1 - 4)'))
+								imgui.SameLine()
+								if imgui.InputInt('##AFKMax_High', checker_variables.afk_max_h, 0, 0) then
+									if checker_variables.afk_max_h[0] < 0 then checker_variables.afk_max_h[0] = 0 end
+									if checker_variables.afk_max_h[0] > 3599 then checker_variables.afk_max_h[0] = 3599 end
+									configuration.Checker.afk_max_h = checker_variables.afk_max_h[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Hint('hint_slider_int_2', ('Старшие ранги (5 - 10)'))
+								imgui.PopItemWidth()
+
+								imgui.Text(u8'Частота обновления(s):')
+								imgui.SameLine(165)
+
+								imgui.PushItemWidth(110)
+								if imgui.DragInt('##checkerDelay', checker_variables.delay, 0.5, 3, 30, u8((checker_variables.delay[0]) .. ' секунд')) then
+									if checker_variables.delay[0] < 3 then checker_variables.delay[0] = 3 end
+									if checker_variables.delay[0] > 30 then checker_variables.delay[0] = 30 end
+									configuration.Checker.delay = checker_variables.delay[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Hint('hint_drag', 'Время, спустя которое будет обновляться список\nЗажать и передвигать мышь')
+								imgui.PopItemWidth()
+
+							imgui.EndGroup()
+
+							imgui.SetCursorPosX(25)
+							imgui.BeginGroup()
+								imgui.SetCursorPosX(15)
+								imgui.PushFont(font[16])
+								imgui.Text(u8'Стиль')
+								imgui.PopFont()
+								imgui.PushItemWidth(130)
+								imgui.Text(u8'Название шрифта:')
+								imgui.SameLine(140)
+								if imgui.InputTextWithHint('##FontName', u8'Название шрифта', checker_variables.font_input, sizeof(checker_variables.font_input)) then
+									configuration.Checker.font_name = #str(checker_variables.font_input) > 0 and u8:decode(str(checker_variables.font_input)) or 'Arial'
+									checker_variables.font = renderCreateFont(configuration.Checker.font_name, configuration.Checker.font_size, configuration.Checker.font_flag)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								if not imgui.IsItemActive() and #str(checker_variables.font_input) == 0 then
+									imgui.StrCopy(checker_variables.font_input, u8'Arial')
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Text(u8'Размер шрифта:')
+								imgui.SameLine(140)
+								if imgui.SliderInt('##FontSize', checker_variables.font_size, 1, 25, u8'%d') then
+									if checker_variables.font_size[0] < 1 then checker_variables.font_size[0] = 1 end
+									if checker_variables.font_size[0] > 25 then checker_variables.font_size[0] = 25 end
+									configuration.Checker.font_size = checker_variables.font_size[0]
+									checker_variables.font = renderCreateFont(configuration.Checker.font_name, configuration.Checker.font_size, configuration.Checker.font_flag)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Text(u8'Стиль шрифта:')
+								imgui.SameLine(140)
+								if imgui.SliderInt('##FontFlag', checker_variables.font_flag, 1, 25, u8'%d') then
+									if checker_variables.font_flag[0] < 1 then checker_variables.font_flag[0] = 1 end
+									if checker_variables.font_flag[0] > 25 then checker_variables.font_flag[0] = 25 end
+									configuration.Checker.font_flag = checker_variables.font_flag[0]
+									checker_variables.font = renderCreateFont(configuration.Checker.font_name, configuration.Checker.font_size, configuration.Checker.font_flag)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Text(u8'Расстояние строк:')
+								imgui.SameLine(140)
+								if imgui.SliderInt('##FontOffset', checker_variables.font_offset, 1, 30, u8'%d') then
+									if checker_variables.font_offset[0] < 1 then checker_variables.font_offset[0] = 1 end
+									if checker_variables.font_offset[0] > 30 then checker_variables.font_offset[0] = 30 end
+									configuration.Checker.font_offset = checker_variables.font_offset[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.Text(u8'Непрозрачность:')
+								imgui.SameLine(140)
+								if imgui.SliderInt('##FontAlpha', checker_variables.font_alpha, 1, 100, u8'%d%%') then
+									if checker_variables.font_alpha[0] < 1 then checker_variables.font_alpha[0] = 1 end
+									if checker_variables.font_alpha[0] > 100 then checker_variables.font_alpha[0] = 100 end
+									configuration.Checker.font_alpha = checker_variables.font_alpha[0] * 2.55
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.PopItemWidth()
+							imgui.EndGroup()
+
+							imgui.NewLine()
+							imgui.SetCursorPosX(25)
+							imgui.BeginGroup()
+								imgui.SetCursorPosX(15)
+								imgui.PushFont(font[16])
+								imgui.Text(u8'Отображение')
+								imgui.PopFont()
+								if imgui.ToggleButton(u8'Рабочая форма', checker_variables.show.uniform) then
+									configuration.Checker.show_uniform = checker_variables.show.uniform[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(fa.ICON_FA_QUESTION_CIRCLE)
+								imgui.Hint('hint_uniform', 'Показывать кто из сотрудников в форме, а кто нет\n(Аналог /members)')
+								if imgui.ToggleButton(u8'Номер должности', checker_variables.show.rank) then
+									configuration.Checker.show_rank = checker_variables.show.rank[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								if imgui.ToggleButton(u8'ID Сотрудника', checker_variables.show.id) then
+									configuration.Checker.show_id = checker_variables.show.id[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								if imgui.ToggleButton(u8'Время в АФК', checker_variables.show.afk) then
+									configuration.Checker.show_afk = checker_variables.show.afk[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								if imgui.ToggleButton(u8'Кол-во выговоров', checker_variables.show.warn) then
+									configuration.Checker.show_warn = checker_variables.show.warn[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								if imgui.ToggleButton(u8'Отображать муты', checker_variables.show.mute) then
+									configuration.Checker.show_mute = checker_variables.show.mute[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(fa.ICON_FA_QUESTION_CIRCLE)
+								imgui.Hint('hint_mute', 'У сотрудников, на которых наложен организационный мут\nбудет пометка Muted в списке')
+								if imgui.ToggleButton(u8'Сотрудники рядом', checker_variables.show.near) then
+									configuration.Checker.show_near = checker_variables.show.near[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(fa.ICON_FA_QUESTION_CIRCLE)
+								imgui.Hint('hint_near', 'Сотрудники находящиеся в вашей зоне прорисовки\nбудут отмечатся меткой [N] в списке')
+							imgui.EndGroup()
+
+							imgui.SameLine(nil, 25)
+							imgui.BeginGroup()
+								local col = checker_variables.col
+								imgui.SetCursorPosX(209)
+								imgui.PushFont(font[16])
+								imgui.Text(u8'Цвета')
+								imgui.PopFont()
+								if imgui.ColorEdit4('##TitleColor', col.title, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoLabel + imgui.ColorEditFlags.NoAlpha) then
+									local c = imgui.ImVec4(col.title[0],  col.title[1], col.title[2],  col.title[3])
+									configuration.Checker.col_title = imgui.ColorConvertFloat4ToARGB(c)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(u8'Заголовок')
+								if imgui.ColorEdit4('##DefaultColor', col.default, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoLabel + imgui.ColorEditFlags.NoAlpha) then
+									local c = imgui.ImVec4(col.default[0], col.default[1], col.default[2], col.default[3]) 
+									configuration.Checker.col_default = imgui.ColorConvertFloat4ToARGB(c)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(u8'Стандартный')
+								if imgui.ColorEdit4('##NoWorkColor', col.no_work, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoLabel + imgui.ColorEditFlags.NoAlpha) then
+									local c = imgui.ImVec4(col.no_work[0], col.no_work[1], col.no_work[2], col.no_work[3]) 
+									configuration.Checker.col_no_work = imgui.ColorConvertFloat4ToARGB(c)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(u8'Без формы')
+								if imgui.ColorEdit4('##AFKMaxColor', col.afk_max, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoLabel + imgui.ColorEditFlags.NoAlpha) then
+									local c = imgui.ImVec4(col.afk_max[0], col.afk_max[1], col.afk_max[2], col.afk_max[3]) 
+									configuration.Checker.col_afk_max = imgui.ColorConvertFloat4ToARGB(c)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(u8'AFK Max')
+								if imgui.ColorEdit4('##NoteColor', col.note, imgui.ColorEditFlags.NoInputs + imgui.ColorEditFlags.NoLabel + imgui.ColorEditFlags.NoAlpha) then
+									local c = imgui.ImVec4(col.note[0], col.note[1], col.note[2], col.note[3]) 
+									configuration.Checker.col_note = imgui.ColorConvertFloat4ToARGB(c)
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
+								imgui.SameLine()
+								imgui.Text(u8'Заметки')
+							imgui.EndGroup()
+							imgui.GetWindowDrawList():AddText(imgui.ImVec2(p.x + 265, p.y + 230), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.TextDisabled]), 'Author: Cosmo')
+							imgui.Spacing()
+						imgui.EndChild()
 					end
 					imgui.PopStyleVar()
 				elseif mainwindow[0] == 3 then
@@ -4355,13 +4741,14 @@ local imgui_settings = imgui.OnFrame(
 					imgui.BeginGroup()
 						imgui.PushStyleVarVec2(imgui.StyleVar.ButtonTextAlign, imgui.ImVec2(0.05,0.5))
 						for k, i in pairs(infobuttons) do
+							local clr = imgui.GetStyle().Colors[imgui.Col.Text].x
 							if infowindow[0] == k then
 								local p = imgui.GetCursorScreenPos()
 								imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y + 10),imgui.ImVec2(p.x + 3, p.y + 25), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Border]), 5, imgui.DrawCornerFlags.Right)
 							end
-							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,infowindow[0] == k and 0.1 or 0))
-							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0.15))
-							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0.1))
+							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(clr,clr,clr,infowindow[0] == k and 0.1 or 0))
+							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(clr,clr,clr,0.15))
+							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(clr,clr,clr,0.1))
 							if imgui.AnimButton(i, imgui.ImVec2(186,35)) then
 								if infowindow[0] ~= k then
 									infowindow[0] = k
@@ -4405,7 +4792,7 @@ local imgui_settings = imgui.OnFrame(
 										imgui.TreePop()
 									end
 								imgui.EndGroup()
-							else
+							elseif updateinfo.version and updateinfo.version == thisScript().version then
 								imgui.SetCursorPosY(30)
 								imgui.TextColored(imgui.ImVec4(0.2, 1, 0.2, 1), fa.ICON_FA_CHECK_CIRCLE)
 								imgui.SameLine()
@@ -4413,7 +4800,23 @@ local imgui_settings = imgui.OnFrame(
 								imgui.BeginGroup()
 									imgui.Text(u8'У вас установлена последняя версия скрипта.')
 									imgui.PushFont(font[11])
-									imgui.TextColoredRGB('{SSSSSS90}Время последней проверки: '..(configuration.main_settings.updatelastcheck or 'не определено'))
+									imgui.TextColoredRGB('{SSSSSS90}Время последней проверки: '..(updateinfo.updatelastcheck or 'не определено'))
+									imgui.PopFont()
+									imgui.PopFont()
+									imgui.Spacing()
+									if imgui.Button(u8'Проверить наличие обновлений') then
+										checkUpdates('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Updates/update.json', true)
+									end
+								imgui.EndGroup()
+							else
+								imgui.SetCursorPosY(30)
+								imgui.TextColored(imgui.ImVec4(1, 0.2, 0.2, 1), fa.ICON_FA_TIMES_CIRCLE)
+								imgui.SameLine()
+								imgui.SetCursorPosY(20)
+								imgui.BeginGroup()
+									imgui.Text(u8'Обновление не проверено.')
+									imgui.PushFont(font[11])
+									imgui.TextColoredRGB('{SSSSSS90}Время последней проверки: '..(updateinfo.updatelastcheck or 'не определено'))
 									imgui.PopFont()
 									imgui.PopFont()
 									imgui.Spacing()
@@ -4507,6 +4910,7 @@ local imgui_settings = imgui.OnFrame(
 					imgui.PopStyleVar()
 				end
 			imgui.EndChild()
+			imgui.PopStyleVar()
 		imgui.End()
 		imgui.PopStyleVar()
 	end
@@ -4519,7 +4923,7 @@ local imgui_binder = imgui.OnFrame(
 		imgui.SetNextWindowSize(imgui.ImVec2(650, 370), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenSizeX * 0.5 , ScreenSizeY * 0.5), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8'Биндер', windows.imgui_binder, imgui.WindowFlags.NoScrollWithMouse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoCollapse)
-		imgui.Image(configuration.main_settings.style ~= 2 and whitebinder or blackbinder,imgui.ImVec2(202,25))
+		imgui.Image(ash_image,imgui.ImVec2(202,25),imgui.ImVec2(0.25,configuration.main_settings.style ~= 2 and 0.4 or 0.5),imgui.ImVec2(1,configuration.main_settings.style ~= 2 and 0.5 or 0.6))
 		imgui.SameLine(583)
 		imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 		imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
@@ -4729,7 +5133,7 @@ local imgui_lect = imgui.OnFrame(
 		imgui.SetNextWindowSize(imgui.ImVec2(435, 300), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenSizeX * 0.5 , ScreenSizeY * 0.5), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8'Лекции', windows.imgui_lect, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + (configuration.main_settings.noscrollbar and imgui.WindowFlags.NoScrollbar or imgui.WindowFlags.NoBringToFrontOnFocus))
-		imgui.Image(configuration.main_settings.style ~= 2 and whitelection or blacklection,imgui.ImVec2(199,25))
+		imgui.Image(ash_image,imgui.ImVec2(199,25),imgui.ImVec2(0.25,configuration.main_settings.style ~= 2 and 0.6 or 0.7),imgui.ImVec2(1,configuration.main_settings.style ~= 2 and 0.7 or 0.8))
 		imgui.SameLine(401)
 		imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 		imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
@@ -4877,9 +5281,7 @@ local imgui_lect = imgui.OnFrame(
 				file:close()
 			end
 			imgui.SameLine()
-			if imgui.Button(u8'Нет',imgui.ImVec2(50,25)) then
-				imgui.CloseCurrentPopup()
-			end
+			if imgui.Button(u8'Нет',imgui.ImVec2(50,25)) then imgui.CloseCurrentPopup() end
 			imgui.EndPopup()
 		end
 		if imgui.BeginPopupModal(u8'Редактор лекций', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize) then
@@ -4930,7 +5332,7 @@ local imgui_depart = imgui.OnFrame(
 		imgui.SetNextWindowSize(imgui.ImVec2(700, 365), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(ScreenSizeX * 0.5 , ScreenSizeY * 0.5),imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(u8'#depart', windows.imgui_depart, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
-		imgui.Image(configuration.main_settings.style ~= 2 and whitedepart or blackdepart,imgui.ImVec2(266,25))
+		imgui.Image(ash_image,imgui.ImVec2(266,25),imgui.ImVec2(0,configuration.main_settings.style ~= 2 and 0 or 0.1),imgui.ImVec2(1,configuration.main_settings.style ~= 2 and 0.1 or 0.2))
 		imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 		imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
 		imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
@@ -5036,7 +5438,7 @@ local imgui_changelog = imgui.OnFrame(
 		imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding,imgui.ImVec2(0,0))
 		imgui.Begin(u8'##changelog', windows.imgui_changelog, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
 			imgui.SetCursorPos(imgui.ImVec2(15,15))
-			imgui.Image(configuration.main_settings.style ~= 2 and whitechangelog or blackchangelog,imgui.ImVec2(238,25))
+			imgui.Image(ash_image,imgui.ImVec2(238,25),imgui.ImVec2(0.10,configuration.main_settings.style ~= 2 and 0.201 or 0.3),imgui.ImVec2(1,configuration.main_settings.style ~= 2 and 0.3 or 0.4))
 			imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1,1,1,0))
 			imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(1,1,1,0))
 			imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(1,1,1,0))
@@ -5057,7 +5459,23 @@ local imgui_changelog = imgui.OnFrame(
 						imgui.PopFont()
 						imgui.PushFont(font[16])
 						for _,line in pairs(changelog.versions[i].text) do
-							imgui.TextWrapped(u8(' - '..line))
+							if find(line, '%{LINK:.*||.*%}') then
+								local name, link = line:match('%{LINK:(.*)||(.*)%}')
+								local symbol, lsymbol = line:find('%{.+%}')
+								imgui.TextWrapped(u8(' - '..line:sub(1, symbol-1)))
+								imgui.SameLine(nil, 0)
+								imgui.Link(link, u8(name))
+								imgui.SameLine(nil, 0)
+								imgui.TextWrapped(u8(line:sub(lsymbol+1)))
+							elseif find(line, '%{HINT:.*%}') then
+								local text = line:match('%{HINT:(.*)%}')
+								imgui.TextWrapped(u8(' - '..gsub(line, '%{HINT:.+%}', '')))
+								imgui.SameLine(nil, 5)
+								imgui.Text(fa.ICON_FA_QUESTION_CIRCLE)
+								imgui.Hint(line,text)
+							else
+								imgui.TextWrapped(u8(' - '..line))
+							end
 						end
 						imgui.PopFont()
 						if changelog.versions[i].patches then
@@ -5254,6 +5672,118 @@ local imgui_zametka = imgui.OnFrame(
 	end
 )
 
+local interaction_frame = imgui.OnFrame(
+	function() return checker_variables.temp_player_data ~= nil and not isPauseMenuActive() end,
+	function(player)
+		local data = checker_variables.temp_player_data
+		
+		imgui.SetNextWindowSize(imgui.ImVec2(200,300), imgui.Cond.Appearing)
+		imgui.SetNextWindowPos(imgui.ImVec2( getCursorPos() ), imgui.Cond.Appearing, imgui.ImVec2(-0.2, 0.0))
+		imgui.Begin(u8("##admininfo"), _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoScrollWithMouse + imgui.WindowFlags.NoTitleBar)
+			imgui.TextColoredRGB("{909090}Действия с сотрудником",1)
+
+			imgui.PushFont(font[20])
+			imgui.TextColoredRGB(format('%s (%s)', sub(gsub(data.nickname, "_", " "), 1, 15), data.id),1)
+			imgui.PopFont()
+			if imgui.IsItemHovered() then
+				imgui.BeginTooltip()
+				imgui.Text(u8("ЛКМ - cкопировать ник"))
+				imgui.EndTooltip()
+				if imgui.IsMouseReleased(0) then
+					setClipboardText(data.nickname)
+				end
+			end
+
+			imgui.PushFont(font[11])
+			imgui.TextColoredRGB(format('{909090}%s%s', (data.uniform and 'В форме' or 'Без формы'), (data.mute and ' * MUTED' or '')), 1)
+			imgui.PopFont()
+			
+			imgui.Separator()
+
+			imgui.Button(u8'Местоположение', imgui.ImVec2(-1, 20))
+			if imgui.IsItemClicked(1) then
+				sampSendChat(string.format('/r %s, где вы находитесь?', data.nickname:gsub('_', ' ')))
+				data = nil
+			elseif imgui.IsItemClicked(0) then
+				sampSendChat(string.format('/rb %s, где вы находитесь?', data.nickname:gsub('_', ' ')))
+				data = nil
+			end
+			imgui.Hint('givemeyourpos', 'ЛКМ - /rb | ПКМ - /r')
+
+			if configuration.main_settings.myrankint >= 9 then
+				if imgui.Button(u8'Выдать мут', imgui.ImVec2(-1, 20)) then
+					local id = data.id
+					local mutetime = 30
+					local reason = "Сломанная рация"
+					sendchatarray(configuration.main_settings.playcd, {
+						{'/me {gender:достал|достала} планшет из кармана'},
+						{'/me {gender:включил|включила} планшет'},
+						{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками %s\'', configuration.main_settings.replaceash and 'ГЦЛ' or 'Автошколы'},
+						{'/me {gender:выбрал|выбрала} нужного сотрудника'},
+						{'/me {gender:выбрал|выбрала} пункт \'Отключить рацию сотрудника\''},
+						{'/me {gender:нажал|нажала} на кнопку \'Сохранить изменения\''},
+						{'/fmute %s %s %s', id, mutetime, reason},
+					})
+				end
+				if imgui.Button(u8'+ WARN', imgui.ImVec2(78, 20)) then
+					local id = data.id
+					local reason = "Н. У."
+					sendchatarray(configuration.main_settings.playcd, {
+						{'/me {gender:достал|достала} планшет из кармана'},
+						{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
+						{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
+						{'/me найдя в разделе нужного сотрудника, {gender:добавил|добавила} в его личное дело выговор'},
+						{'/do Выговор был добавлен в личное дело сотрудника.'},
+						{'/fwarn %s %s', id, reason},
+					})
+				end
+				imgui.SameLine()
+				if imgui.Button(u8'- WARN', imgui.ImVec2(78, 20)) then
+					local id = data.id
+					sendchatarray(configuration.main_settings.playcd, {
+						{'/me {gender:достал|достала} планшет из кармана'},
+						{'/me {gender:перешёл|перешла} в раздел \'Управление сотрудниками\''},
+						{'/me {gender:зашёл|зашла} в раздел \'Выговоры\''},
+						{'/me найдя в разделе нужного сотрудника, {gender:убрал|убрала} из его личного дела один выговор'},
+						{'/do Выговор был убран из личного дела сотрудника.'},
+						{'/unfwarn %s', id},
+					})
+				end
+				if imgui.Button(u8'Уволить', imgui.ImVec2(-1, 20)) then
+					local uvalid = data.id
+					local reason = "Н. У."
+					sendchatarray(configuration.main_settings.playcd, {
+						{'/me {gender:достал|достала} планшет из кармана'},
+						{'/me {gender:перешёл|перешла} в раздел \'Увольнение\''},
+						{'/do Раздел открыт.'},
+						{'/me {gender:внёс|внесла} человека в раздел \'Увольнение\''},
+						{'/me {gender:подтведрдил|подтвердила} изменения, затем {gender:выключил|выключила} планшет и {gender:положил|положила} его обратно в карман'},
+						{'/uninvite %s %s', uvalid, reason},
+					})
+				end
+			else
+				imgui.LockedButton(u8'Выдать мут', imgui.ImVec2(-1, 20))
+				imgui.LockedButton(u8'+ WARN', imgui.ImVec2(78, 20))
+				imgui.SameLine()
+				imgui.LockedButton(u8'- WARN', imgui.ImVec2(78, 20))
+				imgui.LockedButton(u8'Уволить', imgui.ImVec2(-1, 20))
+			end
+
+			imgui.Separator()
+			imgui.TextColoredRGB("{909090}Заметка",1)
+			imgui.PushItemWidth(170)
+			if imgui.InputText('##specialnoteforadmin', checker_variables.note_input, sizeof(checker_variables.note_input)) then
+				configuration.Checker_Notes[data.nickname] = #str(checker_variables.note_input) > 0 and u8:decode(str(checker_variables.note_input)) or nil
+				inicfg.save(configuration,'AS Helper')
+			end
+			imgui.PopItemWidth()
+			if imgui.Button(u8"Закрыть",imgui.ImVec2(170,25)) then
+				checker_variables.temp_player_data = nil
+			end
+		imgui.End()
+	end
+)
+
 function updatechatcommands()
 	for key, value in pairs(configuration.BindsName) do
 		sampUnregisterChatCommand(configuration.BindsCmd[key])
@@ -5293,6 +5823,26 @@ function updatechatcommands()
 			windows.imgui_zametka[0] = true
 			zametka_window[0] = k
 		end)
+	end
+end
+
+function sampev.onPlayerStreamIn(playerId)
+	if configuration.main_settings.bodyrank then
+		for i, member in ipairs(checker_variables.online) do
+			if member.nickname == sampGetPlayerNickname(playerId) then
+				sampCreate3dTextEx(i, string.format('%s [%s]', configuration.RankNames[member.rank], member.rank), 0XA0FFFFFF, 0, 0, -0.5, 10, false, playerId, -1)
+				checker_variables.bodyranks[#checker_variables.bodyranks + 1] = { player = playerId, text = i }
+				break
+			end
+		end
+	end
+end
+
+function sampev.onPlayerStreamOut(playerId)
+	for i, v in ipairs(checker_variables.bodyranks) do
+		if v.player == playerId then
+			sampDestroy3dText(v.text)
+		end
 	end
 end
 
@@ -5474,6 +6024,66 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			end
 		end
 	end
+
+	if dialogId == 2015 and checker_variables.await.members then 
+		local count = 0
+		checker_variables.await.next_page.bool = false
+		checker_variables.online.online = title:match('{FFFFFF}.+%(В сети: (%d+)%)')
+		for line in text:gmatch('[^\r\n]+') do
+    		count = count + 1
+    		if not line:find('Ник игрока') and not line:find('страница') then
+	    		local color, nick, id, rank_name, rank_id, warns, afk = string.match(line, '{(%x+)}([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+)\t(%d+)')
+	    		local mute = string.find(line, '| MUTED')
+	    		local near = select(1, sampGetCharHandleBySampPlayerId(tonumber(id))) or tonumber(id) == select(2,sampGetPlayerIdByCharHandle(playerPed))
+	    		local uniform = (color == 'FFFFFF')
+
+	    		checker_variables.online[#checker_variables.online + 1] = { 
+					nickname = tostring(nick),
+					id = id,
+					rank = tonumber(rank_id),
+					afk = tonumber(afk),
+					warns = tonumber(warns),
+					mute = mute,
+					near = near,
+					uniform = uniform
+				}
+			end
+
+    		if line:match('Следующая страница') then
+    			checker_variables.await.next_page.bool = true
+    			checker_variables.await.next_page.i = count - 2
+    		end
+    	end
+
+    	if checker_variables.await.next_page.bool then
+    		sampSendDialogResponse(dialogId, 1, checker_variables.await.next_page.i, _)
+    		checker_variables.await.next_page.bool = false
+    		checker_variables.await.next_page.i = 0
+    	else
+			while #checker_variables.online > tonumber(checker_variables.online.online) do 
+    			table.remove(checker_variables.online, 1) 
+    		end
+    		checker_variables.online.afk = getAfkCount()
+    		sampSendDialogResponse(dialogId, 0, _, _)
+    		checker_variables.await.members = false
+    	end
+		return false
+	elseif checker_variables.await.members and dialogId ~= 2015 then
+		checker_variables.dontShowMeMembers = true
+		checker_variables.await.members = false
+		checker_variables.await.next_page.bool = false
+    	checker_variables.await.next_page.i = 0
+    	while #checker_variables.online > tonumber(checker_variables.online.online) do 
+			table.remove(checker_variables.online, 1) 
+		end
+	elseif checker_variables.dontShowMeMembers and dialogId == 2015 then
+		checker_variables.dontShowMeMembers = false
+		lua_thread.create(function()
+			wait(0)
+			sampSendDialogResponse(dialogId, 0, nil, nil)
+		end)
+		return false
+	end
 end
 
 function sampev.onServerMessage(color, message)
@@ -5483,11 +6093,11 @@ function sampev.onServerMessage(color, message)
 			return false
 		end
 		if find(message, sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(playerPed)))..' переодевается в гражданскую одежду') then
-			ASHelperMessage('Вы закончили рабочий день, приятного отдыха!')
+			addNotify('Вы закончили рабочий день,\nприятного отдыха!', 5)
 			return false
 		end
 		if find(message, sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(playerPed)))..' переодевается в рабочую одежду') then
-			ASHelperMessage('Вы начали рабочий день, удачной работы!')
+			addNotify('Вы начали рабочий день,\nудачной работы!', 5)
 			return false
 		end
 		if find(message, '%[Информация%] {FFFFFF}Вы покинули пост!') then
@@ -5503,6 +6113,18 @@ function sampev.onServerMessage(color, message)
 		return false
 	end
 	if find(message, '%[R%]') and color == 766526463 then
+		if configuration.main_settings.chatrank then
+			local nick = message:match('^%[R%].*%s([A-z0-9_]+)%[%d+%]:')
+			if nick ~= nil then
+				for i, member in ipairs(checker_variables.online) do
+					if member.nickname == tostring(nick) then
+						message = message:gsub('^%[R%]', '['.. member.rank ..']')
+						break
+					end
+				end
+			end
+		end
+
 		local color = imgui.ColorConvertU32ToFloat4(configuration.main_settings.RChatColor)
 		local r,g,b,a = color.x*255, color.y*255, color.z*255, color.w*255
 		return { join_argb(r, g, b, a), message}
@@ -5866,7 +6488,15 @@ function sendchatarray(delay, text, start_function, end_function)
 		for i = 1, #text do
 			sampSendChat(format(text[i][1], unpack(text[i], 2)))
 			if i ~= #text then
-				wait(delay)
+				if sub(text[i][1], 1, 3) == '/do' or sub(text[i][1], 1, 5) == '/todo' then
+					if delay < 5100 then
+						wait(5100)
+					else
+						wait(delay)
+					end
+				else
+					wait(delay)
+				end
 			end
 		end
 		end_function()
@@ -6021,7 +6651,7 @@ function checkUpdates(json_url, show_notify)
 	show_notify = show_notify or false
 	local function getTimeAfter(unix)
 		local function plural(n, forms) 
-			n = math.abs(n) % 100
+			n = abs(n) % 100
 			if n % 10 == 1 and n ~= 11 then
 				return forms[1]
 			elseif 2 <= n % 10 and n % 10 <= 4 and (n < 10 or n >= 20) then
@@ -6034,19 +6664,19 @@ function checkUpdates(json_url, show_notify)
 		if interval < 86400 then
 			return 'сегодня'
 		elseif interval < 604800 then
-			local days = math.floor(interval / 86400)
+			local days = floor(interval / 86400)
 			local text = plural(days, {'день', 'дня', 'дней'})
 			return ('%s %s назад'):format(days, text)
 		elseif interval < 2592000 then
-			local weeks = math.floor(interval / 604800)
+			local weeks = floor(interval / 604800)
 			local text = plural(weeks, {'неделя', 'недели', 'недель'})
 			return ('%s %s назад'):format(weeks, text)
 		elseif interval < 31536000 then
-			local months = math.floor(interval / 2592000)
+			local months = floor(interval / 2592000)
 			local text = plural(months, {'месяц', 'месяца', 'месяцев'})
 			return ('%s %s назад'):format(months, text)
 		else
-			local years = math.floor(interval / 31536000)
+			local years = floor(interval / 31536000)
 			local text = plural(years, {'год', 'года', 'лет'})
 			return ('%s %s назад'):format(years, text)
 		end
@@ -6088,7 +6718,7 @@ function checkUpdates(json_url, show_notify)
 						}
 					end
 
-					configuration.main_settings.updatelastcheck = getTimeAfter(os.time({day = os.date('%d'), month = os.date('%m'), year = os.date('%Y')}))..' в '..os.date('%X')
+					updateinfo.updatelastcheck = getTimeAfter(os.time({day = os.date('%d'), month = os.date('%m'), year = os.date('%Y')}))..' в '..os.date('%X')
 					inicfg.save(configuration, 'AS Helper.ini')
 				end
 			end
@@ -6101,6 +6731,22 @@ function ImSaturate(f)
 	return f < 0.0 and 0.0 or (f > 1.0 and 1.0 or f)
 end
 
+function renderFontDrawClickableText(active, font, text, posX, posY, color, color_hovered)
+	local cursorX, cursorY = getCursorPos()
+	local lenght = renderGetFontDrawTextLength(font, text)
+	local height = renderGetFontDrawHeight(font)
+	local hovered = false
+	local result = false
+	if active and cursorX > posX and cursorY > posY and cursorX < posX + lenght and cursorY < posY + height then
+		hovered = true
+		if isKeyJustPressed(0x01) then
+			result = true 
+		end
+	end	
+	local anim = floor(sin(clock() * 10) * 3 + 5)
+	renderFontDrawText(font, text, posX, posY - (hovered and anim or 0), hovered and color_hovered or color)
+	return result
+end
 function main()
 	if not isSampLoaded() or not isSampfuncsLoaded() then return end
 	while not isSampAvailable() do wait(1000) end
@@ -6111,7 +6757,7 @@ function main()
 	getmyrank = true
 	sampSendChat('/stats')
 	print('{00FF00}Успешная загрузка')
-	addNotify(format('Успешная загрузка, версия %s.\nНастроить скрипт: {MC}/ash', thisScript().version), 10)
+	addNotify(format('Успешная загрузка скрипта,\nверсия {MC}%s{WC}.\nНастроить скрипт: {MC}/ash', thisScript().version), 10)
 
 	if configuration.main_settings.changelog then
 		windows.imgui_changelog[0] = true
@@ -6207,7 +6853,7 @@ function main()
 			{'/do Ключи от шкафчика в кармане.'},
 			{'/me всунув руку в карман брюк, {gender:достал|достала} оттуда ключ от шкафчика'},
 			{'/me {gender:передал|передала} ключ человеку напротив'},
-			{'Добро пожаловать! Раздевалка за дверью.'},
+			{'Добро пожаловать! Переодеться вы можете в раздевалке.'},
 			{'Со всей информацией Вы можете ознакомиться на оф. портале.'},
 			{'/invite %s', id},
 		})
@@ -6409,28 +7055,54 @@ function main()
 	end)
 
 	while true do
-		if configuration.main_settings.fmtype == 0 and getCharPlayerIsTargeting() then
-			if configuration.main_settings.createmarker then
-				local targettingped = select(2,getCharPlayerIsTargeting())
-				if sampGetPlayerIdByCharHandle(targettingped) then
-					if marker ~= nil and oldtargettingped ~= targettingped then
-						removeBlip(marker)
-						marker = nil
-						marker = addBlipForChar(targettingped)
-					elseif marker == nil and oldtargettingped ~= targettingped then
-						marker = addBlipForChar(targettingped)
+		if getCharPlayerIsTargeting() then
+			if configuration.main_settings.fmtype == 0 then
+				if configuration.main_settings.createmarker then
+					local targettingped = select(2,getCharPlayerIsTargeting())
+					if sampGetPlayerIdByCharHandle(targettingped) then
+						if marker ~= nil and oldtargettingped ~= targettingped then
+							removeBlip(marker)
+							marker = nil
+							marker = addBlipForChar(targettingped)
+						elseif marker == nil and oldtargettingped ~= targettingped then
+							marker = addBlipForChar(targettingped)
+						end
+					end
+					oldtargettingped = targettingped
+				end
+				if isKeysDown(configuration.main_settings.usefastmenu) and not sampIsChatInputActive() then
+					if sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())) then
+						setVirtualKeyDown(0x02,false)
+						fastmenuID = select(2,sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())))
+						ASHelperMessage(format('Вы использовали меню быстрого доступа на: %s [%s]',gsub(sampGetPlayerNickname(fastmenuID), '_', ' '),fastmenuID))
+						ASHelperMessage('Зажмите {MC}ALT{WC} для того, чтобы скрыть курсор. {MC}ESC{WC} для того, чтобы закрыть меню.')
+						wait(0)
+						windows.imgui_fm[0] = true
 					end
 				end
-				oldtargettingped = targettingped
 			end
-			if isKeysDown(configuration.main_settings.usefastmenu) and not sampIsChatInputActive() then
+
+			if isKeysDown(configuration.main_settings.fastexpel) and not sampIsChatInputActive() and configuration.main_settings.dofastexpel then
 				if sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())) then
-					setVirtualKeyDown(0x02,false)
-					fastmenuID = select(2,sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting())))
-					ASHelperMessage(format('Вы использовали меню быстрого доступа на: %s [%s]',gsub(sampGetPlayerNickname(fastmenuID), '_', ' '),fastmenuID))
-					ASHelperMessage('Зажмите {MC}ALT{WC} для того, чтобы скрыть курсор. {MC}ESC{WC} для того, чтобы закрыть меню.')
-					wait(0)
-					windows.imgui_fm[0] = true
+					if configuration.main_settings.myrankint > 2 then
+						local id, reason = select(2,sampGetPlayerIdByCharHandle(select(2,getCharPlayerIsTargeting()))), configuration.main_settings.expelreason
+						if #reason > 0 then
+							if not sampIsPlayerPaused(id) then
+								sendchatarray(configuration.main_settings.playcd, {
+									{'/do Рация свисает на поясе.'},
+									{'/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней'},
+									{'/do Охрана выводит нарушителя из холла.'},
+									{'/expel %s %s',id,reason},
+								})
+							else
+								ASHelperMessage('Игрок находится в АФК!')
+							end
+						else
+							ASHelperMessage('/expel [id] [причина]')
+						end
+					else
+						ASHelperMessage('Данное действие доступно с 2-го ранга.')
+					end
 				end
 			end
 		end
@@ -6509,9 +7181,59 @@ function main()
 			end
 		end
 
-		if configuration.main_settings.autoupdate and os.clock() - autoupd[0] > 600 then
+		if sampIsDialogActive() then
+			checker_variables.lastDialogWasActive = clock()
+		end
+
+		if configuration.Checker.state then
+			local ch = checker_variables
+			local cfgch = configuration.Checker
+	
+			local offset = cfgch.font_offset
+	
+			local col_title = changeColorAlpha(cfgch.col_title, cfgch.font_alpha)
+			local col_default = changeColorAlpha(cfgch.col_default, cfgch.font_alpha)
+			local col_no_work = changeColorAlpha(cfgch.col_no_work, cfgch.font_alpha)
+	
+			if renderFontDrawClickableText(true, ch.font, 'Сотрудники онлайн ['..(ch.online.online or 0)..' | AFK: '..(ch.online.afk or 0)..']', cfgch.posX, cfgch.posY, col_title, 0x90FFFFFF) then
+				if not checker_variables.await.members then
+					sampSendChat('/members')
+					checker_variables.await.members = true
+					checker_variables.dontShowMeMembers = false
+				end
+			end
+			
+			for k, member in ipairs(ch.online) do
+				local render_color = cfgch.show_uniform and (member.uniform and col_default or col_no_work) or col_default
+	
+				local rank = cfgch.show_rank and '['..member.rank..'] ' or ''
+				local nick = member.nickname
+				local id = cfgch.show_id and '('..member.id..')' or ''
+				local afk = cfgch.show_afk and getAfk(member.rank, member.afk, render_color) or ''
+				local warns = cfgch.show_warn and ' - Warns: '..member.warns or ''
+				local mute = cfgch.show_mute and member.mute and ' || Muted' or ''
+				local near = cfgch.show_near and (member.near and ' [N]' or '') or ''
+				local note = configuration.Checker_Notes[nick] and getNote(configuration.Checker_Notes[nick], render_color) or ''
+	
+				local render_text = format('%s%s%s%s%s%s%s%s', rank, nick, id, afk, warns, mute, near, note)
+	
+				if renderFontDrawClickableText(true, ch.font, render_text, cfgch.posX, cfgch.posY + k * offset, render_color, render_color) then
+					imgui.StrCopy(ch.note_input, u8(configuration.Checker_Notes[nick] or ''))
+					checker_variables.temp_player_data = member
+				end
+			end
+		end
+
+		if configuration.main_settings.autoupdate and clock() - autoupd[0] > 600 then
 			checkUpdates('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Updates/update.json')
-			autoupd[0] = os.clock()
+			autoupd[0] = clock()
+		end
+
+		if clock() - checker_variables.last_check >= configuration.Checker.delay and clock() - checker_variables.lastDialogWasActive > 2 then
+			sampSendChat('/members')
+			checker_variables.await.members = true
+			checker_variables.dontShowMeMembers = false
+			checker_variables.last_check = clock()
 		end
 		wait(0)
 	end
@@ -6675,6 +7397,20 @@ changelog = {
  - Изменены некоторые отыгровки]]
 			},
 		},
+
+		{
+			version = '3.1',
+			date = '13.03.2022',
+			text = {
+				'Исправлен баг с \'Не флуди\' после /do и /todo',
+				'Добавлен встроенный чекер сотрудников на экране ({LINK:идея Cosmo||https://www.blast.hk/threads/59761/})',
+				'Добавлен быстрый /expel на ПКМ + G (по умолчанию)',
+				'Добавлена функция отображения ранга сотрудника в рации и на груди',
+				'Изменены/добавлены некоторые отыгровки {HINT:1. nRP ник в отказе собеседования\n2. Некоторые обращения к клиентам на Вы\n3. Некоторые грамматические ошибки\n4. Раздевалка теперь не за дверью при инвайте}',
+				'Изменена система PNG файлов {HINT:Теперь вместо 10-ти файлов нужно скачивать всего один}',
+			},
+		},
+
 	},
 }
 
