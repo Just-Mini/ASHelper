@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.1')
+script_version('3.1.1')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -6488,15 +6488,7 @@ function sendchatarray(delay, text, start_function, end_function)
 		for i = 1, #text do
 			sampSendChat(format(text[i][1], unpack(text[i], 2)))
 			if i ~= #text then
-				if sub(text[i][1], 1, 3) == '/do' or sub(text[i][1], 1, 5) == '/todo' then
-					if delay < 5100 then
-						wait(5100)
-					else
-						wait(delay)
-					end
-				else
-					wait(delay)
-				end
+				wait(delay)
 			end
 		end
 		end_function()
@@ -7409,8 +7401,12 @@ changelog = {
 				'Изменены/добавлены некоторые отыгровки {HINT:1. nRP ник в отказе собеседования\n2. Некоторые обращения к клиентам на Вы\n3. Некоторые грамматические ошибки\n4. Раздевалка теперь не за дверью при инвайте}',
 				'Изменена система PNG файлов {HINT:Теперь вместо 10-ти файлов нужно скачивать всего один}',
 			},
+			patches = {
+				active = false,
+				text = [[
+ - Убрано КД в 5 секунд после /do и /todo]]
+			},
 		},
-
 	},
 }
 

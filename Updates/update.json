@@ -1,7 +1,7 @@
 {
     "file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua",
-    "version":"3.1",
-    "change_log":" - Исправлен баг с 'Не флуди' после /do и /todo\n' - Добавлен встроенный чекер сотрудников на экране\n' - Добавлен быстрый /expel на ПКМ + G (по умолчанию)\n' - Добавлена функция отображения ранга сотрудника в рации и на груди\n' - Изменены/добавлены некоторые отыгровки\n' - Изменена система PNG файлов",
+    "version":"3.1.1",
+    "change_log":"Убрано КД в 5 секунд после /do и /todo",
     "beta_upd":false,
     "beta_file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper%20beta.lua",
     "beta_version":"3.1 beta",
