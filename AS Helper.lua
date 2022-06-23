@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.1.1')
+script_version('3.1.2')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -3608,7 +3608,7 @@ local imgui_settings = imgui.OnFrame(
 				imgui.PopStyleColor(3)
 				imgui.SetCursorPos(imgui.ImVec2(217, 23))
 				imgui.TextColored(imgui.GetStyle().Colors[imgui.Col.Border],'v. '..thisScript().version)
-				imgui.Hint('lastupdate','Обновление от 13.03.2021')
+				imgui.Hint('lastupdate','Обновление от 23.06.2021')
 				imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15,15))
 				if imgui.BeginPopupModal(u8'Все команды', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 					imgui.PushFont(font[16])
@@ -6032,9 +6032,10 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		for line in text:gmatch('[^\r\n]+') do
     		count = count + 1
     		if not line:find('Ник игрока') and not line:find('страница') then
-	    		local color, nick, id, rank_name, rank_id, warns, afk = string.match(line, '{(%x+)}([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+)\t(%d+)')
+    			local color = string.match(line, "^{(%x+)}")
+	    		local nick, id, rank_name, rank_id, warns, afk = string.match(line, '([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+)\t(%d+)')
 	    		local mute = string.find(line, '| MUTED')
-	    		local near = select(1, sampGetCharHandleBySampPlayerId(tonumber(id))) or tonumber(id) == select(2,sampGetPlayerIdByCharHandle(playerPed))
+	    		local near = select(1, sampGetCharHandleBySampPlayerId(tonumber(id)))
 	    		local uniform = (color == 'FFFFFF')
 
 	    		checker_variables.online[#checker_variables.online + 1] = { 
@@ -7404,7 +7405,8 @@ changelog = {
 			patches = {
 				active = false,
 				text = [[
- - Убрано КД в 5 секунд после /do и /todo]]
+ - Убрано КД в 5 секунд после /do и /todo
+ - Исправлен критический баг с крашем]]
 			},
 		},
 	},
