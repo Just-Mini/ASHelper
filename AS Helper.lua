@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.1.2')
+script_version('3.2')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -227,6 +227,7 @@ local configuration = inicfg.load({
 		checkmconhunt = false,
 		bodyrank = false,
 		chatrank = false,
+		autodoor = true,
 		usefastmenu = 'E',
 		fastscreen = 'F4',
 		fastexpel = 'G',
@@ -602,6 +603,7 @@ local usersettings = {
 	checkmconhunt					= new.bool(configuration.main_settings.checkmconhunt),
 	bodyrank						= new.bool(configuration.main_settings.bodyrank),
 	chatrank						= new.bool(configuration.main_settings.chatrank),
+	autodoor						= new.bool(configuration.main_settings.autodoor),
 	playcd							= new.float[1](configuration.main_settings.playcd / 1000),
 	myname 							= new.char[256](configuration.main_settings.myname),
 	myaccent 						= new.char[256](configuration.main_settings.myaccent),
@@ -685,7 +687,6 @@ local settingsbuttons = {
 	fa.ICON_FA_PALETTE..u8(' Вид скрипта'),
 	fa.ICON_FA_FILE_ALT..u8(' Цены'),
 }
-
 local additionalbuttons = {
 	fa.ICON_FA_BOOK_OPEN..u8(' Правила'),
 	fa.ICON_FA_QUOTE_RIGHT..u8(' Заметки'),
@@ -1535,11 +1536,15 @@ function imgui.ToggleButton(str_id, bool)
 	local height = 20
 	local width = height * 1.55
 	local radius = height * 0.50
+	local animTime = 0.13
+	
+	local color_active = imgui.GetStyle().Colors[imgui.Col.CheckMark]
+	local color_inactive = imgui.ImVec4(100 / 255, 100 / 255, 100 / 255, 180 / 255)
 
 	if imgui.InvisibleButton(str_id, imgui.ImVec2(width, height)) then
 		bool[0] = not bool[0]
 		rBool = true
-		LastActiveTime[tostring(str_id)] = imgui.GetTime()
+		LastActiveTime[tostring(str_id)] = clock()
 		LastActive[tostring(str_id)] = true
 	end
 
@@ -1552,18 +1557,18 @@ function imgui.ToggleButton(str_id, bool)
 	local t = bool[0] and 1.0 or 0.0
 
 	if LastActive[tostring(str_id)] then
-		local time = imgui.GetTime() - LastActiveTime[tostring(str_id)]
-		if time <= 0.13 then
-			local t_anim = ImSaturate(time / 0.13)
+		local time = clock() - LastActiveTime[tostring(str_id)]
+		if time <= animTime then
+			local t_anim = ImSaturate(time / animTime)
 			t = bool[0] and t_anim or 1.0 - t_anim
 		else
 			LastActive[tostring(str_id)] = false
 		end
 	end
 
-	local col_bg = imgui.ColorConvertFloat4ToU32(bool[0] and imgui.GetStyle().Colors[imgui.Col.CheckMark] or imgui.ImVec4(100 / 255, 100 / 255, 100 / 255, hovered and 220 or 180 / 255))
+	local col_bg = bringVec4To(not bool[0] and color_active or color_inactive, bool[0] and color_active or color_inactive, LastActiveTime[tostring(str_id)] or 0, animTime)
 
-	draw_list:AddRectFilled(imgui.ImVec2(p.x, p.y + (height / 6)), imgui.ImVec2(p.x + width - 1.0, p.y + (height - (height / 6))), col_bg, 10.0)
+	draw_list:AddRectFilled(imgui.ImVec2(p.x, p.y + (height / 6)), imgui.ImVec2(p.x + width - 1.0, p.y + (height - (height / 6))), imgui.ColorConvertFloat4ToU32(col_bg), 10.0)
 	draw_list:AddCircleFilled(imgui.ImVec2(p.x + (bool[0] and radius + 1.5 or radius - 3) + t * (width - radius * 2.0), p.y + radius), radius - 6, imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Text]))
 
 	return rBool
@@ -1743,38 +1748,31 @@ local imgui_fm = imgui.OnFrame(
 								})
 							end
 						end
-						imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30))
-						if imgui.IsItemHovered() and (imgui.IsMouseReleased(0) or imgui.IsMouseReleased(1)) then
-							if imgui.IsMouseReleased(0) then
-								if configuration.main_settings.myrankint >= 2 then
-									if not sampIsPlayerPaused(fastmenuID) then
-										windows.imgui_fm[0] = false
-										sendchatarray(configuration.main_settings.playcd, {
-											{'/do Рация свисает на поясе.'},
-											{'/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней'},
-											{'/do Охрана выводит нарушителя из холла.'},
-											{'/expel %s %s', fastmenuID, configuration.main_settings.expelreason},
-										})
-									else
-										ASHelperMessage('Игрок находится в АФК!')
-									end
-								else
-									ASHelperMessage('Данная команда доступна с 2-го ранга.')
-								end
-							end
-							if imgui.IsMouseReleased(1) then
-								imgui.OpenPopup('##changeexpelreason')
-							end
+						if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
+							imgui.OpenPopup('##changeexpelreason')
 						end
-						imgui.Hint('expelhint','ЛКМ для того, чтобы выгнать человека\nПКМ для того, чтобы настроить причину')
+						imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(10, 10))
 						if imgui.BeginPopup('##changeexpelreason') then
 							imgui.Text(u8'Причина /expel:')
 							if imgui.InputText('##expelreasonbuff',usersettings.expelreason, sizeof(usersettings.expelreason)) then
 								configuration.main_settings.expelreason = u8:decode(str(usersettings.expelreason))
 								inicfg.save(configuration,'AS Helper')
 							end
+							if imgui.Button(u8"Выгнать", imgui.ImVec2(-1, 25)) then
+								if not sampIsPlayerPaused(fastmenuID) then
+									windows.imgui_fm[0] = false
+									sendchatarray(configuration.main_settings.playcd, {
+										{'/me схватил человека за руку, и повел к выходу'},
+										{'/me открыв дверь рукой, вывел человека на улицу'},
+										{'/expel %s %s', fastmenuID, configuration.main_settings.expelreason},
+									})
+								else
+									ASHelperMessage('Игрок находится в АФК!')
+								end
+							end
 							imgui.EndPopup()
 						end
+						imgui.PopStyleVar()
 						imgui.Button(fa.ICON_FA_USER_PLUS..u8' Принять в организацию', imgui.ImVec2(285,30))
 						if imgui.IsItemHovered() and (imgui.IsMouseReleased(0) or imgui.IsMouseReleased(1)) then
 							if configuration.main_settings.myrankint >= 9 then
@@ -2684,32 +2682,27 @@ local imgui_fm = imgui.OnFrame(
 									end
 								end
 								if configuration.main_settings.myrankint >= 2 then
-									imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30))
-									if imgui.IsItemHovered() and (imgui.IsMouseReleased(0) or imgui.IsMouseReleased(1)) then
-										if imgui.IsMouseReleased(0) then
-											if not sampIsPlayerPaused(fastmenuID) then
-												windows.imgui_fm[0] = false
-												sendchatarray(configuration.main_settings.playcd, {
-													{'/do Рация свисает на поясе.'},
-													{'/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней'},
-													{'/do Охрана выводит нарушителя из холла.'},
-													{'/expel %s %s', fastmenuID, configuration.main_settings.expelreason},
-												})
-											else
-												ASHelperMessage('Игрок находится в АФК!')
-											end
-										end
-										if imgui.IsMouseReleased(1) then
-											imgui.OpenPopup('##changeexpelreason')
-										end
+									if imgui.Button(fa.ICON_FA_REPLY..u8' Выгнать из автошколы', imgui.ImVec2(285,30)) then
+										imgui.OpenPopup('##changeexpelreason')
 									end
-									imgui.Hint('expelhint','ЛКМ для того, чтобы выгнать человека\nПКМ для того, чтобы настроить причину')
 									imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(10, 10))
 									if imgui.BeginPopup('##changeexpelreason') then
 										imgui.Text(u8'Причина /expel:')
 										if imgui.InputText('##expelreasonbuff',usersettings.expelreason, sizeof(usersettings.expelreason)) then
 											configuration.main_settings.expelreason = u8:decode(str(usersettings.expelreason))
 											inicfg.save(configuration,'AS Helper')
+										end
+										if imgui.Button(u8"Выгнать", imgui.ImVec2(-1, 25)) then
+											if not sampIsPlayerPaused(fastmenuID) then
+												windows.imgui_fm[0] = false
+												sendchatarray(configuration.main_settings.playcd, {
+													{'/me схватил человека за руку, и повел к выходу'},
+													{'/me открыв дверь рукой, вывел человека на улицу'},
+													{'/expel %s %s', fastmenuID, configuration.main_settings.expelreason},
+												})
+											else
+												ASHelperMessage('Игрок находится в АФК!')
+											end
 										end
 										imgui.EndPopup()
 									end
@@ -3608,7 +3601,7 @@ local imgui_settings = imgui.OnFrame(
 				imgui.PopStyleColor(3)
 				imgui.SetCursorPos(imgui.ImVec2(217, 23))
 				imgui.TextColored(imgui.GetStyle().Colors[imgui.Col.Border],'v. '..thisScript().version)
-				imgui.Hint('lastupdate','Обновление от 23.06.2021')
+				imgui.Hint('lastupdate','Обновление от 07.08.2022')
 				imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15,15))
 				if imgui.BeginPopupModal(u8'Все команды', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 					imgui.PushFont(font[16])
@@ -3884,6 +3877,11 @@ local imgui_settings = imgui.OnFrame(
 										inicfg.save(configuration,'AS Helper')
 									end
 
+									if imgui.ToggleButton(u8'Открывать двери автоматически', usersettings.autodoor) then
+										configuration.main_settings.autodoor = usersettings.autodoor[0]
+										inicfg.save(configuration,'AS Helper')
+									end
+									
 									if imgui.ToggleButton(u8'Показывать ранг перед сообщением в рации', usersettings.chatrank) then
 										configuration.main_settings.chatrank = usersettings.chatrank[0]
 										inicfg.save(configuration,'AS Helper')
@@ -6561,11 +6559,6 @@ function checkRules()
 		end
 	end
 
-	if not checkServer(select(1, sampGetCurrentServerAddress())) then
-		ASHelperMessage('Ошибка в импротировании правил сервера! Неизвестный сервер. Обратитесь к {MC}vk.com/justmini{WC}.')
-		return
-	end
-
 	local json_url = 'https://github.com/Just-Mini/biblioteki/raw/main/Rules/rules.json'
 	local json = getWorkingDirectory() .. '\\'..thisScript().name..'-rules.json'
 
@@ -6600,7 +6593,7 @@ function checkRules()
 							end
 						end
 					else
-						ASHelperMessage('Ошибка в импротировании правил сервера! Неизвестный сервер. Обратитесь к {MC}vk.com/justmini{WC}.')
+						ASHelperMessage('Ошибка в импортировании правил сервера! Неизвестный сервер.')
 					end
 				end
 			end
@@ -6632,7 +6625,7 @@ function checkRules()
 							end
 						end
 					else
-						ASHelperMessage('Ошибка в импротировании устава сервера! Неизвестный сервер. Обратитесь к {MC}vk.com/justmini{WC}.')
+						ASHelperMessage('Ошибка в импортировании устава сервера! Неизвестный сервер.')
 					end
 				end
 			end
@@ -7025,9 +7018,8 @@ function main()
 			return ASHelperMessage('Игрок находится в АФК!')
 		end
 		return sendchatarray(configuration.main_settings.playcd, {
-			{'/do Рация свисает на поясе.'},
-			{'/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней'},
-			{'/do Охрана выводит нарушителя из холла.'},
+			{'/me схватил человека за руку, и повел к выходу'},
+			{'/me открыв дверь рукой, вывел человека на улицу'},
 			{'/expel %s %s',id,reason},
 		})
 	end)
@@ -7082,9 +7074,8 @@ function main()
 						if #reason > 0 then
 							if not sampIsPlayerPaused(id) then
 								sendchatarray(configuration.main_settings.playcd, {
-									{'/do Рация свисает на поясе.'},
-									{'/me сняв рацию с пояса, {gender:вызвал|вызвала} охрану по ней'},
-									{'/do Охрана выводит нарушителя из холла.'},
+									{'/me схватил человека за руку, и повел к выходу'},
+									{'/me открыв дверь рукой, вывел человека на улицу'},
 									{'/expel %s %s',id,reason},
 								})
 							else
@@ -7228,6 +7219,23 @@ function main()
 			checker_variables.dontShowMeMembers = false
 			checker_variables.last_check = clock()
 		end
+
+		if configuration.main_settings.autodoor and getActiveInterior() ~= 0 then
+            if opengate_timer == nil or (os.clock() - opengate_timer) >= 0.5 then
+                local pX, pY, pZ = getCharCoordinates(PLAYER_PED)
+                for id = 0, 2047 do
+                    if sampIs3dTextDefined(id) then
+                        local text, _, x, y, z, _, _, _, _ = sampGet3dTextInfoById(id)
+                        if string.match(text, "^{%x+}Открыть\n\n{%x+}H$") then
+                            if getDistanceBetweenCoords2d(pX, pY, x, y) <= 1 then
+                                sampSendChat("/opengate")
+                                opengate_timer = os.clock()
+                            end
+                        end
+                    end
+                end
+            end
+        end
 		wait(0)
 	end
 end
@@ -7407,6 +7415,17 @@ changelog = {
 				text = [[
  - Убрано КД в 5 секунд после /do и /todo
  - Исправлен критический баг с крашем]]
+			},
+		},
+
+		{
+			version = '3.2',
+			date = '07.08.2022',
+			text = {
+				'Добавлена функция автооткрытия дверей',
+				'Теперь после нажатия кнопки "Выгнать" нужно подтверждать причину',
+				'Изменена отыгровка /expel',
+				'Небольшие косметические изменения в скрипте',
 			},
 		},
 	},
