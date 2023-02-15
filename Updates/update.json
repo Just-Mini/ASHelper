@@ -1,7 +1,7 @@
 {
     "file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua",
-    "version":"3.2",
-    "change_log":"Добавлена функция автооткрытия дверей\nТеперь после нажатия кнопки \"Выгнать\" нужно подтверждать причину\nИзменена отыгровка /expel\nНебольшие косметические изменения в скрипте",
+    "version":"3.2.1",
+    "change_log":"Исправлена критическая ошибка с крашем.",
     "beta_upd":false,
     "beta_file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper%20beta.lua",
     "beta_version":"3.1 beta",

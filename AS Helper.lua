@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.2')
+script_version('3.2.1')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -4507,7 +4507,7 @@ local imgui_settings = imgui.OnFrame(
 							imgui.EndGroup()
 						imgui.EndChild()
 					elseif additionalwindow[0] == 4 then
-						imgui.BeginChild('##checkerwindow',_,false)
+						--[[imgui.BeginChild('##checkerwindow',_,false)
 							local p = imgui.GetWindowPos()
 							imgui.SetCursorPos(imgui.ImVec2(25, 20))
 							imgui.BeginGroup()
@@ -4714,7 +4714,13 @@ local imgui_settings = imgui.OnFrame(
 							imgui.EndGroup()
 							imgui.GetWindowDrawList():AddText(imgui.ImVec2(p.x + 265, p.y + 230), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.TextDisabled]), 'Author: Cosmo')
 							imgui.Spacing()
-						imgui.EndChild()
+						imgui.EndChild()]]
+
+						imgui.SetCursorPos(imgui.ImVec2(260, 100))
+						imgui.PushFont(font[16])
+						imgui.TextDisabled(u8"Данная функция временно не работает")
+						imgui.PopFont()
+
 					end
 					imgui.PopStyleVar()
 				elseif mainwindow[0] == 3 then
@@ -5872,7 +5878,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		return false
 
 	elseif dialogId == 235 and getmyrank then
-		if find(text, 'Инструкторы') then
+		if find(text, 'Центр лицензирования') then
 			for DialogLine in gmatch(text, '[^\r\n]+') do
 				local nameRankStats, getStatsRank = DialogLine:match('Должность: {B83434}(.+)%p(%d+)%p')
 				if tonumber(getStatsRank) then
@@ -6023,7 +6029,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		end
 	end
 
-	if dialogId == 2015 and checker_variables.await.members then 
+	--[[if dialogId == 2015 and checker_variables.await.members then 
 		local count = 0
 		checker_variables.await.next_page.bool = false
 		checker_variables.online.online = title:match('{FFFFFF}.+%(В сети: (%d+)%)')
@@ -6082,7 +6088,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			sampSendDialogResponse(dialogId, 0, nil, nil)
 		end)
 		return false
-	end
+	end]]
 end
 
 function sampev.onServerMessage(color, message)
@@ -7169,7 +7175,7 @@ function main()
 			checker_variables.lastDialogWasActive = clock()
 		end
 
-		if configuration.Checker.state then
+		--[[if configuration.Checker.state then
 			local ch = checker_variables
 			local cfgch = configuration.Checker
 	
@@ -7206,19 +7212,19 @@ function main()
 					checker_variables.temp_player_data = member
 				end
 			end
-		end
+		end]]
 
 		if configuration.main_settings.autoupdate and clock() - autoupd[0] > 600 then
 			checkUpdates('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Updates/update.json')
 			autoupd[0] = clock()
 		end
 
-		if clock() - checker_variables.last_check >= configuration.Checker.delay and clock() - checker_variables.lastDialogWasActive > 2 then
+		--[[if clock() - checker_variables.last_check >= configuration.Checker.delay and clock() - checker_variables.lastDialogWasActive > 2 then
 			sampSendChat('/members')
 			checker_variables.await.members = true
 			checker_variables.dontShowMeMembers = false
 			checker_variables.last_check = clock()
-		end
+		end]]
 
 		if configuration.main_settings.autodoor and getActiveInterior() ~= 0 then
             if opengate_timer == nil or (os.clock() - opengate_timer) >= 0.5 then
@@ -7426,6 +7432,11 @@ changelog = {
 				'Теперь после нажатия кнопки "Выгнать" нужно подтверждать причину',
 				'Изменена отыгровка /expel',
 				'Небольшие косметические изменения в скрипте',
+			},
+			patches = {
+				active = false,
+				text = [[
+ - Исправлен критический баг с крашем]]
 			},
 		},
 	},
