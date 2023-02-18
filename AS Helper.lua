@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.2.1')
+script_version('3.2.2')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -239,6 +239,7 @@ local configuration = inicfg.load({
 		huntprice = 100000,
 		kladprice = 200000,
 		taxiprice = 250000,
+		mechprice = 450000,
 		RChatColor = 4282626093,
 		DChatColor = 4294940723,
 		ASChatColor = 4281558783,
@@ -259,7 +260,8 @@ local configuration = inicfg.load({
 		guns = 0,
 		hunt = 0,
 		klad = 0,
-		taxi = 0
+		taxi = 0,
+		mech = 0
 	},
 
 	RankNames = {
@@ -299,6 +301,7 @@ local configuration = inicfg.load({
     	show_rank = true,
     	show_afk = true,
     	show_warn = false,
+		show_quests = false,
     	show_mute = false,
     	show_uniform = true,
     	show_near = false,
@@ -391,6 +394,7 @@ local configuration = inicfg.load({
 		['ICON_FA_LIGHT_INFO_CIRCLE'] = '\xee\x80\xbc',
 		['ICON_FA_DESKTOP'] = '\xee\x80\xbd',
 		['ICON_FA_TIMES_CIRCLE'] = '\xee\x80\xbe',
+		['ICON_FA_CAR_WRENCH'] = '\xee\x80\xbf',
 	}
 
 	setmetatable(fa, {
@@ -415,7 +419,7 @@ local configuration = inicfg.load({
 				if i == 'min_range' then
 					return 0xe000
 				elseif i == 'max_range' then
-					return 0xe03e
+					return 0xe03f
 				end
 			end
 		
@@ -522,7 +526,7 @@ local newwindowtype					= new.int(1)
 local clienttype					= new.int(0)
 local leadertype					= new.int(0)
 local Licenses_select				= new.int(0)
-local Licenses_Arr					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки',u8'Такси'}
+local Licenses_Arr					= {u8'Авто',u8'Мото',u8'Рыболовство',u8'Плавание',u8'Оружие',u8'Охоту',u8'Раскопки',u8'Такси',u8'Механика'}
 local QuestionType_select			= new.int(0)
 local Ranks_select					= new.int(0)
 local sobesdecline_select			= new.int(0)
@@ -622,7 +626,8 @@ local pricelist = {
 	gunaprice 						= new.char[7](tostring(configuration.main_settings.gunaprice)),
 	huntprice 						= new.char[7](tostring(configuration.main_settings.huntprice)),
 	kladprice						= new.char[7](tostring(configuration.main_settings.kladprice)),
-	taxiprice						= new.char[7](tostring(configuration.main_settings.taxiprice))
+	taxiprice						= new.char[7](tostring(configuration.main_settings.taxiprice)),
+	mechprice						= new.char[7](tostring(configuration.main_settings.mechprice))
 }
 local tHotKeyData = {
 	edit 							= nil,
@@ -717,6 +722,7 @@ local checker_variables = {
 		rank = imgui.new.bool(configuration.Checker.show_rank),
 		afk = imgui.new.bool(configuration.Checker.show_afk),
 		warn = imgui.new.bool(configuration.Checker.show_warn),
+		quests = imgui.new.bool(configuration.Checker.show_quests),
 		mute = imgui.new.bool(configuration.Checker.show_mute),
 		uniform = imgui.new.bool(configuration.Checker.show_uniform),
 		near = imgui.new.bool(configuration.Checker.show_near),
@@ -754,7 +760,7 @@ local font = {}
 imgui.OnInitialize(function()
 	-- >> BASE85 DATA <<
 		local circle_data = '\x89\x50\x4E\x47\x0D\x0A\x1A\x0A\x00\x00\x00\x0D\x49\x48\x44\x52\x00\x00\x00\x30\x00\x00\x00\x30\x08\x06\x00\x00\x00\x57\x02\xF9\x87\x00\x00\x00\x06\x62\x4B\x47\x44\x00\xFF\x00\xFF\x00\xFF\xA0\xBD\xA7\x93\x00\x00\x09\xC8\x49\x44\x41\x54\x68\x81\xED\x99\x4B\x6C\x5C\xE7\x75\xC7\x7F\xE7\x7C\x77\x5E\xE4\x50\x24\x25\xCA\x7A\x90\xB4\x4D\xD3\x92\x9C\xBA\x8E\x8B\x48\xB2\xA4\xB4\x40\xEC\x04\x79\xD4\x81\xD1\x64\x93\x3E\x9C\x45\xBC\x71\x1D\xD7\x06\x8A\xAE\x5A\x20\x0B\x25\x6D\x36\x45\xBB\x69\xA5\xB4\x46\x90\x02\x2E\xEC\x3E\x50\x20\xC9\xA6\x8B\x3A\x80\xA3\x45\x92\x56\xAA\x92\x58\x71\x6D\x90\x52\x6C\xD9\xA2\x45\x51\xA2\x24\x4A\x7C\x0D\xE7\xF1\x9D\xD3\xC5\xCC\x90\x33\x73\x47\x7C\xA4\x41\xBB\xA8\x0E\xF0\xE1\xBB\x73\xEE\xBD\xDF\xFD\xFD\xBF\x73\xBE\xC7\xBD\x03\x77\xED\xAE\xFD\xFF\x36\xF9\x65\x34\xE2\x1C\xD7\x89\x47\x26\x8F\x54\xA9\x7D\xCC\x6B\x7E\x38\xE2\xFB\xDC\x6C\xC4\xCC\xB6\xED\x1B\x75\x73\xF3\x45\xDC\xA7\xCD\x6D\x52\x22\x67\x1D\xFF\xFE\xF6\x1F\x1E\x39\x23\x1C\xB7\xFF\x53\x01\x17\x8E\x3C\x3D\xE2\x15\x79\xC1\x2C\x3E\x6D\xEE\x23\xD1\x0C\x33\xC3\xDC\x30\x73\xCC\x8C\x07\x87\x0D\xDC\x71\x37\x30\xC7\xAD\x59\xFB\x07\xE6\xF1\x95\xA0\x76\x72\xC7\xE9\x53\x1F\xFC\xAF\x0A\x98\x3E\xF8\xEC\x50\x49\x2A\x7F\xE6\x1E\x9F\x31\xB3\x6C\x1D\xDA\xE9\x2A\x60\x6F\xEC\x02\x6F\xAB\x3E\x33\xAB\xA8\xD9\xDF\x95\xCB\xE5\xAF\x8C\x4C\x9C\xB9\xB1\x55\x16\xDD\xEA\x0D\x97\x8E\x3D\xF3\xBB\x95\x50\x9D\x14\xFC\xF7\x81\xEC\x46\xD7\xAF\x07\xEF\x66\x88\x59\xD6\xCC\x9F\xCB\x84\x64\x72\xE6\x43\x47\x7E\x67\xAB\x3C\x9B\x8E\x80\x1F\x7C\x36\x73\x39\x6B\x27\xCC\xED\xD9\x66\xEF\xD6\x7B\xBA\xD9\xEB\xDD\x23\x30\xBE\xAB\x72\x47\x78\xCC\x70\xF3\x46\x6D\xB8\x3B\x78\xFC\xDB\xDD\x7B\x8A\x2F\xCA\xA9\x53\xB5\xCD\x70\x6D\x2A\x02\xDF\x7F\xF8\x64\xF1\x52\x2E\xF9\x37\xE0\xD9\xCD\x0A\x5E\x15\xBE\x15\x78\x33\x3C\xF2\xDC\x95\x4B\xF3\xDF\xBD\xF6\xFC\xCE\xE2\x66\xDA\xDF\x30\x02\x2F\x1D\x3C\x9B\x59\x9C\xBB\xFD\xDD\x87\x7A\xDF\x7E\xF2\xD1\xE2\xB9\xB6\xDE\x6D\x8F\x00\x50\xC8\xA2\xFD\x45\xA4\x58\x80\x44\x21\x97\xB0\x77\xD0\xF0\x95\x32\x56\x2E\x63\xB7\xE7\x89\xD7\x6F\xE2\x0B\x0B\xDD\xE1\x1B\xBE\xFC\x93\xD3\xE4\x3F\x31\x7B\xAA\x30\x10\x3F\x29\x4F\xB0\x6E\x24\x92\x8D\x04\x54\x16\x4A\x27\x42\x08\x4F\x4E\x2C\xFD\x0A\xE6\xCE\xA3\xC5\x37\x52\x7D\x90\x0C\xF6\x91\x1D\xDE\x05\x85\xEC\x5A\x1A\x35\x04\xA2\x02\xF9\x2C\x9A\xCD\x20\xBD\x3D\xE8\xEE\x7B\xF0\xE5\x12\xB5\xF7\xA6\x88\xB3\xD7\xD3\xF0\xBF\x39\x4D\xCF\x93\x33\x00\x8F\x97\x97\x39\x01\x3C\xB7\x1E\xDF\xBA\x11\x78\xE9\x91\xD3\xBF\x57\x8B\xF1\xD5\x18\x23\x66\x91\x18\x23\xFB\x0A\xFF\xC5\x87\x7B\xDF\xC0\xCC\x20\x9B\x90\x1F\x1F\x81\x9E\x5C\x3D\x2A\x6E\x29\x01\x7B\x06\x6B\x6B\x29\x64\x8D\x29\xB5\x91\x42\x36\xBF\x40\x75\xE2\xE7\x58\x69\xA5\x0E\xFF\x99\x69\x0A\x75\xF8\x56\xC2\xA7\x0B\x9F\xE5\x1F\xB6\x2C\xE0\xE5\xC7\x4E\xEF\x58\x59\x96\x09\xC7\x87\x62\x03\x7E\x55\x44\xFE\x4D\x7E\x6D\xD7\x24\xF9\x7D\xA3\x78\xD0\x06\xF4\x1D\x04\xF4\x57\xBB\xC2\x37\x7B\xDC\x2A\x15\xAA\x13\x17\xC8\x1E\x9D\xA4\xF0\x99\x99\x34\x88\x70\xB3\x26\x1C\xD8\xF6\x14\xD7\xBB\x71\xDE\x71\x10\x57\xAB\xC9\xD7\x35\xE8\x90\x88\x10\x34\x10\x42\x40\x1B\xF5\x54\xF6\x23\xCC\xDC\xFB\x38\x92\xD9\x30\x03\xD7\x85\x77\x33\x44\x95\xE2\x33\x03\xF4\x3C\xB5\x02\x46\xBA\x44\xB6\x67\x6A\x7C\xED\x4E\xED\x77\x8D\xC0\x37\x3F\x7C\x6E\x24\x04\x7B\xC7\xDC\xB2\xEE\xF5\x01\xEB\xEE\x44\x8B\x48\x02\xF7\x3C\x5C\xC4\x83\x31\x9A\x79\x87\xB1\xFC\x85\x75\x23\xB0\xAB\xB7\x74\x47\x78\xCC\xC8\x1E\xBE\x4E\xF6\xE8\x4D\xDC\xAA\xC4\xAB\x3F\x81\x58\xEA\xDA\x9F\x92\x30\xDE\xF3\x39\xA6\x3A\x4F\x74\xED\xC2\x24\xE3\x2F\xE0\x92\x55\x14\xC3\x50\x55\xCC\x8C\xA0\x81\xA1\x87\x7A\xC9\xE4\x95\x18\x23\x53\xD5\x71\xDC\x9D\xFB\x72\xE7\x57\xEF\xD5\x42\x8E\xEC\xD0\x20\x5A\xEC\xC1\x73\x09\xB9\xDE\x88\x95\x56\xB0\xB9\x39\x6A\x33\xD7\x60\x71\x69\x0D\xFE\xD0\x75\xB2\x8F\xDD\x04\x03\x21\x43\x18\xFC\x10\xF1\xDA\x4F\xBA\x21\x65\xA8\xF0\x3C\xF0\x27\x1B\x46\xE0\x38\xAE\xF7\x1F\xFC\xD9\xFB\xC0\x88\xBB\xE3\x5E\xEF\x59\x77\x27\x37\x98\xB0\x63\xBC\xA7\x3E\x7D\xBA\x11\x63\x24\x5A\x64\x6F\xF8\x39\xF7\xE7\xCF\x93\xBD\x77\x17\x61\x68\x70\x35\x0A\xD1\x8C\xC1\xDE\xB8\xD6\xFB\x31\x52\x9B\xBE\x4A\xED\xE2\xFB\x64\x3E\x72\x8D\xEC\xE1\x9B\x29\x52\xBB\xF1\x16\xB6\x32\xDB\x4D\xC4\x54\xEF\x04\xF7\xCB\x71\xDA\x36\x80\xA9\x08\x8C\x3D\xF6\xE6\x11\x4C\x46\xDC\x1D\x91\xBA\xBE\x66\x24\xB6\x8F\xF6\x20\x2A\xA8\x35\x86\x4E\xA8\x57\x57\xFC\x41\xB6\x8F\xDD\xC3\xDE\xA1\x39\x62\x8C\x6D\xED\xAD\xA5\x4E\xBD\x13\x74\xD7\x10\x85\x47\x97\x91\x9D\x93\x78\xB7\xBD\x68\xDF\x18\x2C\x75\x15\x30\x5A\xDA\xC7\x21\xE0\x4C\xAB\x33\x3D\x88\xCD\x9F\x00\x56\xE1\x45\x04\x11\x21\x57\xCC\x90\x14\x02\x2A\x5A\x17\x21\x8A\x8A\x12\x42\x60\x68\x6C\x1B\x8B\x7D\x63\x5C\xAD\xEE\x49\x3F\xB6\x09\xDF\x28\xC9\x03\xF3\x64\x1E\x09\x84\xBE\x07\x21\x92\x2A\x22\x3D\x78\xE8\xC3\x8D\x54\xA9\x19\x1F\xEB\x6C\x3E\x2D\xC0\xF5\x50\xF3\xB0\x55\x44\x61\x7B\x06\x9A\x11\x69\x11\x91\xEB\xC9\xD0\xBF\xBB\x80\xAA\x72\xDB\xF6\x30\x5B\xDB\xDB\xDE\x5C\x2B\xFC\xD8\x3C\xC9\xD8\x42\x3D\xE7\xF3\xC3\x10\x8A\x5D\x41\x25\xB7\xA3\xAB\x1F\xE3\xB1\x8D\x05\x88\xEF\x6F\x1D\x1A\x4D\x11\xB9\x62\x68\x3A\xDA\x44\x14\x77\xE5\xD6\x22\xA2\xCA\x3C\xC3\xDC\x88\xC3\x29\x01\xE1\xBE\x79\xC2\x7D\x0B\x78\xA4\x5E\x0C\x24\xBF\xBB\x7B\x14\xC2\x40\x57\x3F\x91\x7D\x9D\xB8\xA9\x31\x20\x22\x7B\xDC\xA1\x2E\xC2\x57\x45\x68\x56\xD7\x3C\x22\xE0\x8E\x8A\x52\x18\xC8\x00\x82\x48\x7D\xAC\xA0\xB0\x60\x23\xB8\x3B\xFD\x5C\xAA\xC3\xDF\x3B\x4F\xB8\xB7\x0E\xDF\xFE\xF4\xED\x5D\xC7\x81\x4B\xB6\xFB\xF8\x80\xE1\x4E\x47\x4A\x80\x09\xFD\x0A\xA4\x44\xE4\x02\xE0\x29\x11\x92\xD3\xC6\x61\xBB\x88\x45\x1B\xC5\x3D\x32\x30\x7A\x86\x30\x5A\x4F\x9B\xB4\xE5\xD2\xA2\x1A\xFE\xEE\xD7\xD3\xB7\xA1\x80\x17\x46\x66\x22\xAB\xF3\xCB\x9A\x7D\x74\xA8\x42\xE8\xB2\x6E\xFF\x7A\xBF\x74\xF5\x03\xD0\x3F\xCE\x6F\x3C\xF0\x2E\xC7\x0A\x09\x1A\x72\x48\xC8\x81\x34\x9B\x16\x70\x23\xB7\xA3\x65\xE1\x6A\xA4\x27\x6E\x30\x5E\xE8\x98\xE4\x05\xDC\x03\xBC\xB6\xBE\x00\x11\x16\x81\xED\x9D\xFE\x9A\x19\x99\x24\xA5\x8B\x4A\x34\x7A\xBB\xF8\xBD\x2F\x8F\x0C\xE4\xF9\x69\x65\x27\x88\x70\x2C\x3F\x87\x42\x8B\x08\x07\x2B\x77\xDC\xE4\x0D\x11\xD5\xC6\x6F\x5A\x44\x38\x88\xDC\xEA\x7C\x4E\x4A\x80\xAA\x4E\xE3\x9E\x16\x10\x1D\xD5\xF4\xCE\x63\x71\x39\xD2\xDF\x93\x69\xF3\xC5\x62\x16\xB6\xE5\x91\xC6\xF5\x6F\x54\xEF\x41\x44\x38\x9A\xBB\xD9\x2E\xA2\x36\x87\x7B\x0D\x91\x16\x0C\x77\xB0\xEA\x1A\x7D\xBB\x88\x2B\x29\xDE\x4E\x47\x40\xCE\xAB\xD6\x67\x94\xD6\x32\x5F\xB2\x94\x4F\x55\xB9\x32\x57\x21\xA8\x92\x84\x40\x12\x02\xBE\x2D\x8F\x37\xE0\x5B\x05\x9F\x8B\xBB\x38\x5D\xD9\x81\xC5\x32\x1E\xCB\xE0\x35\xAC\x7C\x19\x62\x05\xF7\x8E\x77\x96\xB8\xD0\x04\x6E\xAB\x40\x26\x36\x14\x20\x2A\xFF\xA9\x8D\x87\xB7\x96\x5B\x8B\x35\x92\xA0\xA9\x52\xA9\x39\x57\x6F\x57\xC9\x24\x81\x58\xCC\x11\x8B\xD9\x55\xF8\xCE\x88\x9D\xB3\xDD\x9C\xA9\x0D\x61\xB1\x4C\x5C\x7A\x17\xAF\xCE\xE1\x56\x4E\x89\xF0\x6A\xEB\x16\xA3\x45\x84\xF3\xE3\x4E\xDE\x54\x0A\x25\x09\xA7\xDC\xD3\xA3\x72\xB9\x62\x94\xAB\x4E\x4F\x3E\x9D\xEF\x17\x67\x4A\xE4\x76\x16\x28\xF4\x26\x6D\xF0\xD2\x65\x70\x9F\xF3\x3D\xD4\x56\x16\x38\x5A\x7A\x0B\xD1\xB5\xD4\x13\xC0\x03\x88\x95\xF1\xDA\x6D\xD0\x2C\xA2\x4D\xBC\x46\x1E\x99\xBC\xDE\xD9\x5E\xEA\x11\x57\x5F\x7D\xFC\x74\x08\xFA\x7E\x08\x4A\x5B\x51\x65\x6A\xB6\xBC\x9A\x2A\xAD\xA5\x32\x98\xE7\xEC\x92\x33\xB3\x54\x5B\x15\x20\x4A\x2A\x02\xEE\x30\xB3\x7C\x8B\x97\x6F\x28\xDF\xAE\x8C\xE3\x56\xC1\x63\xB9\x5E\x37\x22\x61\xCB\xE7\xC1\x9A\xBE\xD6\xD4\xF2\x4B\x3C\x7C\x74\xE3\x08\x80\x78\x08\x3F\xF8\x47\x90\x3F\xEE\x3C\x73\x63\xA9\xCA\x72\xD9\xD8\xD6\xB3\x76\xDB\x72\x5F\x96\x72\x7F\x16\x05\xDE\xB9\x55\xE5\x5A\xC9\xD8\xB3\x2D\xC3\xF6\xDE\x40\x4F\x10\xDC\x8D\x4A\xAD\xCA\xFC\xCA\x0A\xD7\xCB\xF3\xAC\x78\x0D\x51\xE5\x35\xDB\x8F\x54\x85\xCF\x67\x2E\xAC\x21\xC6\xDB\xF8\xCA\x65\x44\xB3\x2D\x2B\x10\xF5\x48\x08\xAF\x88\xA4\x3F\x45\x76\x7F\xA5\x32\x3D\x91\x64\xE4\x8F\xE8\xF2\xE1\x6A\xE2\x83\x25\x0E\xEF\x1F\x20\x9B\x28\x0B\xBD\x09\xA5\xBE\x0C\x2A\x6B\x3D\xBE\x1C\x9D\x8B\xB7\xAB\xBC\xB7\x50\x43\x14\xB2\x99\x0B\x48\x50\x44\xEB\x45\x5B\x16\x8D\xD7\xFC\x00\x44\xE1\xF3\x9C\xAF\x8F\x81\xA5\x73\x2D\xD8\xAD\xCB\x28\x65\xC9\xC8\x37\xBA\xA1\x76\x5D\x82\x3E\xF8\xFB\x8F\x5E\x4E\x82\x7E\x2B\x95\x46\x41\xA9\x46\xE7\xED\xA9\x45\x16\x7A\x12\x96\x3A\xE0\xD7\xD2\xA7\x7B\x0A\x75\xB3\xEF\xF1\x10\xDF\x89\xE3\xD8\xFC\x8F\xB1\xEA\x7C\x4B\x4A\x55\xF0\x58\x69\xA6\xD3\x37\xE5\xC0\xEB\x97\x37\x2D\x00\x20\x17\xE3\x57\x92\x10\xAE\x77\xCB\xF9\x2B\xF9\x2C\x3F\x2A\x19\x35\x63\x5D\xF8\xE6\x46\x70\x3D\xAB\x79\xE4\xAF\x6E\x0D\x70\xA2\xB4\xBF\x05\xBC\x4D\xC4\x0D\xAD\xAC\x7C\xF5\x4E\xF7\xA7\xA7\x94\x86\xCD\xFE\xF4\x5B\xA5\xDD\xC7\x9E\xBB\x18\x54\xBE\x10\x54\x68\x96\xC5\xC1\x3C\x0B\x83\x79\xAA\x06\x37\xCB\x91\xFE\x42\x20\x9F\xD1\xAE\xF0\xAA\x82\x70\xAE\xEE\x6F\xBC\x57\xB4\x1E\x2F\xD6\xCA\x4C\xDC\xBA\xCC\x72\xAC\xF0\xA6\x0C\x53\x71\xE5\xB0\x5C\x5A\x83\x10\x41\xC4\xBF\x14\x0E\xBD\x79\x76\xCB\x02\x00\x66\xCF\xBC\xF4\xF6\x9E\x63\xCF\xEF\x0E\xAA\x87\x54\x95\x5B\xFD\x39\x6E\x0F\xE4\x56\x67\x99\x88\x70\x6D\xD9\x28\x45\x28\xE6\x94\x6C\x46\xDA\xE1\x15\xF0\xB4\x80\x95\x58\xE1\xBD\x85\x6B\x5C\x5A\xBA\x4E\xC4\x56\xCF\xFD\x4C\x46\x1A\x22\xDE\xAF\xF3\x23\x27\x33\x47\x2E\xFE\xC5\x7A\x8C\x1B\x7E\x17\xD9\x3F\x3D\xF9\xC2\xBB\xF7\xFF\xEA\x03\x37\x7B\xF5\x53\xB7\x8A\xC9\x2A\x58\x6B\xCA\xDC\x28\x45\xE6\xCA\x46\x5F\x3E\x30\xD4\x1B\x18\x2C\x24\xE4\x33\xD0\x13\x20\xBA\x51\x8D\x35\x2A\xD1\x59\xA8\x96\x98\xAF\x95\x58\x8E\xD5\x7A\x1B\x41\xE9\x7C\x2D\x7F\x45\x8E\x20\x2E\x7C\xD9\xFE\xE3\x5F\x33\xD5\xD9\x3F\xDC\x88\x6F\x53\x5F\xA7\x77\x1E\x7F\xAB\x58\x2E\xE6\xFE\x49\x55\x3E\xDB\x09\x2F\x42\x4B\xFA\x08\xAA\xB4\x44\x40\x08\xFA\xA7\xF5\x73\x8D\x99\x48\xB5\x39\x23\x49\xFB\xEC\xA4\xB2\x7A\x5C\xD4\xEA\xEB\x2F\xC6\x7F\xFF\xAD\x2F\x3C\x71\x6A\x71\x23\xB6\x4D\x7D\x9D\x9E\x3D\xFE\xF0\xE2\xFC\xE2\xD4\xE7\x24\xF0\x37\x5B\x81\xEF\xB6\x12\x6F\x64\x82\x7C\x23\xC4\xDC\xA7\x37\x03\x5F\xBF\x7E\x8B\xB6\xF3\xAF\x2F\xFE\x36\x41\x4E\x88\x30\xB4\x11\xBC\xAA\x80\x7D\x6D\x53\x11\x10\x95\x1B\x2A\xF2\xE5\x37\x3E\xF1\xF5\x7F\xD9\x0A\xCF\x96\xFB\x68\xF6\xC5\xB1\x7F\xCE\x65\xC3\x01\x55\x3D\x29\x2A\xE5\xF5\xE0\x9B\xDB\xE9\x0D\xAC\x0C\x9C\x8C\xB5\xEC\xFE\xAD\xC2\xC3\xFF\xF0\x4F\xBE\x91\x97\xA7\x86\xC5\xFD\x0F\x40\xBF\xA8\x2A\xA3\x9D\xF0\x22\x82\x55\x8F\xDF\x21\x02\x5C\xD2\x44\x5F\xAD\x06\x3D\x31\xF9\xA9\x3F\x9F\xFE\x45\x19\x7E\x29\x7F\xB3\x72\xDC\x75\x6C\xDF\xCC\x21\x11\xFF\x38\x41\x0E\xAA\xC8\x01\x11\x19\x16\xF5\xFE\x58\xFE\x6A\x4D\x54\x97\x44\x65\x8A\xA0\x17\x54\xE4\x4C\x92\x24\xA7\xDE\x7A\xEA\x2F\xCF\x22\x2D\xFB\x86\xBB\x76\xD7\xEE\xDA\x2F\x64\xFF\x0D\xB3\xFD\xCF\x34\x8B\x75\x5E\xF4\x00\x00\x00\x00\x49\x45\x4E\x44\xAE\x42\x60\x82'
-		local font85 = "7])#######-Nudj'/###[),##1xL$#Q6>##e@;*>mnM]g8g@J1NA'o/fY;99)M7%#>(m<-0;Bk0'Tx-3HTVck7+:GDAk=qAqV,-GU;P1oK3Qlf&bY98<gXG-$ogl8T(ofL,i;;$%J%/GT_Ae?eaQ3UZAkW%,5LsCaOZ2@<3bKV9*U2Ub';9C8A'YS#9^ooU2cD4AJr9.wYhlJ5drV.V3dW.;h^`I(A_4fH$4>d.hiW%o6Q<B8nXJ;)qBe*T4b(N0iR/G^Hm7[)nC2:V'q?-qmnUCko,.D39N?6O'WHa@C=GH+?k=YJ^k&u^hmiUn_>C#*lpFA=Jws'alVP&S9w0#7EL37WZ3N0*2@&v-HUn#P96&M[bm##>-Lt:EE,WebMcf1G$i--$MBDNgmH&#f:J88u0p88R+vr$8OL^#$,>>#sn&W74xD_&OG:;$W'.;Ql_o6*NT[fCuK1m9+.Vp.2h[%#?I]6E$2ffL5D,s-:pwFM8wA,2.,<6CpYw:#YZA`ah`cf1R3hP97@cA#2o&i#k7?>#EGMJ(+hX]YR;:2Lwos#v^X/&v#,###FLV2M1M#<-6q.>-?XT;-ITiiLv=lCNjCZY#P-4F7'nS2LMlw+M;p)*M_VjfLKI(DN2c7`aR:@`a]v8.$S?mxu.]]F-KWs#0P3w,vf[/&v#*tnLoU@`aT]Uk+$A=gLO%g+MrY#<-.fG<-3NvD-3r0@/*%4A#Y'N+NDET%P?CYcM9BN/NdaW^O*:$##Zp8.$c+?>#(ok&#cHwu#Fle&,GP4;-2Iq>$exdw'mA%&vYfGxkCJOV-Bbu&#*`$s$TGxjLO:?>#(WI&#%DbA#[.@W&0Q/@#<Vtn-'C<L#(I`0#SUu>#Y'9M#9i+u#w:o1$`7a%$YwQO$of0F$9C:r$5(3d$]]i4%iLH(%@`;<%Sq]E%q+]l%kYB^%_C'#&RF]9&kAEl&*un-'&[hr&$KR%'$_F6'C/`G'FSiO'I'YY'Lj?o':[BF(gKx9(%]Kb(]hg')lsfnLxA6##L5Ev5i(),#-Mc##Y@2##HJ8K%G(7B3hq^`jmb%Z#'fX&#rax6*7fx6*`Hbs$f&:;]G]eF3V$nO(]ax9.E';sC4x(cuj+CD3w45w$8A6`ai+`%b:aBj(VcQEn1.f(#d,>>#ZO1x5OZ'u$ZVd8/)$fF4R#s'4P4vr-;`tw5?3lD#XMc7*6#Ui)6gE.3Z_[@#fCb6&n/)ZuOluN'Bobs&i_gi#7+W*%Hr^B%gqk:&mpN?M;<Ilfbm_&PK-kT%ZR`e$%=4C&(_s)%%1]jLX]WV$+QX+`H_0SeUi8>,v)BJ1Xn$##6/QA#*r+gLd^xD*L@[s$tPYx69?RF4PDRv$X_EG%Dl*x'`'6(Q`cEc<<5Wk'II3LDdv2k'CPl.)A]<F3a&<;R>'wC#VB$pKHHKW7L_p]$xDF:Ks9[eur4Cw-BXbRMO=qKMvxuOMRR?>#<s%#,#*%/Cx,3(#Av.l'[cZ_#aY?C#[HSP/W>uD4R`>lLD5M.2m<2W$Zg6d)hDMs$l])mJ?@g*%@/Q,*JaiX-Blx7*YbPg1;>uu#IOxUd,Bo._Uh`i0Vh$##`bLs-;va.3Y?]s$;Go_4twC.3ig'u$&Pto7rLd&4x?7f3x8Qv$a&SF48u_qQ996DfT=Pw$`W49%]8;4'ro%L(g;vn&KR[x,wkR8/EN]a+ISg'/1b5]7Tj#;%PHT6&]Z>3'bClZ,R9,n&O;%1(u8X?6=vkZ-lPwTMOFZY#WY,]k`Qg(WV4lr-Zg>A4t(4I)YEo8%8>%&4+J,G46FVt-/,698rGt87q+gY,d;v3'e?)Q&ObHXJ;K'E<7h3I)nL3GVCRMZuMSKU%X4*p%IXD%&4F=@$s=Id%`c`W%?39A=M[wo%glLW&kZW$#]qbf(0k'u$ok&Y.%<:H*dxrB#7(RW-ep3achtGWM3Txo%D9Ou-cW,n&Jfl-$$vp>?%GnjQZtT;.S=8*+O*Lo&cjsa*Qr2d*(f.;5<:G>#Sg[%#jrgo.^nr?#&Y@C#8n&s$i<a>0bR(f)N0D.3g].HF`RP%tTv5;%T(qB%uS,>JFE-<1?AKAt95k0Eb`o6*?:5gL#W20(e6Fr.u*T*5vn4R*g0@.#'5P:vqDG`a*<li'r)#,2c6%##d#f<CA)'J3TEW@,bkh8.7Lm<-Me`=-We`=-=-f6/EUET%^@F,MCYk[t&c-NUC_39%a6We$pnd6Oenh^%KGKb.wUkA#0@D9.>5u;-Qq0I$#Sg%OU[;;$WooE[sqLF[&6+#(.gIkXs)eR*[%`AP[p7S[)i@W@;:@W$ie#W-qScDS:=(?%R%)@0vOkxu-%H<-$OsM-Kqeg+.%&?7fb&4QN0Iq7]UE=_B/EdFIPcd$_;kb[BRoC&]wC'8aXbxujtFH2%/5##9ZhR#Q`U7#[?O&#`%.63xZ*G4[m5%-IckV-a-ji0Xfgs7omrXI`DuZGAiuYucFs.Li%'/)Jg=A#Eo];1dDI-)oXV]=R9DC+EJt;0HF]:d,Bo._+c`$'w6$`48tFA#lL*L>e?85/85xD*RtC.3[5ZA#xflMri:3D#HC+[.e,_6&&VgQ&Z^(99AE&2B6L_X%g,16&n%:bQ`CYE9osC0(5Q([,0`%C#jkW999f5gLXX:T7BA$vLU,qXuHi:kk`Ia$'A#QA#Gt@m'II#d0c<jv6Z)YA#M$+mLtk*J-^(29.b6FA#^MlD4w3::)#5r1TOq[W$m`w1(gYBu$Osus-EBniL+uKb*.x_5/Lw*t$*b1hL(^p@#6kGR&W<;@G]HkT%hmT/)NUupoH]Dd*?9T'M_])w$trF,ikj5c*M3fS(?>cuu:g-o#'_U7#EPj)#cUG+#$2QA#g'ok92%?g)6f<X(@eA7/+IA8%L@Gm'VAqB#9`]q)K:n=7Z&PA#w0`.3Sh+<%VT4J*33w,*obQP//p^I*$sun&%rqX%e5_6&5<Zv#txvN'dPDg(AnN9%H*Tm&W9tP&Q*X=$;$D?Y7sM)3dew/W4Rp:%Qe3*,`lNa*Uiqm9R1s20H@L-2PObV$tNA30.:>Y%Sj(0(7_P:&D'Ot$(FK/L*oaPoRAj6tVH6I6#&JfLXq-##Wh5r#u_V4#V$(,)oQW@,t-pfL=T]s$kHuD#T^WjLOa`221n,Y%0tSc3fFs_,A8od)=Ln8%f&/F4tMFT[r;^lSD#-b<pGc40i^iB>_Q>n&cP>B,Irl>#LOT6&[VhhLXMvu#P4)eahuC`argai0c6%##O?jb$-2ZZeYAOZ6%vYT%:;gF4Woc;-#LHa$M=-Q8+`<$6N/ob4PF[p%hCBTTh2P,OM?0rm95k0EqW)J<HY.cV/Fwe4r>;@.D7u;-9,lC/XaaJ2H]k0;*6$f4D[r%,=d)J<']T.Zlv?D*3v5.Z9lh;-rVPd$6^UaSoH<eQXtDQOIkr]KO/P:vqrX>#q2dc)VaFN(K)'J3M[jJ1n`aI)`Ld5/OwAv-IBap'dvT-%,&AA4fTTM'`S[e,7)$9%FI4]u*Ki?#2muN'L(CTNwxe`*&HhH296a*.RW&F.@Z$I2-*c6&FbU'#%2Puu0HUn#]9i+9r-6Z$>(J'J`**/:P5P3D42.a3IJJ]$(Tu58/7Wd$GW>7&Bp%*'Wg53'kPU&5J:?O2]KVX,@J#v,J0.%,CUwW$T7D?#ptA'+veBG-N%r-4J`psZR:ov$`5VhLf;$##h^YfLQ*88%>u###G]o[+FFvq7o<Zcaf)P=-%Ti].4/sW#+2QD-OY@Q-r^_t%h#&R1K%h,N0UL+*Zj:9/ql4Z,o(b.3-/5[$wmm.)m7-R]e#iEOFO.W$ffew$fhq8.hb:x$P3Ih,MHB$dG-9U%R53K(W5L'#.0L`J-D]aJ@K7l17@[s$Fc7C#^oJF*&2V92/QNp%n:iDF^hsp%<1I'PLGKTS>F@W$)VnQ0:Tf=%iud(#%,Y:v*`(?#d5i$#d$(,)1Dh;-avF%&FDwW]>'af:,ZY>%Bae],MG,@&Z$VgCX;[q&]d^Q&@T_Q&*'YK1CwHC#otC0(D]Vn&J4a6&,Q,nA>)973IG:;$42I9fq@5P][bHP/]]P`<S&Ou.]*'u$`S6C#&R:a#/]NT/<PsD#FOit-puk/Mfd6l13Xrt-6hH&O.NAf3U+X=_2k3B6ENwY%OX<p%rQv@5mesP&ato60IR.W$ab:@,rU0/)NvHH)vP(n)s5hU%NXEp%)B0I$g<n=hs6E`/++t^/RG*I)qs,m:etYb-QB=X$^tm.+?_ap%mndT.#S3X.YAIL((`oC4]3570KE(K(vptg1X>IL(U%15%U8G>#B7>##eH?D*<w4x#'Ga01u?lD#/_v)4na&],4nmk%8CFA#KfZ@-MS[s/%PDZugco$5V%bK(`pVQ1wK8W$e5Zn&:q1E#N4M?-dD24'`2FP(515-3]#4_5#<kB,XfvW.JXi$#S,Qd*?sZxXlee,;nNN?6NfB.*bj9^#]ru8.KRpQ0)PkA#4.m<-QV`X-x0*+%Z####)DluulD:R#7)+&#Rb<9/#&AA4EddI%1QQJ(+w9j0)U5N'ePU:%^L4H)&4d;%AL*N0$W:<-aBND%s>seMZPr.2I+@8%1x<M&J=D?#nl,?#VYAs.USc`%GKg,*E[.O90+dg)UHuD#d@^&BgtG%B:+5gLpP#v,(d[]uaZP$B<aR#v`BmV#Zq=<MRBT_4_)wv-ZI:E4W/Ke=AcvS/KYn3QpLji-cMR#LFnZ)#v]x9vlcaL#Gh1$#j&U'#vu:9/nfZ%-DU`v#q%fX/ELsY$%-U:%erar&kC)?#2HT<$>m'-M1==2K$SRD&$UST%gVw8@<);?#Gr><-jZ9S//.0m&`c>w#3eH_u,U8&&pBop%?iXg1*G'i<A(DeNAO5hL'/6h-r=ge=>d7iLWvJO9+M)<%.;Rv$Sko;7#eXg;Nx.(63U@#:Uj=vGW'3)%/TEt&>N&r0En*IH%]]q)#QU<H'_9N0=:G>#_Yt&#`G>M9&5Kv-POEn<I3rhLZNs?#`xJ+*bX[6/w4NT/'APjLIXTC4^nr?#/xc<-Q+)X-NB@k;5Hr-MHx9+*.i)F7Akdi9A&=61M=l9/?lG>#Cwo2'dcse)x`lj)I:e8%Os5r%[^N3,e3d*7&=+K15#t^-nwr?9%m]^+[<5N'Iq:+*Qjc?6Eo_;$_`wd)6[l]UDe(HMBf$##&#5>#'8G>#0qm(#abY+#nqdT-Z-uG/-]U@,:^9a<r_l8/agocNN%,t6)&Vv-ZI:E4*NYx6?J))3)+ro.Khkj1s3vr-8GTkLTQU&$*/rv-udnX-;X^:/x<j?#BW[iLu]sFr7u$s$Y(0+*twU<-C`5>#TP.K:g/$r%4%@8%'vct$/%lM(aOrr&$^u_)=taX$.&.['2Z(6&>Rn8%w*ci(=&gU'_TBq%TOR8%A[N5&Ckns$ub:@,_l/C4j.d6<&7bs-63Nl(Fe1/)S6Op%4AXi(H(jP0Q^M7'K*#Q#2uq;$=6DhLqIci(Wn7<$/AP>#Sr[+MYV?_#',[0#n0;,#<->>#AV9+*Cid8/@n>V/a%K+*d)UM':]d8/&,]]4#cx:/.BTk+=%k^obRoU/<vKW-B1BnhM1;*%E1B]$EU@lLT$(E#?;Rv$S-2E4):Z;%+73n'*o&02SiWI)j,/]%<[^`3G/?I426w6'^nV?#</m#>+;tE4dc(/:5Emn&@02;&,/s#56-jW))ljp%:Sd9%r#:Q&FwkU%mE/g)M8Co/D@xN'`Qf8%N+AC#j+vw-h(3%$?e<t$&w@.*mu%m0NiTh3Ga',;$*og)K2Ke*G6`E4x0G4:@T$H)_996&-Y<s%J$Xp%21'X%f]V8&@M+mfx`Do&6B(:8HEV,33V`2'Y1%O=6s^=-$(nY#P5YY#@;xu,rNclAS_P_HmVl]#uF]fLl-F<%:q'E#qI[%-$V/)*t:3T%=^WI)R3*7BI&_W7dv@)GjnBH)Ym=]#jPE>/Bqmk'IXEp%9AalA&>dF+H5P?6L#;Q&jbv@&LBHT0:YtH)DONp%(cQ-Hg>6`aj+`%bN?`l8ggN^,T>V/1-<Tv-/.ji0vR7C#_Tld2gc``3J)TF43h;E4x<7f3trLI$UEW@,V])<-an@8%vA+G4Ug$&4bx&X6vjuN's1FV&[7'U)J;<^4lR4U%r>f8'9h:K(XChT7+VRD&<4K-)sH^m&'e7d$IKN8;1N_6&1V=w53+6_+TUW_&4;vP9g)$N'M(gn/?rpq/3lE]'^`49[P`mY#L-&##9*,Q/:WL7#F[P+#[N;t.26MG)`7.[#sSg*%PXkD#TgZ;.[GYd3IPsD#n`h*%]h=^,p*5gLP0vhLoMh<.ms#E36tFe-_+7g)RHKs$TSm0'2v$E3)b'n/;g=[&H.;t-`XrjM<%KB1LP4q&Lk197oTE$P,F?C+D95%lb,Fj180F#P`xP<-%w$iM,U_8Mi9MhL1_duu9^hR#*4mx3(pm(#T%T*#GEOA#B.i?#a1[s$2-Ch$Gc7C#FwIf0[Z*G4pM.)*gCSfL$#9f3bR(f)[/*E*lAqB#.v+G46`W01;?x;$D*K2'OCXk$3o(9.J=HiP3V#=R6$8]Io8@v$b=&NKw2FSR9R8/M+:HZ$UlS#,TeIv?]2ofL_KAw#OHiY(3SB[5g.t3;q,XP(f#Dk']^2IMji&gL.tVV$8;-`as+$kkkGSY,@G*T8W#r6*ffk/M3o,x#l5MG)YAOZ6aA6N':]d8/xE(E#EiaF30ACkLup'E#sJ))3a>BK24vPA#r6eKu9g+G4V1x;%lpKB#RBs%,995Y'NrKa3C<dJ(Oq@@#Z9''PZnqR[=l(?#u4ej'K$u=$js]r.Mk/B-maDgCX@w:%@ooA,.ij?#J`#Z%Id:^u)eGnAdD24'%QmB&T$]<$0>TH*G9R0%IYP>#$5D?#d&_H2kR,E4l,N6f/Lna1651S8eDeK<hR[/;=/$Z$dWq#>=a,g)Jk*W-o*6`Q71A%'F2HlLS-W,;PD3/MB9Ap&/w%'.Ylp:>m^X&#Zt6J=7_XD#<)]L(VS6N:W;Ee+?]x%B.+CJ)wObA#@hh$'@4CJ):3+V.H*.%,(*xfM)rJfLdxQ:v9q;##AQ=8%4V###CX@8%:q'E#.4Kg%R*R2L6[*#'B(`?#_R]?5i9:n/ni$qLkBa?#^ULJ#aL>-M>$;-M=u+8&,,h9;Vk,#AAvN1)`3lD#bF%U.VRI@#@u$:McYCJ)en]m&3iD1'(E*1a2[mxLFNir&KWdgL.0vL'_E0QC_F&@>w06Z$Lw9e?fJ))3oxJ+*%ABp7a/l*X[&KMXJLc>>au7p&3bLg(*tM'%BSm&M/NHMX#-Bs$o@SZP)aAB+?1$=05e+/(-Ga.qOcnW/slU:%fZX,2FsHd)sRF,MI#NT/eMXV/Z?85/1c<9/SP,G4[^<c4OJ,G4osFA#0j5F%a>_,*Q$F[TP?O2&drvv$>&cu-Njv:&>oAt%dmfw#]$<v#bt7Y-HEv3+d,]&Or])w$$O-32H[.LM:Ib70_@#G*mZaZ#GXE5&;`G(+7e:*4[c*M(KBeIM*)4a*Vd/9&1)q;.L2(E5?@%##'&>uu]4>>#JL6(#I]&*#=sgo.0X<-X,fm=7ST.29c9mG*ES%Q-WMN/%7MN=(-tx>*;iS?R$0t>-s)U:%2d7-)&KM-)&cj<%@Cp.)Cos'4L*/@#jQ[-'dtKHM-C:Q$]%WX.$_7tJ<<.k(^&Y:.eOdu-S_%u-QP:%MZL?C+&U,T%s_@C&G####R3n0#4=O5L^hHP/Y'3:.rM[L(Lov[-u?lD#TMrB#S/DD3Gq6Elg754%F>nM>%u.eaB0?MR1S+fa.+CJ)`0Ne$^f,$&8bfCMFl:p.,3h(,[Jw6*'2>;-DluNFopV]+08>5/)WHG)dR&E#^v7B.R4r?#.8'gLoeZd3$M4H)HC)?#97(wL5KihLtk9i%A2;gLBHr-MIt.>-S#fJM+e7iL9mBgMhS3<%f$g;/=V&E#,:3iMtrbI)vEjV;([xV;dPG<-ZvR/&ea*G43>km'-1em'JNXA#SH;2%@vN*']ggQ&8([gLk)JHDHH;2%1rv<_[2vR&Gbp*%i)%t?.KFm'#0$f?:Jl^??gNH*PJ))3?[^:/x)Qv$8^t'>Pp#8/W%am&ob*9%uAg8%WB_ihURxa+HU+`&owr8%(t&4MX$?d$(L@M9VB')3ig'u$C]R_#=qj7%8jE.3TDj?BG?,na_w6u6-E1l:0xoG3w3Tgsia+,%lsRF4K)^/LdB]@#gYgu:P,'F*lKfN0>jD+=Dn8@#wrdN'EUrV$)G6,EAgxkE0uBX%L[<9%cK,m:TxA5=+DAL(tgJ@#Q1iB78(Gj':4P@5Xd52*q:npIDu(v#kI?b>],kI,>nSm&pEEm/jMRiuO^C/)@bL/)9),##kw>V#aC)4#-'Vl-93$4ixVwZ?8&[#6<TIg)rXd+u-GrB#ANU1;#ki-*[*'u$($_O-C_39%l?^;-pMcpRhIblA5Zs>&GiI-?>abA#-oYGMu;gL:bc9N(nN*20KUNK)55%&4Z&:I$(%x[-&8b5A0;nw'*0F6jSNCD3U+BJ)u'nofu1>;-E$V0,PE;61LG+t&hC5Y#or3R/uV?L2Y[3VR`Uo&,Jgma3+_AG2'&>uu@Rl>#TN7%#6&*)#)$B?&qP[]4wj`a4G+^C4D2$w-YpVa4Bl$],Soxu,E'Yt(jtn8%>B940NT^:%PEZd3gtONDlr1jr#4l:&)KqV(5P3(7Z]hQEWFFb3:?)G#,'Vw.'=.g:n7X_$Oj?H)(Jb.)?$Ym&cAJu.XfrS)bDVO'6^`S&xt#I6G,OL)Z8MsA5GeT%kiLA=fR:J)@Le<$^&hg:VF6T.PEHR&r2Z(-LXnq.9&.Qkfx5Q'k4+gL`2Rha'_A`a-l68%?3GJ(Wo8>,;NHD*R<*H*'k$H3@.OF3(@*Q/P$8s$Wt'E#4`d5/v5qSC2OCau$$4n<Ye&[Jreci9rYtL#<iBWJI@,@')$s<Mq]g%u*85##<vHo#e37:vUoIfLG@Huuq#AsT0C=)#Z]e^$5GU%6(K2^>KC,H3o]d8/;60T.kiic)`'Nu&ML*/3?4HN<?TtD<(vvE3V9LE<7,9u&>oT4(Ppx8RM,bbN'3hQ&cVBp&-h](P[4$##D%`a%E&3>5?n<Q8IuJ,3evTS%3D-T8l?e1,<nS^)=lXZ%SQ^6&g*Td<.+CJ)AOMe2JeGJ)nMOW'voQN'kFe),csJ_/9oF&#&k=m/';P>#cWGG)G&JJ&.%Vu&`9*?#L5koX^V2<%LZL:qvfGb%.6=(jE$qAXl*7T.8LVX-1P)C&':rk%(`c@$Frd@b/v,Da%gf%FlDq1K;8q2:vk>)4uueV%8drk'ds>V/AHaa4PdGg1Q0g://sId)a[2Q/MNBu$lYe)*;2QA#C`WF3U:Ix6_s$-3Y#c;-*^?.%Eg>G(pnO6')uBF*+kRlL-OY2(p2GX$XOmY##md11-;N[$-h)[,C1Z(+4>58.C8rh1NMWm/*dm(5&J)h3u'^:/cTf$5#0%-)u$-0)Gqe<$uSdj'#n4k05B.-)'#9;-)F:)4X',b+;eM`+G%Yi(uR&A$u%IN'K?mV);>cKhtGP&5'*U-HBkA?7FH)M%wE(,),s:D3F]tr-iL0+*I5^+4sUlo7t'vG*+'V*uEiUC,kKe6%RXkD#3^4.-NT_r?RU#pL1e3IfQ+;mQOg]j-<D:I$o,K9.(f>C+Tf=WM[Eo>-c&-p/o,UiIOE,n&YQ>s-q%TH:1]'^#7)hs-Z>?j:n@Im0G=61MJE:Z-+dfF47of1;F8`I3hbtM(ft(%,$xUC(<kuN'KmLEMMxg6(M8kn/4-Vo7kpHJ)*:V9..EVO'ZA,L2?SOS7Hr.cV$lQ=lM3l1+Q:ENrUG6^=032H*Z%AA4VC8j0q_.<8duiW%cljv%)@vV%v>[h*0ViIRqGojLpA$##5=S5#+.MT.<e[%#c@`T.-Yu##;A`T.,Mc##QsG<-5X`=-nsG<-*fG<-:B`T.8.`$#m#XN03c:?#-5>##_RFgLOJhkL0=`T.6:r$#34xU.3xL$#AsG<-5X`=-YsG<-*fG<-&B`T.H9F&#@tG<-JPI+3Ze/*#Xst.#e)1/#I<x-#-#krL;,;'#2_jjL/u@(#0Q?(#Xp/kL<LoqL0xc.#wC.v6F+U.G5E+7DHX5p/W%C,38q:417=vLFa-'##jS3rLP@]qLbqP.#pm-qL5T->>9l7FH5m?n2MT4oLkL#.#6^mL-Kr;Y0BvZ6D.gcdGBh%nLPKCsL3T,.#+W;qLFm%hEgdJX9J%Un=p&Ck=%8)_Sk+=L5B+?']l<4eHR`?F%X<8w^egCSC7;ZhFhXHL28-IL2ce:qWG/5##vO'#vMnBHM4c^;-UU=U%V9YY#*J(v#.c_V$2%@8%6=wo%:UWP&>n82'B0pi'FHPJ(Ja1,)N#ic)R;ID*VS*&+Zla]+_.B>,cF#v,g_YV-kw:8.o9ro.sQRP/wj320%-ki0)EKJ1-^,,21vcc258DD39P%&4=i[]4A+=>5ECtu5I[TV6Mt58761*WHnDmmLJ[#<-WY#<-XY#<-YY#<-ZY#<-[Y#<-]Y#<-^Y#<-_Y#<-`Y#<-hY#<-iY#<-jY#<-kY#<-lY#<-m`>W-hrQF%WuQF%%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2%w*g2'0O,3rX:d-juQF%&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3&*F,3(9kG3rX:d-kuQF%'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3'3bG3)?tG3A:w0#H,P:vv039B[-<$#i(ofL^@6##0F;=-345dM,MlCj[O39MdX4Fh5L*##G)-Fq93;At30+:D"
+		local font85 = "7])#######>2PX7'/###[),##1xL$#Q6>##e@;*>'Ojk?t+=G2ad>11fY;99'B+.#gxw+23B^01qZn42EC=R6[.>>#I@^01aNV=B^Iswnp5YY#eY,1142XGHU=.@#lG:;$.lK8/d_(*Hlme+M#4#,2*9Bk0#-0%J4-fE**RUV$T=P9/j-d<Bee%EfQs.>-b@pV-TT$=(s'eg#F`NnL::MS.;h^`IopAlfH$4>d26+q&o6Q<B,tnkLm242U0sZdN0iR/G685`j)nC2:V'q?-qmnUCw[CdO4=N?QLbZK`@C=GHq2p-*G7&L;hm'&Yn_>C#eh4#%.##t'uvwu,S9w0#7EL37WaNj0-40+G,TX+`#@p7e3b)W%IW`iLnfC5/U5u6#Vq,tLgImu#B8'C-#;9;-v_@U.h+85#<weU.%####3Xrt-j&BkLVF$##wV]X#;0xfLS^HF#>>DX-M3GF%W?)&+*JNfLblMv#@7Xh#.47uu7+B.$RBr<9)@r6lDM.E#OYU7#uJe8#'r.>-1.GDNlVG&#56u6#<(d<-'oVE-Lh3r0^]WS7#/>##n4XS7?L,F%6(Lk+?+*/$<Rd--r;I]uCUP&#ihHMM;sZ=.Jk+Y#<Dv1q_?l-$FhG&#N02'#Rjn@#qZB)NVxH]-dS=RECC=_J#d./LfxaS7KcCR<0.lA#OWG-Mh$SS%RBm&#%)P:vwV7_S3R,F@--a9DL.Y]+0%,)NsqU)NZGbcNp/,GM?MZY#hd%$Pns0&v#&###'S5s-nlRfLP:$##h6FGMm8#&#J+PwLZLH##042X-I<AX12n;kOF####=kl-M:LNH$.iqr$2+RS%6C35&:[jl&>tJM'B6,/(FNcf(JgCG)N)%)*RA[`*VY<A+Zrsx+_4TY,cL5;-gelr-k'MS.o?.5/sWel/wpEM0%3'/1)K^f1-d>G21&v(35>V`39V7A4=onx4A1OY5EI0;6Ibgr6M$HS7Q<)58SbLv$*LZxL,<?>#Z1P,M/DT;-I.>T7:#/N(v7$kkGCg+M/'_<LR/,s$YifxO8=:`svfixX`sPA4X>u(aomvfC8I6At5x2sH[k%#li)+aE?cu5/SWuMKp^oYlk$5T@^3KZ>Q[RN0j=L#u)N+Hi&)/$5$i>BO#p5n/CHmsdEjV**IFnZGK0:b3951*jgT7hC$@[Hi[:dHiP,h*<o-[Y#BP4kONN:>>-l68%Y86Q#Af2;]r9T1ph6=W$G(w2$)rus-[B1,M7C>,Mp`7K%d5%V6rd=R*#G+F3JgnO(WkJFIF`8>>5E4@#N<%u/)&>uug5wK#$9fT%)jSY,.57A4c6%##v-1+*/B3I):2Cv-oUFb3S23,)dxrB#x5MG)$'g[6C97BO7`5c4oDsI36N.)*]<OZ'#nb6&@JVN'D;di7slXZP3u)9LG7#NBdm5&4HvfI_CelA#P<.6/%G,n&^g4OMvuc4M,%46JSmA_/+mJ)#wVo9v74>>#YN7%#fWt&#0dZ(#5]?`,Sg'u$$aFx$^tn8%;Ve]4AL0)3+/rv-WT'`P<p*+N4v<v<IT_a+(x_N(E+=/2h-R6'?w@F+wOk.)UGg;-&oL&4-67X62a%8/2Iix5T_xd<F2^-FN3A[05)Q(FO6eM1v8o`=++C'#xr+>#0oJE#0+QX22qL+*iHX,2bZX,25q'E#HPP8.[#[]4Bd4R*A2qd$Je7W$wtmd$J_.W$aM#hL0(vW-?Hvq)MkP-PA/IW%gc###.V1vu<`fX#8Oc##,WH(#=''u$+dfF40Em;%`M.)*#dMD3?DXI)@I.[#(eKT%#v.&4PCMs-0S<+3255`sQtgfQs5Zq0_cVs%VGeH)n7ol'lu3I)8UUB+pEpB-Pp#8/?^s/Ml2ZP=8T&B+MWP3'Yj#R&P?pm&e69m&KT_g(HY2P0X6b$0^GOjL'`X&#%&>uuEb/E#+6i$#F,>>#@)]L(g>Zv$`S6C#*-+c4J;3=(e4NT/u;-T%=Ux[#u`RL(g)*`$4q<d;h10U%s^mK(6MdN#:iCO'Du*h(WhvY#I_Q`E9I#12ov<oR`bmP/JUV?#Ao7@#Y3n0#RtOK1Yd0'#(NA.*0Zc8/BSsBos)8f39F<dX0BF:.Rkr;-G]%+1iBV)+0J/P'2(_T7-PNh#W)Y?#b;Zk+Un5R*mS[YmceMw&<-.L,E$@ENWh/o#:WL7#^?O&#swbI)[(Ls-b3NZ6%K3jL+Ua.3jpB:%qGU7/kTMv5,(*9%bEB:%els4:q3rGZ9eq6&0=?7;)VY_$N+J&,=wRu-AJ0kL1(Jg>]6#9%@cp1;<H:;$YfY=l1k4GVQiou,<@,87'M`x-j,5e35IL,3l5MG)1BEYPEv3+NW]9,N?9EYPkgxW$9cl>#(M,W-]c6`&L$^p%=Da1B#YkA#&BD9.b]Z5/Qq0I$$S^%OEa`v%G5Kb.vOkxuK5,9Rr65-Q@TIeMXYAJN:*x9.8%lA#('3*/=Gw8%LQ=J$P+srRu/PS70p&0MID#W-co-`&^=*?-r75T'gL-#(,1x;8:<pN-1eZu'Z,g;-_a&N-C*ZW-O9KjD8(u48u-1'#%)###h^YfLac@D*D1$##E14%6x$V%6w(ZA#KdK#$_2qB#?FE^6:>_&&f2uu'0,gXu$>Aq)JFL*sI%/GVc>h0)Ob%[uoklbun;)D+P0UWAGJ=jLKD^I*oQW@,m$G,M>:(E#G`wv$7QCD37(]%-.:h58]VD^4%V=t9)#]P'%0Un&vn2:8%eJ>#:&(N2e(/t%;0$6DVek._N?$n&'tTN'M%O31%S4t9Q3d<%EKEW%U*;mQ-#oxuSt'S-b(2t-LrSfLq@s?#x-R024ktD#9g$&4:$lEI/WbG3Hx<^,qnSfLdG&J3s&).2SrNE&aS/^+n)mZcsLN2KH:0Z-67Xt(w/-V%.bVW%L[3T%.&`$']`OS77>$6S&H1;(N6`;Zk&YX$w%[)M,cxL(4Nn*%dv0Q&p8D0]u@xL(TlMb*'/###&e_S7rXW]4ST%29sg%##`Dsu5MBG$.$iXI)Rp1I27SMT/+]2Q/&Cs?#x3vr-B^#l0wK(E#Ci487JJF1)t2%E3*>`:%@xbI)<X_a4(Ox*ju-,0LW3GT%:XHaNaD3p%q-Ft$ahnw#GnWp%MTcN'ZaUK(HqwS%%w]%:PptqAH4>C9K-x8%Q.8;%d/)S&AMjN;9VcdN?;OnK8=:g(s-hN(&Hcp%Xs1O'+_aZ#C(v>#.$pE%q'cAWc73o%pFw]-W3n0#YaPEn2t<##>4:;-n1S_48tFA#WNTHm)`d5/s/hf11cD_&E[AC#6)#T[%0)f<ExOJ2k<O=$NsHd)s'Xx-Ya?g%tnEE&;<mF#[fG98?6(/+eX1w,VF1/)9T1;?7;QmS)gEtCuxefL%E/o#fXL7#r&U'#2sgo.JKf;-iT`2%TekD#FP_s-]nJr8mm^>$@-+W-mf[vRAeXD#OnO`#Wljp%dj'h$m$kC&XH@AEp,97;ANC+,@HRX),M>P(QW<2qZ8Z;%c]OgMU=UkL02j0E?0<S0.+CJ)97R7(9_//.wEqhLJ2x(9(n]G3_&g;-6PCK-o=bJ-h3oUMDUpZ0%&>uuq4>>#HD$.M^/b'47%x[-KX^$-^frk'8BNZ68Vd8/*,m9%DG0W6Z3f.*Y*^6&avcS&'79a<9/U1T%1+SnSQ^6&UwO:)tG[1(&U64(IEo>-X,q8/(IUR'YC]vPbO$##vVs[tbHGJLQH;?Inb,Z,A[Ld-bm'we5^S_%kG>x68*$gL0Ut,4Qo5Z#Q^pm&?26q%7m99RM_N]-O*::/j4JG3b0=]uUe28&SSjA+VF8Yc`MMo&J%^D4Add70A1fM-g:IAk.H4WoZhd##ciKS.D1EY-'S^&?XV6.84=w?$A7xUd$*o._9kfi'fP<s.mX2<-MBcw$LSQF%ht-u6>]qv-OHOA#TjU[Qmq[5/d;+.)3?4ZM<+wF%m<oJ1?fo8%xCiDFoUm;-c&=GN#Rhi%vl)B4ueew#TL$##N0DH-</292h48C#X:Ls-23UM'f[K+*_-'IW@q/6&1bqC.@Xns$tvN+RiPEK$<i1Z#T7ujL_v9Q&`-[Y##i''u]=4GMbBAJ1**=L:mHE/2Qm4<-+iaj$B8wW]PF?,iv@aS&PiSN'M]4I#da-n&)'lg1)WNE*JII'P0V`oIIL`ZuPVgQ&%Lx;Q/n-BRA2-u7:.D9fo4p4][bHP/]]P`<S&Ou.]*'u$`S6C#&R:a#/]NT/<PsD#FOit-puk/Mfd6l13Xrt-6hH&O.NAf3U+X=_2k3B6ENwY%OX<p%rQv@5mesP&ato60IR.W$ab:@,rU0/)NvHH)vP(n)s5hU%NXEp%)B0I$g<n=hs6E`/++t^/RG*I)qs,m:etYb-QB=X$^tm.+?_ap%mndT.#S3X.YAIL((`oC4]3570KE(K(vptg1X>IL(U%15%T2>>#B7>##eH?D*<w4x#'Ga01u?lD#/_v)4na&],4nmk%8CFA#KfZ@-MS[s/%PDZugco$5V%bK(`pVQ1wK8W$e5Zn&:q1E#N4M?-dD24'`2FP(515-3]#4_5#<kB,XfvW.JXi$#S,Qd*?sZxXlee,;nNN?6NfB.*bj9^#]ru8.KRpQ0)PkA#4.m<-QV`X-x0*+%Z####*Juuul>1R#6)+&#Rb<9/#&AA4EddI%1QQJ(+w9j0)U5N'ePU:%^L4H)&4d;%AL*N0$W:<-aBND%s>seMZPr.2I+@8%1x<M&J=D?#nl,?#VYAs.USc`%GKg,*E[.O90+dg)UHuD#d@^&BgtG%B:+5gLpP#v,'^R]unIDQMcE?uuxchR#&uCl-aiHRaFY@C#kK(E#B99T.Ec7C#FuuHOoNw1Kt+2[Be8Yuu3Zqn#okh7#Iqn%#SPUV$f8t1):N.)*Z[)Q/A$G)<,+)H*>nE)<P[D-**.qX6j)K.$?<P)3atep%X@x;Qi:Jt%AWW#&'HAcNR1_KMbiTm(`2Afhfsf*%68Fq&05qDNp`ub%l,PT%*Bdp%g7KgLQ02iL+&NJ:HJm;%$`[w'vI&3iixId)FF,gL'j'E#i5RU9CKx(<&+p<R)ARs$p'PvG)=Mj9uC2*<Q^jJM/g=,Mo/?j'xQNR'c9s+;#SJQ_=Yd8/Ke,`-)-4L#h*TM'.]<+3d`Yd3i.<9/`Md'&Vsf.*M7%s$PqlS/iF<v6kRk_$_lZt1JEeeM[t>Z%faV61>opQK+#=<%A(wo%OD*e)5UC=6P*ve)5f(?#ecw)*fn8>-hbj>.,gwQKf6sY?>uhT0k$2D+VJ3e)b*ihL9#-j)8:wS%avG7&JODk,iZ.C8YG:;$#),##R]r.LFkco7,9;MB='J,3SMkm0XsFA#9scbYYDOZ6,cD(&$@4g3$YX/2gFU%6GZU&$Rq@.*pD2<%Ec7C#x)Qv$C_=X(#&8&4PDRv$KFK,3,87<.jghc)W`:[0Pst6%4fUv#guI1(q+S5'f%4GM5/p6(Y[rv#71[s$69@d)EqY0LF]aK(j@Q@#U`N&+.2O'+r=%w#>%`v#02]h(=[9h(dS<E*C7[s$<rC?#Z;<a*7iEJ2;kq7'4qjnLb`^/);bUb*7?qq%u<AN0j;-7&P$7k(PMjK(<LiY#?*5j'wJk<:8v%1(M7@s$)/,##S6w0#0CBJLB1$/:=Yg%FVB')3ks9u$sNv)4o3ZQ'X#:u$_.i?#qaVa4%[*G4pFPjLws.>-?kv5.3=JN:%uJ,3kAJn$nfLp.RSM)306/L,^?85/-d%H)mq6lL)F5gLTXs?#*f@C#iL0+*58G^4P[J1;0%Cf3gPJ-)KVG>#FJKY&l?_1;JGX03i5D0(>2RN'dXw793n778C_39%I?e)*3hOK10f<aETR8[uWZ/t%B7b9%$2:W-u;wIq*u3W%c9<v#I9g2'KX=+3;8rB#.(hF4EmTh3TJ&l'FAe7&5K?i;,-@b#W:,(+SQPN'&O49%O0gm&4Q?N'f>QN'Mjhs+RZ4-;p='32quw_#5P[<$?*p@7$_9v--fri0%2PuuDN'^#pj7-#`Qk&#ucp_,Iq.[#<_?U/@T/<7Rg;E4-PsD#,wsr$3lsc)Z/oN2k@'q/3Fsw6qP:#&lLY(+EYiv>Yo&;)O_RW$7SY>#md/J3&'v70(q;?%kgiLF,og58PX-b'OF@s$;o($#U'xb%u?`l8ggN^,T>V/1-<Tv-/.ji0vR7C#UXwm/gc``3J)TF41ns'/x<7f3trLI$UEW@,V])<-an@8%vA+G4Ug$&4bx&X6vjuN's1FV&[7'U)J;<^4lR4U%r>f8'9h:K(XChT7+VRD&<4K-)sH^m&'e7d$IKN8;1N_6&1V=w53+6_+TUW_&4;vP9g)$N'M(gn/?rpq/3lE]'^`49[P`mY#L-&##9*,Q/:WL7#F[P+#[N;t.26MG)`7.[#sSg*%PXkD#TgZ;.[GYd3IPsD#n`h*%]h=^,p*5gLP0vhLoMh<.ms#E36tFe-_+7g)RHKs$TSm0'2v$E3)b'n/;g=[&H.;t-`XrjM<%KB1LP4q&Lk197oTE$P,F?C+D95%lb,Fj180F#P`xP<-%w$iM,U_8Mi9MhL1_duu9^hR#*4mx3(pm(#T%T*#GEOA#B.i?#a1[s$2-Ch$Gc7C#FwIf0[Z*G4pM.)*gCSfL$#9f3bR(f)[/*E*lAqB#.v+G46`W01;?x;$D*K2'OCXk$3o(9.J=HiP3V#=R6$8]Io8@v$b=&NKw2FSR9R8/M+:HZ$UlS#,TeIv?]2ofL_KAw#OHiY(2SB[5g.t3;q,XP(f#Dk'29q$.[qT4.xQ3D<YEm;%Npxjk$h@M9TbBv-q<8O6nbU@,abLs-YBSP/]::8.*W8f3;#K+*uW^u.:0s2/*-T%6=R]w'lIxe2dHt]#N$v[-DNaa4nQXA#BjUp/Jg4',?g6hGlv#Z.Od>3'd[jo9brW9&9dK9%e&vx4F..L*F]:v#,;=a*`n36/QsB%bw8md/_JqS2kV_pLg5q(,4k*M&`?L-)f;3u/#=I-)XhXVdrRDS(Z+)S&ra?W&1;P>#MZhrI;?K[#dmx0*/]kV7+C%##:wE<-17w2&*)sFPg<S+%Yh),>Y)E.33D2T.v5Zv&h%,)NSSx3%d=Ou(0jU5M[]?uuschR#)*V$#YH?D*H@C`$eJ))3t(4I)a[K'H?.ju$M$^Q)H<r-M$Fl(N24M9.tNJ@#8@l]u$h<J2[)]['%:1_AY,Y:v;4>>#@Oc##5,>>#H1[s$5FI>#cJj&4r5]guGWG0(nh.VmN+q4LKibQ's`v9)h65/(wI620KpAU)v`p9;n<A<-<$KkM-J3B%[ZSX-sc``3J.+B,u&&;Q>'>hPU)211DE,n&(f_?#,gpk$=#'=(B,.n&AlW-?L5_<-GE]$&&_<YJx^wP/N8X;0YZTC,au.l'x*n8BP#SRX*=)iH/d[`$I*[Q8L90:%DH4W-8)<R*%:qC'fus`WORJV2X8v7&6VO'#51%wu./sW#N&hW/rlU:%fZX,2FsHd)sRF,MI#NT/eMXV/Z?85/1c<9/SP,G4[^<c4OJ,G4osFA#0j5F%a>_,*Q$F[TP?O2&drvv$>&cu-Njv:&>oAt%dmfw#]$<v#bt7Y-HEv3+d,]&Or])w$$O-32H[.LM:Ib70_@#G*mZaZ#GXE5&;`G(+7e:*4[c*M(KBeIM*)4a*Vd/9&1)q;.L2(E5?@%##'&>uu]4>>#JL6(#I]&*#=sgo.0X<-X,fm=7ST.29c9mG*ES%Q-WMN/%7MN=(-tx>*;iS?R$0t>-s)U:%2d7-)&KM-)&cj<%@Cp.)Cos'4L*/@#jQ[-'dtKHM-C:Q$]%WX.$_7tJ<<.k(^&Y:.eOdu-S_%u-QP:%MZL?C+&U,T%s_@C&G####R3n0#4=O5L^hHP/Y'3:.rM[L(Lov[-u?lD#TMrB#S/DD3Gq6Elg754%F>nM>%u.eaB0?MR1S+fa.+CJ)`0Ne$^f,$&8bfCMFl:p.,3h(,[Jw6*'2>;-DluNFopV]+02#p.(THG)dR&E#^v7B.R4r?#.8'gLoeZd3$M4H)HC)?#97(wL5KihLtk9i%A2;gLBHr-MIt.>-_1;#QhS3<%f$g;/=V&E#,:3iMtrbI)vEjV;([xV;dPG<-ZvR/&ea*G43>km'-1em'JNXA#SH;2%@vN*']ggQ&8([gLk)JHDHH;2%1rv<_[2vR&Gbp*%i)%t?.KFm'#0$f?:Jl^??gNH*PJ))3?[^:/x)Qv$8^t'>Pp#8/W%am&ob*9%uAg8%WB_ihURxa+HU+`&owr8%.Tu-ODg4)#k,>>#?DXI)GO=j19wb)ubM&J3%G6lL=LihL6?_F*w<7f3G8Cs-[*5S9[@JcP;lw*3VECV%8N0+*sQUeP.Jb0(X*K2'm?;e3?q7k(jnXq&N*Ox#oZw=-?VThE?</P1M-k5&u7FW6M;dfQl:_j(.L6K)io3<Ci^'s$fuj**&PLa>cpYn&f`%@#mhri:@&`pEO.R8%SH0u$=*;mQ;U@$-@)U?-Ll>>#j@Z=lbP6GVbbaKc-UYI<K%.m0VI3T.cMi=.4f/=?)]Rm0Lv@+4Xb=K1l5MG)d[@`a]kjp%RA>I$O.A`&G=uA#6oNA@OgL<L?Q9<-TT5[$Zl1S*DQ^T.U?O&#a2RI/jAqB#6Gl/MaP&J3>)V:%*Y1HM_U$lLP%HA#u&sx+cOR[-%QJ@#I9i1L@fKl8m2cp8sYb#uH(/=(l^U/2J[r%,-fkr.2j-n&/4n0#W/###@NoV$T4fc)6`3>5uh%ZACL8C#wx2T/HcTF*XQpR/D&;9/[`JD*R4r?#R`>lLuG:u$rO8U)q,wD*#Zc8/2X.293mp58ei)'4x:MWH^E<EE-N^5L9rQO(n#HB=^.2M:WxqV$^023;@R*p%)u#(+F=&H%IAw'4jjPgHhVnH)9hdZ,FHZgLpR,L2dX,b78tt[&vba%$N)6b+Pt]M'mXgW&'/R8%jHZi(^RJD=Fl39)*Ik3T6C<>.K@rr$wv1H;%XL7#-Mc##?4i$#W'+&#_BW:.PBxX-cU^=%PgfI*j;-$$p.Ls-i`DD3W#CB#e]i<9-6dOo)OU:9kDLK#r0pE#u@H;$HfAWCZ'vW-^u&1#s1Qu#(,>uu>9sY#e2uu#S3n0#8/LkF5v9kF++%##*[Ap.g3YD#A*LJ+gMA+4(,dp8REdv$BsMF3YNegL6qB.*0b_@%C#tX&-oZOCMd[@%MaR?,.?n3'Y+`8*Xp&f-54:HM@EH3'67w7*G5YY#ePcs-(Tfx?Y?&'-aGSF4O)CW-N@<B6c==G3%d/%,+w(6&Q'XT%s-sO)fB1IVL3RC#:n]0q1Da6&<CW6/XBDJ)3Ti#Q@%co7:$:'#'2>>#bG.%#h0A<-i;qW$au$s$Ma-J%l%Jd)?g4n%CbWj0`*MO%EhtI%mYDW%8n)W%Krus-2,EgLP+I##Hg$S#-TC7#%aX.#ll?0#s67e41OX4:_sh)3]nr?#CHEE41=#;/+W6C#t:7<.p5`O'XY)w$[A%H)o7^F*;TID*_^D.3$CuD#huYUAfeG,*Aw'K1s_DX$%)N0(,>O.)rY1I$6^m3'sZY/(j`bV-v3:_,jN/W$VMni1+x^+*7/`)+hKKwQWQ_mT4HNf<Q3_:/9?UsRM0_o0]8ik'j,>=$VgL,)uD[-)HKI'5_vln&.<K/)9UsXIP9N`+J>;P0+aDO'kWa;$-67h([0&u-FI3'MA[Mf<L/PG-(N[#%-tZ&4A@%%#,WH(#L)Qv$@]WF3J29f3OHAQ(@7bF3S3k7%@sGA#8j5T.cc``3$n0s.RafVK,^m-$kc<mQ?'1>h1vFp&Y:R20`[%E+wOk.)`p`h,^nX>-)>OZQ>k`#'%-s#P*F2W%Ov$_Q-e?a$K_A`afh18.7p,9.D)aF3W.K<.lEZd3xx[]4_;wD34c?X-Z>*I)0eBba>cRN'+eYIql6U2:5*-:)l]3pu-wT&,qS-@'CioH)7F</1/OJ@#=Xx[u98F]u=x/s&=;CkF]2:W-6:ENrUG6^=032H*Z%AA4VC8j0q_.<8duiW%cljv%)@vV%v>[h*0ViIRqGojLucmuu;m6o#rJo/0JaX.#^E24#w2A$4hlh;.o(NT/KpWI3m-u`#?q5V/IVYS.Y@[s$>']u-kS+jL?K>-2<X1x5eDeL24'Cu$%SR$$JVmG*;i:5/OP,G4B.ikLvwHmL<tW30GMrB#;Z8x,.%]w'/TsB8#<VG)]ZdA#&+4Z68)XbN%LI5/H>6hGHCTfLqF5gL<@o8%oo$H*$s4XCG5MB#t[G>#;%mY#9uLp.N[7<$:/=kOn$G/(+j:u$kocW$6]/1(7@w8%x6Lk+Dgb<Q+@f8%8DZt1b,8.M;)xD*$HL[-8GZt1uLrZu?3N<$t.D=$b+?>-EHGN'S*kp%^>lb%<=@&,pnGC+HTke)TBx[#mAt-$c94+%&&Q>#R^NI);L3T%<17W$0iLZ#RJG>#Z<fS%0x?s$JH@FNp3AW$H?<s%>eC^#^OXGM=3/K#L^m:&8S5r'&@'B-mvQ*IGGZF%1%+t.Rw'P'h(0b*k2>G-n2K_/1LJM'(:D>#2cWh#=EU`3G>3t_-/33NTF6##-wu5NUL?##Kut8N*4pfL651<NWXQ##D'Y@N_qZ##1>G##+MC;$#t5D-arfcMS@-##`a'1NaF6##$l84N).gfLf]j6N*4pfLxg%:NWXQ##3g5=N,@,gLf%Y<#+mk.#cSq/#TH4.#HB+.#c:F&#Y#S-#S@Rm/0E-(#1K6(#RfG<-Zw'w-2sarLo<DP8DX=gG&>.FHMeZ<0-K*.3b1RGE>@=GH#$),#U@f>-6ZlS.J0f-#rIC51[*eFH(KfUCdc$##-Srt--)trLxgipLe31A='DvlEL''##t4)=-rX*+.VuRNM%l1X/l9]/GZ#uLF8@n]>6=h]GrdufDw^Y>-RYgJ2j<.j1ecGL24gCSC7;ZhFhXHL28-IL2Jd+tVv(+GM5N-ipgVYb%pOfS8EJqDN'8P>#*AY>#.Ml>#2Y(?#6f:?#:rL?#>(`?#B4r?#F@.@#JL@@#NXR@#Ree@#Vqw@#Z'4A#_3FA#c?XA#gKkA#kW'B#od9B#spKB#w&_B#%3qB#)?-C#-K?C#1WQC#5ddC#9pvC#=&3D#A2ED#E>WD#IJjD#MV&E#WC1?%aZ8=9WPWF%WuQF%XxQF%Y%RF%Z(RF%[+RF%].RF%^1RF%_4RF%`7RF%eAM88rqfS8kb+p8lkF59mtbP9Wg/g2VY#<-iIP)N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N%jv-N&iZL2tmN,3iIP)N&p).N&p).N&p).N&p).N&p).N&p).N&p).N&p).N&p).N&p).N&p).N&p).N&p).N'odL2uvjG3iIP)N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.N'v2.NGSfR9$,>>#%;cY#Z2c'&*tj-$$vSY,on]88PQu9)0/<X(G)###;FcA#2cWh#]Cl`k%T*1McX4Fh5L*##nu:`)8k<Atg5^S4"
 	-- >> BASE85 DATA <<
 
 	imgui.GetIO().IniFilename = nil
@@ -1729,6 +1735,7 @@ local imgui_fm = imgui.OnFrame(
 									{'/do Лицензия на охоту - %s$.', string.separate(configuration.main_settings.huntprice or 100000)},
 									{'/do Лицензия на раскопки - %s$.', string.separate(configuration.main_settings.kladprice or 200000)},
 									{'/do Лицензия на работу таксиста - %s$.', string.separate(configuration.main_settings.taxiprice or 250000)},
+									{'/do Лицензия на работу механика - %s$.', string.separate(configuration.main_settings.mechprice or 450000)},
 								})
 							else
 								ASHelperMessage('Данная команда доступна с 1-го ранга.')
@@ -1920,7 +1927,7 @@ local imgui_fm = imgui.OnFrame(
 				if windowtype[0] == 1 then
 					imgui.Text(u8'Лицензия: ', imgui.ImVec2(75,30))
 					imgui.SameLine()
-					imgui.Combo('##chooseselllicense', Licenses_select, new['const char*'][8](Licenses_Arr), #Licenses_Arr)
+					imgui.Combo('##chooseselllicense', Licenses_select, new['const char*'][9](Licenses_Arr), #Licenses_Arr, imgui.ComboFlags.HeightLargest)
 					imgui.NewLine()
 					imgui.SetCursorPosX(7.5)
 					if imgui.Button(u8'Продать лицензию на '..u8(string.rlower(u8:decode(Licenses_Arr[Licenses_select[0]+1]))), imgui.ImVec2(285,30)) then
@@ -2661,6 +2668,7 @@ local imgui_fm = imgui.OnFrame(
 											{'/do Лицензия на охоту - %s$.', string.separate(configuration.main_settings.huntprice or 100000)},
 											{'/do Лицензия на раскопки - %s$.', string.separate(configuration.main_settings.kladprice or 200000)},
 											{'/do Лицензия на работу таксиста - %s$.', string.separate(configuration.main_settings.taxiprice or 250000)},
+											{'/do Лицензия на работу механика - %s$.', string.separate(configuration.main_settings.mechprice or 450000)},
 										})
 									end
 								else
@@ -2717,8 +2725,9 @@ local imgui_fm = imgui.OnFrame(
 							imgui.Text(u8'Лицензия: ', imgui.ImVec2(75,30))
 							imgui.SameLine()
 							imgui.PushItemWidth(150)
+							imgui.SetCursorPosY(imgui.GetCursorPosY() - 3)
 							imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding,imgui.ImVec2(10,10))
-							imgui.Combo('##chooseselllicense', Licenses_select, new['const char*'][8](Licenses_Arr), #Licenses_Arr)
+							imgui.Combo('##chooseselllicense', Licenses_select, new['const char*'][9](Licenses_Arr), #Licenses_Arr, imgui.ComboFlags.HeightLargest)
 							imgui.PopStyleVar()
 							imgui.PopItemWidth()
 							imgui.NewLine()
@@ -4142,6 +4151,10 @@ local imgui_settings = imgui.OnFrame(
 									configuration.main_settings.kladprice = str(pricelist.kladprice)
 									inicfg.save(configuration,'AS Helper')
 								end
+								if imgui.InputText(u8'Механик', pricelist.mechprice, sizeof(pricelist.mechprice), imgui.InputTextFlags.CharsDecimal) then
+									configuration.main_settings.mechprice = str(pricelist.mechprice)
+									inicfg.save(configuration,'AS Helper')
+								end
 							imgui.EndGroup()
 							imgui.SameLine(220)
 							imgui.BeginGroup()
@@ -4507,7 +4520,7 @@ local imgui_settings = imgui.OnFrame(
 							imgui.EndGroup()
 						imgui.EndChild()
 					elseif additionalwindow[0] == 4 then
-						--[[imgui.BeginChild('##checkerwindow',_,false)
+						imgui.BeginChild('##checkerwindow',_,false)
 							local p = imgui.GetWindowPos()
 							imgui.SetCursorPos(imgui.ImVec2(25, 20))
 							imgui.BeginGroup()
@@ -4653,6 +4666,10 @@ local imgui_settings = imgui.OnFrame(
 									configuration.Checker.show_warn = checker_variables.show.warn[0]
 									inicfg.save(configuration, 'AS Helper.ini')
 								end
+								if imgui.ToggleButton(u8'Выполненные задания', checker_variables.show.quests) then
+									configuration.Checker.show_quests = checker_variables.show.quests[0]
+									inicfg.save(configuration, 'AS Helper.ini')
+								end
 								if imgui.ToggleButton(u8'Отображать муты', checker_variables.show.mute) then
 									configuration.Checker.show_mute = checker_variables.show.mute[0]
 									inicfg.save(configuration, 'AS Helper.ini')
@@ -4714,13 +4731,7 @@ local imgui_settings = imgui.OnFrame(
 							imgui.EndGroup()
 							imgui.GetWindowDrawList():AddText(imgui.ImVec2(p.x + 265, p.y + 230), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.TextDisabled]), 'Author: Cosmo')
 							imgui.Spacing()
-						imgui.EndChild()]]
-
-						imgui.SetCursorPos(imgui.ImVec2(260, 100))
-						imgui.PushFont(font[16])
-						imgui.TextDisabled(u8"Данная функция временно не работает")
-						imgui.PopFont()
-
+						imgui.EndChild()
 					end
 					imgui.PopStyleVar()
 				elseif mainwindow[0] == 3 then
@@ -5508,7 +5519,7 @@ local imgui_stats = imgui.OnFrame(
 	function() return configuration.main_settings.statsvisible end,
 	function(player)
 		player.HideCursor = true
-		imgui.SetNextWindowSize(imgui.ImVec2(150, 190), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowSize(imgui.ImVec2(150, 211), imgui.Cond.FirstUseEver)
 		imgui.SetNextWindowPos(imgui.ImVec2(configuration.imgui_pos.posX,configuration.imgui_pos.posY),imgui.Cond.Always)
 		imgui.Begin(u8'Статистика  ##stats',_,imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoBringToFrontOnFocus + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar)
 		imgui.Text(fa.ICON_FA_CAR..u8' Авто - '..configuration.my_stats.avto)
@@ -5519,6 +5530,7 @@ local imgui_stats = imgui.OnFrame(
 		imgui.Text(fa.ICON_FA_SKULL_CROSSBONES..u8' Охота - '..configuration.my_stats.hunt)
 		imgui.Text(fa.ICON_FA_DIGGING..u8' Раскопки - '..configuration.my_stats.klad)
 		imgui.Text(fa.ICON_FA_TAXI..u8' Такси - '..configuration.my_stats.taxi)
+		imgui.Text(fa.ICON_FA_CAR_WRENCH..u8' Механик - '..configuration.my_stats.mech)
 		imgui.End()
 	end
 )
@@ -5867,6 +5879,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			['охоту'] = 6,
 			['раскопки'] = 7,
 			['такси'] = 8,
+			['механика'] = 9,
 		}
 		sampSendDialogResponse(6, 1, d[lictype], nil)
 		lua_thread.create(function()
@@ -6029,7 +6042,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		end
 	end
 
-	--[[if dialogId == 2015 and checker_variables.await.members then 
+	if dialogId == 2015 and checker_variables.await.members then 
 		local count = 0
 		checker_variables.await.next_page.bool = false
 		checker_variables.online.online = title:match('{FFFFFF}.+%(В сети: (%d+)%)')
@@ -6037,7 +6050,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
     		count = count + 1
     		if not line:find('Ник игрока') and not line:find('страница') then
     			local color = string.match(line, "^{(%x+)}")
-	    		local nick, id, rank_name, rank_id, warns, afk = string.match(line, '([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+)\t(%d+)')
+	    		local nick, id, rank_name, rank_id, warns, afk, quests = string.match(line, '([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+) %((%d+)%)\t(%d+)')
 	    		local mute = string.find(line, '| MUTED')
 	    		local near = select(1, sampGetCharHandleBySampPlayerId(tonumber(id)))
 	    		local uniform = (color == 'FFFFFF')
@@ -6048,6 +6061,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 					rank = tonumber(rank_id),
 					afk = tonumber(afk),
 					warns = tonumber(warns),
+					quests = tonumber(quests),
 					mute = mute,
 					near = near,
 					uniform = uniform
@@ -6088,7 +6102,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			sampSendDialogResponse(dialogId, 0, nil, nil)
 		end)
 		return false
-	end]]
+	end
 end
 
 function sampev.onServerMessage(color, message)
@@ -6161,6 +6175,8 @@ function sampev.onServerMessage(color, message)
 			configuration.my_stats.klad = configuration.my_stats.klad + 1
 		elseif typeddd == 'таксиста' then
 			configuration.my_stats.taxi = configuration.my_stats.taxi + 1
+		elseif typeddd == 'механика' then
+			configuration.my_stats.mech = configuration.my_stats.mech + 1
 		else
 			if configuration.main_settings.replacechat then
 				ASHelperMessage(format('Вы успешно продали лицензию %s игроку %s.',typeddd,gsub(toddd, '_',' ')))
@@ -7175,7 +7191,7 @@ function main()
 			checker_variables.lastDialogWasActive = clock()
 		end
 
-		--[[if configuration.Checker.state then
+		if configuration.Checker.state then
 			local ch = checker_variables
 			local cfgch = configuration.Checker
 	
@@ -7201,30 +7217,31 @@ function main()
 				local id = cfgch.show_id and '('..member.id..')' or ''
 				local afk = cfgch.show_afk and getAfk(member.rank, member.afk, render_color) or ''
 				local warns = cfgch.show_warn and ' - Warns: '..member.warns or ''
+				local quests = cfgch.show_quests and ' - Quests: '..member.quests or ''
 				local mute = cfgch.show_mute and member.mute and ' || Muted' or ''
 				local near = cfgch.show_near and (member.near and ' [N]' or '') or ''
 				local note = configuration.Checker_Notes[nick] and getNote(configuration.Checker_Notes[nick], render_color) or ''
 	
-				local render_text = format('%s%s%s%s%s%s%s%s', rank, nick, id, afk, warns, mute, near, note)
+				local render_text = format('%s%s%s%s%s%s%s%s%s', rank, nick, id, afk, warns, quests, mute, near, note)
 	
 				if renderFontDrawClickableText(true, ch.font, render_text, cfgch.posX, cfgch.posY + k * offset, render_color, render_color) then
 					imgui.StrCopy(ch.note_input, u8(configuration.Checker_Notes[nick] or ''))
 					checker_variables.temp_player_data = member
 				end
 			end
-		end]]
+		end
 
 		if configuration.main_settings.autoupdate and clock() - autoupd[0] > 600 then
 			checkUpdates('https://raw.githubusercontent.com/Just-Mini/biblioteki/main/Updates/update.json')
 			autoupd[0] = clock()
 		end
 
-		--[[if clock() - checker_variables.last_check >= configuration.Checker.delay and clock() - checker_variables.lastDialogWasActive > 2 then
+		if clock() - checker_variables.last_check >= configuration.Checker.delay and clock() - checker_variables.lastDialogWasActive > 2 then
 			sampSendChat('/members')
 			checker_variables.await.members = true
 			checker_variables.dontShowMeMembers = false
 			checker_variables.last_check = clock()
-		end]]
+		end
 
 		if configuration.main_settings.autodoor and getActiveInterior() ~= 0 then
             if opengate_timer == nil or (os.clock() - opengate_timer) >= 0.5 then
@@ -7436,7 +7453,9 @@ changelog = {
 			patches = {
 				active = false,
 				text = [[
- - Исправлен критический баг с крашем]]
+ - Исправлен критический баг с крашем
+ - Добавлена лицензия на работу механика
+ - Исправлен встроенный чекер]]
 			},
 		},
 	},
