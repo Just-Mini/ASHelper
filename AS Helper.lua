@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.2.3')
+script_version('3.2.4')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -3610,7 +3610,7 @@ local imgui_settings = imgui.OnFrame(
 				imgui.PopStyleColor(3)
 				imgui.SetCursorPos(imgui.ImVec2(217, 23))
 				imgui.TextColored(imgui.GetStyle().Colors[imgui.Col.Border],'v. '..thisScript().version)
-				imgui.Hint('lastupdate','Обновление от 07.08.2022')
+				imgui.Hint('lastupdate','Обновление от 18.02.2022')
 				imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15,15))
 				if imgui.BeginPopupModal(u8'Все команды', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 					imgui.PushFont(font[16])
@@ -7211,23 +7211,25 @@ function main()
 			end
 			
 			for k, member in ipairs(ch.online) do
-				local render_color = cfgch.show_uniform and (member.uniform and col_default or col_no_work) or col_default
+				if k <= tonumber(checker_variables.online.online) then
+					local render_color = cfgch.show_uniform and (member.uniform and col_default or col_no_work) or col_default
 
-				local rank = cfgch.show_rank and '['..member.rank..'] ' or ''
-				local nick = member.nickname
-				local id = cfgch.show_id and '('..member.id..')' or ''
-				local afk = cfgch.show_afk and getAfk(member.rank, member.afk, render_color) or ''
-				local warns = cfgch.show_warn and ' - Warns: '..member.warns or ''
-				local quests = cfgch.show_quests and ' - Quests: '..member.quests or ''
-				local mute = cfgch.show_mute and member.mute and ' || Muted' or ''
-				local near = cfgch.show_near and (member.near and ' [N]' or '') or ''
-				local note = configuration.Checker_Notes[nick] and getNote(configuration.Checker_Notes[nick], render_color) or ''
-	
-				local render_text = format('%s%s%s%s%s%s%s%s%s', rank, nick, id, afk, warns, quests, mute, near, note)
-	
-				if renderFontDrawClickableText(true, ch.font, render_text, cfgch.posX, cfgch.posY + k * offset, render_color, render_color) then
-					imgui.StrCopy(ch.note_input, u8(configuration.Checker_Notes[nick] or ''))
-					checker_variables.temp_player_data = member
+					local rank = cfgch.show_rank and '['..member.rank..'] ' or ''
+					local nick = member.nickname
+					local id = cfgch.show_id and '('..member.id..')' or ''
+					local afk = cfgch.show_afk and getAfk(member.rank, member.afk, render_color) or ''
+					local warns = cfgch.show_warn and ' - Warns: '..member.warns or ''
+					local quests = cfgch.show_quests and ' - Quests: '..member.quests or ''
+					local mute = cfgch.show_mute and member.mute and ' || Muted' or ''
+					local near = cfgch.show_near and (member.near and ' [N]' or '') or ''
+					local note = configuration.Checker_Notes[nick] and getNote(configuration.Checker_Notes[nick], render_color) or ''
+					
+					local render_text = format('%s%s%s%s%s%s%s%s%s', rank, nick, id, afk, warns, quests, mute, near, note)
+					
+					if renderFontDrawClickableText(true, ch.font, render_text, cfgch.posX, cfgch.posY + k * offset, render_color, render_color) then
+						imgui.StrCopy(ch.note_input, u8(configuration.Checker_Notes[nick] or ''))
+						checker_variables.temp_player_data = member
+					end
 				end
 			end
 		end
