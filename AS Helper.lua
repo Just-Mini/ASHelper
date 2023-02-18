@@ -32,7 +32,7 @@
 script_name('AS Helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.2.2')
+script_version('3.2.3')
 script_dependencies('mimgui; samp events; lfs; MoonMonet')
 
 require 'moonloader'
@@ -6048,9 +6048,10 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		checker_variables.online.online = title:match('{FFFFFF}.+%(В сети: (%d+)%)')
 		for line in text:gmatch('[^\r\n]+') do
     		count = count + 1
-    		if not line:find('Ник игрока') and not line:find('страница') then
+    		if not line:find('Ник') and not line:find('страница') then
     			local color = string.match(line, "^{(%x+)}")
-	    		local nick, id, rank_name, rank_id, warns, afk, quests = string.match(line, '([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+) %((%d+)%)\t(%d+)')
+				local nick, id, rank_name, rank_id, warns, afk, quests = string.match(line, '([A-z_0-9]+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+) %((%d+).+\t(%d+)')
+
 	    		local mute = string.find(line, '| MUTED')
 	    		local near = select(1, sampGetCharHandleBySampPlayerId(tonumber(id)))
 	    		local uniform = (color == 'FFFFFF')
@@ -7211,7 +7212,7 @@ function main()
 			
 			for k, member in ipairs(ch.online) do
 				local render_color = cfgch.show_uniform and (member.uniform and col_default or col_no_work) or col_default
-	
+
 				local rank = cfgch.show_rank and '['..member.rank..'] ' or ''
 				local nick = member.nickname
 				local id = cfgch.show_id and '('..member.id..')' or ''
