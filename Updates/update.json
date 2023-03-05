@@ -1,9 +1,0 @@
-{
-    "file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper.lua",
-    "version":"3.2.4",
-    "change_log":"Исправлено пару мелких багов",
-    "beta_upd":false,
-    "beta_file":"https://raw.githubusercontent.com/Just-Mini/biblioteki/main/AS%20Helper%20beta.lua",
-    "beta_version":"3.1 beta",
-    "beta_changelog":"Добавлен встроенный чекер сотрудников на экране\nДобавлен быстрый /expel на ПКМ + G (по умолчанию)\nДобавлена функция отображения ранга сотрудника в рации и на груди\nИзменены/добавлены некоторые отыгровки\nИзменена система PNG файлов"
-}
