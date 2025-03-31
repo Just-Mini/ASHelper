@@ -30,7 +30,7 @@
 script_name('autoschool helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.4 beta')
+script_version('3.4.1 beta')
 script_dependencies('mimgui; samp events; MoonMonet')
 
 require 'moonloader'
@@ -2937,7 +2937,7 @@ local imgui_settings = imgui.OnFrame(
 				imgui.PopStyleColor(3)
 				imgui.SetCursorPos(imgui.ImVec2(217, 23))
 				imgui.TextColored(imgui.GetStyle().Colors[imgui.Col.Border],'v. '..thisScript().version)
-				imgui.Hint('lastupdate','Обновление от 20.03.2022')
+				imgui.Hint('lastupdate','Обновление от 29.03.2022')
 				imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15,15))
 				if imgui.BeginPopupModal(u8'Все команды', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar) then
 					imgui.PushFont(font[16])
@@ -4121,7 +4121,7 @@ local imgui_settings = imgui.OnFrame(
 								imgui.BeginGroup()
 									imgui.Text(u8'Обнаружено обновление на версию '..updateinfo.version..'!')
 									imgui.PopFont()
-									if imgui.Button(u8'Скачать '..fa.ICON_FA_ARROW_ALT_CIRCLE_DOWN) then
+									if imgui.Button(u8'Обновить '..fa.ICON_FA_ARROW_ALT_CIRCLE_DOWN) then
 										local function DownloadFile(url, file)
 											downloadUrlToFile(url,file,function(id,status)
 												if status == dlstatus.STATUSEX_ENDDOWNLOAD then
@@ -5690,6 +5690,14 @@ addEventHandler('onReceivePacket', function (id, bs)
 				task_checker_variables.is_upgrade = taskInfo.is_upgrade
 
 				for k, v in pairs(taskInfo.tasks) do
+					if tasks[v.id] == nil then
+						tasks[v.id] = {
+							description = 'Неизвестно',
+							text = 'Неизвестно (сообщите автору)'
+						}
+						print(v.id)
+					end
+
 					task_checker_variables.tasks[#task_checker_variables.tasks + 1] = {
 						text = tasks[v.id].text,
 						description = tasks[v.id].description,
@@ -5764,7 +5772,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 
 	if title == '{BFBBBA}{73B461}Выбор срока лицензий' and style == 5 then
 		if sellList.sellLicense ~= 0 and sellList[sellList.sellLicense].status == 1 then
-			sampSendDialogResponse(26363, 1, sellList[sellList.sellLicense].month-1, nil)
+			sampSendDialogResponse(dialogId, 1, sellList[sellList.sellLicense].month-1, nil)
 			return false
 		end
 	end
@@ -5800,7 +5808,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 						ASHelperMessage(format('Название {MC}%s{WC} ранга изменено с {MC}%s{WC} на {MC}%s{WC}', rangint, AshSettings.ScannedVariables.RankNames[rangint], rang))
 					end
 					AshSettings.ScannedVariables.RankNames[rangint] = rang
-					AshSettings.MainSettings.myrankint = rangint
+					AshSettings.MainSettings.myrankint = 10
 					inicfg.save(AS_Settings,'AS Helper')
 				end
 			end
@@ -6044,6 +6052,7 @@ function sampev.onServerMessage(color, message)
 			if (find(message, '%[Ошибка%] {ffffff}Вы не можете продавать лицензии на такой срок!')) then
 				sellList[sellList.sellLicense].status = 8
 			end
+			return {color, message}
 		end
 		return {color, message}
 	end
@@ -6092,7 +6101,6 @@ function sampev.onServerMessage(color, message)
 end
 
 function sampev.onSendChat(message)
-	print(message)
 	if find(message, '{my_id}') then
 		sampSendChat(gsub(message, '{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
 		return false
@@ -6164,7 +6172,6 @@ function sampev.onSendChat(message)
 end
 
 function sampev.onSendCommand(cmd)
-	print(cmd)
 	if find(cmd, '{my_id}') then
 		sampSendChat(gsub(cmd, '{my_id}', select(2, sampGetPlayerIdByCharHandle(playerPed))))
 		return false
@@ -6430,7 +6437,7 @@ function sellNextLicense()
 
 	sellList[sellList.sellLicense].dialogTime = (AshSettings.MainSettings.playcd / 1000) * (#chat_array - 1) 
 
-	sendchatarray(AshSettings.MainSettings.playcd, chat_array, nil, function() sampSendChat(format('/givelicense %s', sellList.sellPerson)) end)
+	sendchatarray(AshSettings.MainSettings.playcd, chat_array, nil, function() wait(1000) sampSendChat(format('/givelicense %s', sellList.sellPerson)) end)
 end
 
 function sendchatarray(delay, text, start_function, end_function)
@@ -7437,7 +7444,7 @@ changelog = {
 
 		{
 			version = '3.4 beta',
-			date = '25.03.2025',
+			date = '29.03.2025',
 			text = {
 				'Полностью изменена окно и система продажи лицензий {HINT:1. Переделан дизайн окна продажи\n2. Добавлены все недостающие лицензии\n3. Прайс-лист сканируется сам, вам не требуется ничего вводить\nНу там еще много всего, разберётесь}',
 				'Окно статистики было заменено окном чекера серверных заданий',
@@ -7445,6 +7452,13 @@ changelog = {
 				'Убрана вся система подкачки правил и проверки устава {HINT:Кто бы мог подумать что у аризоны будет столько серверов кек}',
 				'Исправлен чекер сотрудников',
 				'Убраны все темы, кроме трёх (оранжевая, фиолетовая, Monet)',
+			},
+			patches = {
+				active = false,
+				text = [[
+ - Исправлены не продающиеся лицензии
+ - Исправлен баг с крашем при открытии /wbook
+ - Исправлен засранный moonloader лог]]
 			},
 			fromAuthor = {
 				active = false,
