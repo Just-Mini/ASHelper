@@ -30,7 +30,7 @@
 script_name('autoschool helper')
 script_description('”добный помощник дл€ јвтошколы.')
 script_author('JustMini')
-script_version('3.4.3 beta')
+script_version('3.4.4 beta')
 script_dependencies('mimgui; samp events; MoonMonet')
 
 require 'moonloader'
@@ -2275,33 +2275,37 @@ local imgui_fm = imgui.OnFrame(
 							if choosedlic > 0 then
 								imgui.SetCursorPos(imgui.ImVec2(210,240))
 								if imgui.InvisibleButton('##fmselllicense',imgui.ImVec2(75,20)) then
-									sellList = {sellPerson = 0, sellLicense = 0, lastSellTime = 0, checking_medcard = {status = 0, licenses = ''},}
-									for k, v in pairs(licenses) do
-										if v.bool then
-											sellList[#sellList+1] = {
-												license = v.text,
-												licenseNumber = k,
-												chat = v.chat,
-												month = v.month,
-												status = 0, -- 0 - not yet; 1 - speaking; 2 - waiting; 3 - success; 4 - fail | too far, 5 - fail | more than 3 days, 6 - fail | no money, 7 - to fail | myself | fail
-												dialogTime = 0,
-												changed = clock(),
-											}
-											
-											if AshSettings.ScannedVariables.PriceList[k].medcard then
-												sellList.checking_medcard.status = 1
-												sellList.checking_medcard.licenses = sellList.checking_medcard.licenses == '' and v.chat or sellList.checking_medcard.licenses..', '..v.chat
-											end
-
-											licenses[k].bool = false
-											licenses[k].month = 1
-										end
-									end
-									sellList.sellLicense = 1
-									sellList.sellPerson = fastmenuID
-									sellList.lastSell = clock()
+									if not inprocess then
+										sellList = {sellPerson = 0, sellLicense = 0, lastSellTime = 0, checking_medcard = {status = 0, licenses = ''},}
+										for k, v in pairs(licenses) do
+											if v.bool then
+												sellList[#sellList+1] = {
+													license = v.text,
+													licenseNumber = k,
+													chat = v.chat,
+													month = v.month,
+													status = 0, -- 0 - not yet; 1 - speaking; 2 - waiting; 3 - success; 4 - fail | too far, 5 - fail | more than 3 days, 6 - fail | no money, 7 - to fail | myself | fail
+													dialogTime = 0,
+													changed = clock(),
+												}
+												
+												if AshSettings.ScannedVariables.PriceList[k].medcard then
+													sellList.checking_medcard.status = 1
+													sellList.checking_medcard.licenses = sellList.checking_medcard.licenses == '' and v.chat or sellList.checking_medcard.licenses..', '..v.chat
+												end
 	
-									sellNextLicense()
+												licenses[k].bool = false
+												licenses[k].month = 1
+											end
+										end
+										sellList.sellLicense = 1
+										sellList.sellPerson = fastmenuID
+										sellList.lastSell = clock()
+		
+										sellNextLicense()
+									else
+										sendchatarray(AshSettings.MainSettings.playcd, {''})
+									end
 								end
 								imgui.SetCursorPos(imgui.ImVec2(210,240))
 								imgui.PushFont(font[16])
@@ -5694,6 +5698,8 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		if repair.signs_parcing.make_path ~= 0 then
 			sampSendDialogResponse(dialogId, 1, repair.signs_parcing.showed_signs[repair.signs_parcing.make_path].number - 1, nil)
 			repair.signs_parcing.make_path = 0
+			repair.signs_parcing.dialogOpened = false
+			repair.signs_parcing.signs = {}
 			return false
 		end
 
@@ -5866,7 +5872,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			print('{FF0000}»грок не работает в автошколе. —крипт был выгружен.')
 			ASHelperMessage('¬ы не работаете в автошколе, скрипт выгружен! ≈сли это ошибка, то обратитесь к {MC}vk.com/justmini{WC}.')
 			NoErrors = true
-			--thisScript():unload()
+			thisScript():unload()
 		end
 		sampSendDialogResponse(235, 0, 0, nil)
 		getmyrank = false
@@ -6151,7 +6157,7 @@ function sampev.onServerMessage(color, message)
 end
 
 function sampev.onSendDialogResponse(dialogId, button, listboxId, input)
-	if repair.signs_parcing.dialogOpened then
+	if repair.signs_parcing.dialogOpened and button == 1 then
 		if listboxId == 0 then
 			repair.signs_parcing.dialogOpened = false
 			repair.signs_parcing.in_parcing = 1
@@ -6346,16 +6352,22 @@ end
 
 function sampev.onShowTextDraw(textDrawId, textDrawData)
 	if AshSettings.MainSettings.autorepair then
-		local textDraws = {
-			2081, 2105, 2104, 2103, 2082, 2101, 2100, 2102, 2083, 2099, 2104, 2102, 2105, 2084, 2099, 2102, 2104
-		}
-		if textDrawId == 2092 and textDrawData.text == 'PEMOHП_ГOPOДHOВO_ИHAKA' then
-			lua_thread.create(function()
+		if textDrawId == 2092 then
+			if textDrawData.text == 'PEMOHП_ГOPOДHOВO_ИHAKA' then
+				local textDraws = {
+					2081, 2105, 2104, 2103, 2082, 2101, 2100, 2102, 2083, 2099, 2104, 2102, 2105, 2084, 2099, 2102, 2104
+				}
 				for k, v in ipairs(textDraws) do
-					wait(100)
 					sampSendClickTextdraw(v)
 				end
-			end)
+			elseif textDrawData.text == 'CАOPKA_ГOPOДHOВO_ИHAKA' then
+				local textDraws = {
+					2081, 2098, 2082, 2098, 2083, 2098, 2104, 2105, 2106, 2084, 2098, 2104, 2105
+				}
+				for k, v in ipairs(textDraws) do
+					sampSendClickTextdraw(v)
+				end
+			end
 		end
 	end
 end
@@ -6375,8 +6387,6 @@ function ASHelperMessage(text)
 	text = gsub(text, '{MC}', format('{%06X}', bit.bor(bit.bor(b, bit.lshift(g, 8)), bit.lshift(r, 16))))
 	sampAddChatMessage(format('[autoschool]{EBEBEB} %s', text),join_argb(a, r, g, b)) -- ff6633 default
 end
-
-
 
 function onWindowMessage(msg, wparam, lparam)
 	if wparam == 0x1B and not isPauseMenuActive() then
