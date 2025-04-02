@@ -30,7 +30,7 @@
 script_name('autoschool helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.4.2 beta')
+script_version('3.4.3 beta')
 script_dependencies('mimgui; samp events; MoonMonet')
 
 require 'moonloader'
@@ -720,12 +720,12 @@ local usersettings = {
 	completedtasksvisible			= new.bool(AshSettings.TaskChecker.completed_tasks),
 	bodyrank						= new.bool(AshSettings.MainSettings.bodyrank),
 	chatrank						= new.bool(AshSettings.MainSettings.chatrank),
+	autorepair						= new.bool(AshSettings.MainSettings.autorepair),
 	autocheckmc						= new.bool(AshSettings.MainSettings.autocheckmc),
 	themeBased						= new.bool(AshSettings.MainSettings.ASChatColor.themeBased),
 	playcd							= new.float[1](AshSettings.MainSettings.playcd / 1000),
 	myname 							= new.char[256](AshSettings.MainSettings.myname),
 	myaccent 						= new.char[256](AshSettings.MainSettings.myaccent),
-	gender 							= new.int(AshSettings.MainSettings.gender),
 	fmtype							= new.int(AshSettings.MainSettings.fmtype),
 	expelreason						= new.char[256](u8(AshSettings.MainSettings.expelreason)),
 	usefastmenucmd					= new.char[256](u8(AshSettings.MainSettings.usefastmenucmd)),
@@ -807,7 +807,7 @@ local settingsbuttons = {
 	},
 	{
 		icon = fa.ICON_FA_DESKTOP,
-		text = u8('Чекер'),
+		text = u8('Чекер сотрудников'),
 	},
 	{
 		icon = fa.ICON_FA_PALETTE,
@@ -829,9 +829,18 @@ local additionalbuttons = {
 	},
 }
 local infobuttons = {
-	fa.ICON_FA_ARROW_ALT_CIRCLE_DOWN..u8(' Обновления'),
-	fa.ICON_FA_AT..u8(' Автор'),
-	fa.ICON_FA_CODE..u8(' О скрипте'),
+	{
+		icon = fa.ICON_FA_ARROW_ALT_CIRCLE_DOWN,
+		text = u8(' Обновления'),
+	},
+	{
+		icon = fa.ICON_FA_AT,
+		text = u8(' Автор'),
+	},
+	{
+		icon = fa.ICON_FA_CODE,
+		text = u8(' О скрипте'),
+	},
 }
 local licenses = {
 	{text = "Авто", chat = 'авто',icon = fa.ICON_FA_CAR,bool = false,month = 1},
@@ -847,9 +856,19 @@ local licenses = {
 }
 local sellList = {sellPerson = 0, sellLicense = 0, lastSellTime = 0, checking_medcard = {status = 0, licenses = ''},}
 local repair = {
-	state = false,
-	progress = 1,
-	positions = {},
+	signs_parcing = {
+		dialogOpened = false,
+
+		in_parcing = 0,
+		signs = {},
+		showed_signs = {},
+		state = 0,
+		sort = 1,
+		sort_dontshow = true,
+		make_path = 0,
+		page = 0,
+		max_pages = 3,
+	},
 }
 local checker_variables = {
 	state = imgui.new.bool(AshSettings.Checker.state),
@@ -1867,7 +1886,7 @@ local imgui_fm = imgui.OnFrame(
 
 									sendchatarray(AshSettings.MainSettings.playcd, {
 										{"/todo Сейчас я ознакомлю вас с прайс-листом*открывая тумбочку"},
-										{"/me перебирая стопку листов взял один заламинированный лист, читает с него"},
+										{"/me перебирая стопку листов {gender:взял|взяла} один заламинированный лист, читает с него"},
 										{'Водительские права: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[1].price[1]) or '... Стёрто', string.separate(prices[1].price[2]) or '... Стёрто', string.separate(prices[1].price[3]) or '... Стёрто'},
 										{'Права на мото-транспорт: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[2].price[1]) or '... Стёрто', string.separate(prices[2].price[2]) or '... Стёрто', string.separate(prices[2].price[3]) or '... Стёрто'},
 										{'Лицензия на воздушный транспорт: на 1 месяц - %s$', string.separate(prices[3].price[1]) or '... Стёрто'},
@@ -1907,8 +1926,8 @@ local imgui_fm = imgui.OnFrame(
 										if not sampIsPlayerPaused(fastmenuID) then
 											windows.imgui_fm[0] = false
 											sendchatarray(AshSettings.MainSettings.playcd, {
-												{'/me схватил человека за руку, и повел к выходу'},
-												{'/me открыв дверь рукой, вывел человека на улицу'},
+												{'/me {gender:схватил|схватила} человека за руку, и {gender:повёл|повела} к выходу'},
+												{'/me открыв дверь рукой, {gender:вывел|вывела} человека на улицу'},
 												{'/expel %s %s', fastmenuID, AshSettings.MainSettings.expelreason},
 											})
 										else
@@ -3199,7 +3218,7 @@ local imgui_settings = imgui.OnFrame(
 										inicfg.save(AS_Settings,'AS Helper')
 									end
 								
-									if imgui.ToggleButton(u8'Быстрый скрин', usersettings.dofastscreen) then
+									if imgui.ToggleButton(u8'Быстрый /time + screenshot', usersettings.dofastscreen) then
 										AshSettings.MainSettings.dofastscreen = usersettings.dofastscreen[0]
 										inicfg.save(AS_Settings,'AS Helper')
 									end
@@ -3215,6 +3234,15 @@ local imgui_settings = imgui.OnFrame(
 										imgui.SameLine()
 										imgui.Text(u8'Активация')
 									end
+									if imgui.ToggleButton(u8'Автоматически чинить знаки', usersettings.autorepair) then
+										AshSettings.MainSettings.autorepair = usersettings.autorepair[0]
+										inicfg.save(AS_Settings,'AS Helper')
+									end
+									imgui.SameLine()
+									imgui.SetCursorPosY(imgui.GetCursorPosY() + 1)
+									imgui.Text(fa.ICON_FA_INFO_CIRCLE)
+									imgui.Hint('Autorepair warning', 'Не уверен, что это разрешено. Включайте на свой страх и риск!')
+									imgui.SetCursorPosY(imgui.GetCursorPosY() - 1)
 								imgui.EndGroup()
 								imgui.Spacing()
 							imgui.EndGroup()
@@ -3730,7 +3758,7 @@ local imgui_settings = imgui.OnFrame(
 									imgui.PopStyleVar()
 									imgui.Spacing()
 								else
-									imgui.SetCursorPos(imgui.ImVec2(60, 20))
+									imgui.SetCursorPos(imgui.ImVec2(70, 20))
 									imgui.BeginGroup()
 										imgui.PushFont(font[16])
 										imgui.TextColoredRGB(zametkaredact_number ~= 0 and 'Редактирование заметки #'..zametkaredact_number or 'Создание новой заметки', 1)
@@ -3808,7 +3836,7 @@ local imgui_settings = imgui.OnFrame(
 							imgui.EndChild()
 							imgui.SetCursorPosX(7)
 							if zametkaredact_number == nil then
-								if imgui.Button(fa.ICON_FA_PLUS_CIRCLE..u8' Создать##zametkas') then
+								if imgui.Button(fa.ICON_FA_PLUS_CIRCLE..u8' Создать##zametkas', imgui.ImVec2(82, 23)) then
 									zametkaredact_number = 0
 									imgui.StrCopy(zametkisettings.zametkacmd, '')
 									imgui.StrCopy(zametkisettings.zametkaname, '')
@@ -3816,7 +3844,7 @@ local imgui_settings = imgui.OnFrame(
 									zametkisettings.zametkabtn = ''
 								end
 								imgui.SameLine()
-								if imgui.Button(fa.ICON_FA_PEN..u8' Изменить') then
+								if imgui.Button(fa.ICON_FA_PEN..u8' Изменить', imgui.ImVec2(82, 23)) then
 									if zametki[now_zametka[0]] then
 										zametkaredact_number = now_zametka[0]
 										imgui.StrCopy(zametkisettings.zametkacmd, u8(zametki[now_zametka[0]].cmd))
@@ -3826,7 +3854,7 @@ local imgui_settings = imgui.OnFrame(
 									end
 								end
 								imgui.SameLine()
-								if imgui.Button(fa.ICON_FA_TRASH..u8' Удалить') then
+								if imgui.Button(fa.ICON_FA_TRASH..u8' Удалить', imgui.ImVec2(82, 23)) then
 									if zametki[now_zametka[0]] then
 										table.remove(zametki, now_zametka[0])
 										now_zametka[0] = 1
@@ -3888,12 +3916,21 @@ local imgui_settings = imgui.OnFrame(
 											inicfg.save(AS_Settings,'AS Helper')
 										end
 									
-										imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding,imgui.ImVec2(10,10))
-										if imgui.Combo('##choosegendercombo',usersettings.gender, new['const char*'][2]({u8'Мужской',u8'Женский'}), 2) then
-											AshSettings.MainSettings.gender = usersettings.gender[0]
-											inicfg.save(AS_Settings,'AS Helper')
+										local p = imgui.GetCursorScreenPos()
+										imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y), imgui.ImVec2(p.x + 60, p.y + 23), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[AshSettings.MainSettings.gender == 0 and imgui.Col.ButtonHovered or imgui.Col.FrameBg]), 5, imgui.DrawCornerFlags.Left)
+										imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0,0,0,0))
+										if imgui.Button(u8'Мужской', imgui.ImVec2(60, 23)) then
+											AshSettings.MainSettings.gender = 0
 										end
-										imgui.PopStyleVar()
+										imgui.PopStyleColor()
+										imgui.SameLine(nil, 0)
+										local p = imgui.GetCursorScreenPos()
+										imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y), imgui.ImVec2(p.x + 60, p.y + 23), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[AshSettings.MainSettings.gender == 1 and imgui.Col.ButtonHovered or imgui.Col.FrameBg]), 5, imgui.DrawCornerFlags.Right)
+										imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(0,0,0,0))
+										if imgui.Button(u8'Женский', imgui.ImVec2(60, 23)) then
+											AshSettings.MainSettings.gender = 1
+										end
+										imgui.PopStyleColor()
 									
 										if imgui.Button(u8(AshSettings.ScannedVariables.RankNames[AshSettings.MainSettings.myrankint]..' ('..u8(AshSettings.MainSettings.myrankint)..')'), imgui.ImVec2(120, 23)) then
 											getmyrank = true
@@ -4089,14 +4126,18 @@ local imgui_settings = imgui.OnFrame(
 						imgui.PushStyleVarVec2(imgui.StyleVar.ButtonTextAlign, imgui.ImVec2(0.05,0.5))
 						for k, i in pairs(infobuttons) do
 							local clr = imgui.GetStyle().Colors[imgui.Col.Text].x
+							local p = imgui.GetCursorScreenPos()
 							if infowindow[0] == k then
-								local p = imgui.GetCursorScreenPos()
 								imgui.GetWindowDrawList():AddRectFilled(imgui.ImVec2(p.x, p.y + 10),imgui.ImVec2(p.x + 3, p.y + 25), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Border]), 5, imgui.DrawCornerFlags.Right)
 							end
+
+							imgui.GetWindowDrawList():AddText(imgui.ImVec2(p.x + 10, p.y + 12), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Text]), i.icon)
+							imgui.GetWindowDrawList():AddText(imgui.ImVec2(p.x + 30, p.y + 11), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Text]), i.text)
+
 							imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(clr,clr,clr,infowindow[0] == k and 0.1 or 0))
 							imgui.PushStyleColor(imgui.Col.ButtonActive, imgui.ImVec4(clr,clr,clr,0.15))
 							imgui.PushStyleColor(imgui.Col.ButtonHovered, imgui.ImVec4(clr,clr,clr,0.1))
-							if imgui.AnimButton(i, imgui.ImVec2(186,35)) then
+							if imgui.AnimButton('##'..i.text, imgui.ImVec2(186,35)) then
 								if infowindow[0] ~= k then
 									infowindow[0] = k
 									alpha[0] = clock()
@@ -4187,8 +4228,10 @@ local imgui_settings = imgui.OnFrame(
 								inicfg.save(AS_Settings,'AS Helper')
 							end
 							imgui.SameLine()
+							imgui.SetCursorPosY(imgui.GetCursorPosY() + 1)
 							imgui.Text(fa.ICON_FA_QUESTION_CIRCLE)
 							imgui.Hint('betareleaseshint', 'После включения данной функции Вы будете получать\nобновления раньше других людей для тестирования и\nсообщения о багах разработчику.\n{FF1010}Работа этих версий не будет гарантирована.')
+							imgui.SetCursorPosY(imgui.GetCursorPosY() - 1)
 						imgui.EndGroup()
 					elseif infowindow[0] == 2 then
 						imgui.SetCursorPos(imgui.ImVec2(15,15))
@@ -5208,7 +5251,7 @@ local imgui_tasks = imgui.OnFrame(
 		if ch.is_upgrade == 1 then
 			imgui.Text(u8'Всё выполнено!')
 		elseif ch.is_upgrade == 2 then
-			imgui.Text(u8'Откройте вашу трудовую книжку [M]')
+			imgui.Text(u8'Откройте вашу трудовую книжку [/wbook]')
 		end
 
 		for k, task in ipairs(ch.tasks) do
@@ -5633,17 +5676,6 @@ addEventHandler('onReceivePacket', function (id, bs)
 	end
 end)
 
-addEventHandler('onSendPacket', function (id, bs, priority, reliability, orderingChannel)
-	if id == 220 then
-	  local id = raknetBitStreamReadInt8(bs)
-	  local packettype = raknetBitStreamReadInt8(bs)
-	  local strlen = raknetBitStreamReadInt16(bs)
-	  local str = raknetBitStreamReadString(bs, strlen)
-	  if packettype ~= 0 and packettype ~= 1 and #str > 2 then
-		print(str) -- исходящая строка
-	  end
-	end
-  end)
 function send_cef(str)
 	local bs = raknetNewBitStream()
 	raknetBitStreamWriteInt8(bs, 220)
@@ -5656,33 +5688,135 @@ function send_cef(str)
 end
 
 function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
-	if title == '{BFBBBA}{73B461}Продажа лицензии' and style == 5 then
-		if text:find('Лицензия') then
-			for DialogLine in gmatch(text, '[^\r\n]+') do
-				local i = 0
-				local licNum, minRank, oneMonth, twoMonth, threeMonth = DialogLine:match("{%x+}(%d+)%..+%(.+(%d+).+%).+{%x+}(.+){%x+}(.+){%x+}(.+)")
-				local price = {oneMonth, twoMonth, threeMonth}
-				licNum = tonumber(licNum)
-				minRank = tonumber(minRank)
+	--print(dialogId, style, title, button1, button2, text)
+	if (repair.signs_parcing.in_parcing ~= 0 or repair.signs_parcing.make_path ~= 0) and title:find('{BFBBBA}Дорожные знаки') and style == 5 and text:find('{ffffff}Износ') then
 
-				if licNum and licNum <= #licenses then
-					for k, v in pairs(price) do
-						v = v:gsub('%$', '')
-						v = v:gsub(' ', '')
-						price[k] = tonumber(v)
+		if repair.signs_parcing.make_path ~= 0 then
+			sampSendDialogResponse(dialogId, 1, repair.signs_parcing.showed_signs[repair.signs_parcing.make_path].number - 1, nil)
+			repair.signs_parcing.make_path = 0
+			return false
+		end
+
+		local city = title:match('{BFBBBA}Дорожные знаки %((.+)%)')
+
+		for DialogLine in gmatch(text, '[^\r\n]+') do
+			if not DialogLine:find('%[№%] Название знака') then
+				local number, text, distance, wear, status = DialogLine:match('%[(%d+)%](.+)\t(.+)\t(.+)\t(.+)') 
+				repair.signs_parcing.signs[#repair.signs_parcing.signs+1] = {
+					number = number,
+					text = text,
+					distance = distance,
+					wear = wear == ' ' and '{ff0000}100%' or wear,
+					status = status,
+
+					city = city,
+				}
+			end
+		end
+		sampSendDialogResponse(dialogId, 0, repair.signs_parcing.in_parcing - 1, nil)
+		repair.signs_parcing.in_parcing = repair.signs_parcing.in_parcing == 3 and 0 or repair.signs_parcing.in_parcing + 1
+		return false
+	end
+	if title == '{BFBBBA}Выберите город' and style == 5 and text:find('{ffffff}Установлено знаков') then
+		
+		if repair.signs_parcing.make_path ~= 0 then
+			local city = repair.signs_parcing.showed_signs[repair.signs_parcing.make_path].city
+			local citys = {
+				['Los Santos'] = 0,
+				['San Fierro'] = 1,
+				['Lav Venturas'] = 2,
+			}
+			sampSendDialogResponse(dialogId, 1, citys[city], nil)
+			return false
+		end
+
+		if repair.signs_parcing.in_parcing ~= 0 then
+			sampSendDialogResponse(dialogId, 1, repair.signs_parcing.in_parcing - 1, nil)
+			return false
+		end
+
+		if #repair.signs_parcing.signs ~= 0 then
+			text = '№ Название знака\tРасстояние\tИзнос\tСтатус\n{MC}Отсортировать:\n{'..(repair.signs_parcing.sort_dontshow and 'MC' or 'WC')..'}Не показывать установленные\n{'..(repair.signs_parcing.sort == 1 and 'MC' or 'WC')..'}Расстояние\n{'..(repair.signs_parcing.sort == 2 and 'MC' or 'WC')..'}Износ\n'..(repair.signs_parcing.page ~= 0 and '<< Предыдущая страница\n' or ' \n')
+			repair.signs_parcing.showed_signs = {}
+
+			if repair.signs_parcing.sort == 1 then
+				table.sort(repair.signs_parcing.signs, function(a, b)
+					local num1 = a.distance:gsub('м', '')
+					local num2 = b.distance:gsub('м', '')
+					return tonumber(num1) < tonumber(num2) 
+				end)
+			else
+				table.sort(repair.signs_parcing.signs, function(a, b)
+					local num1 = a.wear:sub(9, a.wear:len()):gsub('%%', '')
+					local num2 = b.wear:sub(9, b.wear:len()):gsub('%%', '')
+					return tonumber(num1) > tonumber(num2) 
+				end)
+			end
+
+			local i = 1 + repair.signs_parcing.page * 40
+			local k = 1 + repair.signs_parcing.page * 40
+			while i <= 40 + repair.signs_parcing.page * 40 do
+				local v = repair.signs_parcing.signs[k]
+				repair.signs_parcing.showed_signs[#repair.signs_parcing.showed_signs+1] = v
+				if v ~= nil then
+					local line = '\n['..i..']'..v.text..'\t'..v.distance..'\t'..v.wear..'\t'..v.status
+					if repair.signs_parcing.sort_dontshow then
+						local wearNum = v.wear:sub(9, v.wear:len()):gsub('%%', '')
+						if tonumber(wearNum) < 30 then
+							line = ''
+							table.remove(repair.signs_parcing.showed_signs, #repair.signs_parcing.showed_signs)
+							i = i - 1
+						end
 					end
-					AshSettings.ScannedVariables.PriceList[licNum].rank = minRank
-					AshSettings.ScannedVariables.PriceList[licNum].price = price
+					text = text..line
 				end
+				i = i + 1
+				k = k + 1
 			end
-			
-			if sellList.sellLicense ~= 0 and sellList[sellList.sellLicense].status == 1 then
-				sampSendDialogResponse(dialogId, 1, sellList[sellList.sellLicense].licenseNumber-1, nil)
-				return false
-			elseif sellList.sellLicense ~= 0 and sellList[sellList.sellLicense].status == 8 then
-				sampSendDialogResponse(dialogId, 0, sellList[sellList.sellLicense].licenseNumber-1, nil)
-				return false
+			if repair.signs_parcing.signs[k+1] then
+				text = text..'\n>> Следующая страница'
 			end
+
+			repair.signs_parcing.max_pages = ceil(len(text)/3600)
+
+			local col = imgui.ColorConvertU32ToFloat4(AshSettings.MainSettings.ASChatColor.color)
+			local r,g,b,a = col.x*255, col.y*255, col.z*255, col.w*255
+			text = gsub(text, '{WC}', '{EBEBEB}')
+			text = gsub(text, '{MC}', format('{%06X}', bit.bor(bit.bor(b, bit.lshift(g, 8)), bit.lshift(r, 16))))
+
+			return {dialogId, style, 'Отсортированные знаки', 'Выбрать', 'Отмена', text}
+		end
+
+		text = text:sub(1, text:find('\n'))..'{ff6600}[autoschool]\tОтсортировать'..'\n '..text:sub(text:find('\n'), text:len())
+		repair.signs_parcing.dialogOpened = true
+
+		return{dialogId, style, title, button1, button2, text}
+	end
+	if title == '{BFBBBA}{73B461}Продажа лицензии' and style == 5 then
+		for DialogLine in gmatch(text, '[^\r\n]+') do
+			local i = 0
+			local licNum, minRank, oneMonth, twoMonth, threeMonth = DialogLine:match("{%x+}(%d+)%..+%(.+(%d+).+%).+{%x+}(.+){%x+}(.+){%x+}(.+)")
+			local price = {oneMonth, twoMonth, threeMonth}
+			licNum = tonumber(licNum)
+			minRank = tonumber(minRank)
+
+			if licNum and licNum <= #licenses then
+				for k, v in pairs(price) do
+					v = v:gsub('%$', '')
+					v = v:gsub(' ', '')
+					price[k] = tonumber(v)
+				end
+				AshSettings.ScannedVariables.PriceList[licNum].rank = minRank
+				AshSettings.ScannedVariables.PriceList[licNum].price = price
+			end
+		end
+		
+		if sellList.sellLicense ~= 0 and sellList[sellList.sellLicense].status == 1 then
+			sampSendDialogResponse(dialogId, 1, sellList[sellList.sellLicense].licenseNumber-1, nil)
+			return false
+		elseif sellList.sellLicense ~= 0 and sellList[sellList.sellLicense].status == 8 then
+			sampSendDialogResponse(dialogId, 0, sellList[sellList.sellLicense].licenseNumber-1, nil)
+			return false
 		end
 	end
 
@@ -5932,7 +6066,7 @@ function sampev.onServerMessage(color, message)
 	if sellList.sellLicense ~= 0 then
 		if not sellList[sellList.sellLicense] then return {color, message} end
 		if sellList[sellList.sellLicense].status == 2 then
-			if find(message, '%[Ошибка%] {FFFFFF}У игрока уже есть такая лицензия сроком более чем 3 дня.') then
+			if find(message, 'У игрока уже есть такая лицензия сроком более чем 3 дня.') then
 				sellList[sellList.sellLicense].status = 5
 			end
 			if find(message, '%[Информация%] {FFFFFF}Вы успешно продали лицензию') then
@@ -6014,6 +6148,44 @@ function sampev.onServerMessage(color, message)
 		end
 		return {color, message}
 	end
+end
+
+function sampev.onSendDialogResponse(dialogId, button, listboxId, input)
+	if repair.signs_parcing.dialogOpened then
+		if listboxId == 0 then
+			repair.signs_parcing.dialogOpened = false
+			repair.signs_parcing.in_parcing = 1
+			return {dialogId, button, listboxId, input}
+		end
+		repair.signs_parcing.dialogOpened = false
+		if listboxId == 1 then listboxId = 5 end
+		return {dialogId, button, listboxId - 2, input}
+	end
+	if #repair.signs_parcing.signs ~= 0 then
+		if button == 1 then
+			if listboxId == 1 then
+				repair.signs_parcing.sort_dontshow = not repair.signs_parcing.sort_dontshow
+				repair.signs_parcing.page = 0
+			elseif listboxId == 2 then
+				repair.signs_parcing.sort = 1
+			elseif listboxId == 3 then
+				repair.signs_parcing.sort = 2
+			elseif listboxId == 4 and repair.signs_parcing.page ~= 0 then
+				repair.signs_parcing.page = repair.signs_parcing.page - 1
+			elseif listboxId > 4 and listboxId < 45 then
+				repair.signs_parcing.make_path = listboxId - 4
+			elseif listboxId == 45 then
+				repair.signs_parcing.page = repair.signs_parcing.page + 1
+			end
+			return {dialogId, 1, 3, input}
+		end
+		if button == 0 then
+			repair.signs_parcing.signs = {}
+			repair.signs_parcing.page = 0
+			return {dialogId, 1, 3, input}
+		end
+	end
+	repair.signs_parcing.dialogOpened = false
 end
 
 function sampev.onSendChat(message)
@@ -6172,6 +6344,22 @@ function sampev.onSendCommand(cmd)
 	end
 end
 
+function sampev.onShowTextDraw(textDrawId, textDrawData)
+	if AshSettings.MainSettings.autorepair then
+		local textDraws = {
+			2081, 2105, 2104, 2103, 2082, 2101, 2100, 2102, 2083, 2099, 2104, 2102, 2105, 2084, 2099, 2102, 2104
+		}
+		if textDrawId == 2092 and textDrawData.text == 'PEMOHЏ_ѓOPO„HO‚O_€HAKA' then
+			lua_thread.create(function()
+				for k, v in ipairs(textDraws) do
+					wait(100)
+					sampSendClickTextdraw(v)
+				end
+			end)
+		end
+	end
+end
+
 function IsPlayerConnected(id)
 	return (sampIsPlayerConnected(tonumber(id)) or select(2, sampGetPlayerIdByCharHandle(playerPed)) == tonumber(id))
 end
@@ -6326,7 +6514,7 @@ function sellNextLicense()
 	end
 	if status == 3 then
 		sendchatarray(AshSettings.MainSettings.playcd, {
-			{'/me взяв мед.карту в руки начал её проверять'},
+			{'/me взяв мед.карту в руки {gender:начал|начала} её проверять'},
 			{'/do Мед.карта не в норме.'},
 			{'/todo К сожалению, в мед.карте написано, что у Вас есть отклонения.* отдавая мед.карту обратно'},
 			{'Обновите её и приходите снова!'},
@@ -6336,15 +6524,15 @@ function sellNextLicense()
 
 	if #sellList == 1 then
 		chat_array[#chat_array + 1] = {'Приступаю к оформлению.'}
-		chat_array[#chat_array + 1] = {"/me открыл тумбочку, взял оттуда бланк, положил на стол"}
-		chat_array[#chat_array + 1] = {"/me заполнил ручкой бланк на получение лицензии на %s", string.rlower(sellList[sellList.sellLicense].chat)}
+		chat_array[#chat_array + 1] = {"/me {gender:открыл|открыла} тумбочку, {gender:взял|взяла} оттуда бланк, {gender:положил|положила} на стол"}
+		chat_array[#chat_array + 1] = {"/me {gender:заполнил|заполнила} ручкой бланк на получение лицензии на %s", string.rlower(sellList[sellList.sellLicense].chat)}
 	elseif #sellList > 1 then
 		if sellList.sellLicense == 1 then
 			chat_array[#chat_array + 1] = {'Приступаю к оформлению.'}
-			chat_array[#chat_array + 1] = {"/me открыл тумбочку, взял оттуда %s бланков, положил на стол", #sellList > 2 and 'стопку' or 'пару'}
-			chat_array[#chat_array + 1] = {"/me заполнил ручкой один бланк на получение лицензии на %s", string.rlower(sellList[sellList.sellLicense].chat)}
+			chat_array[#chat_array + 1] = {"/me {gender:открыл|открыла} тумбочку, {gender:взял|взяла} оттуда %s бланков, {gender:положил|положила} на стол", #sellList > 2 and 'стопку' or 'пару'}
+			chat_array[#chat_array + 1] = {"/me {gender:заполнил|заполнила} ручкой один бланк на получение лицензии на %s", string.rlower(sellList[sellList.sellLicense].chat)}
 		else
-			chat_array[#chat_array + 1] = {"/me заполнил ручкой бланк на получение лицензии на %s", string.rlower(sellList[sellList.sellLicense].chat)}
+			chat_array[#chat_array + 1] = {"/me {gender:заполнил|заполнила} ручкой бланк на получение лицензии на %s", string.rlower(sellList[sellList.sellLicense].chat)}
 		end
 	end
 
@@ -6579,7 +6767,7 @@ function checkUpdates(json_url, show_notify)
 				local f = io.open(json, 'r')
 				if f then
 					local info = decodeJson(f:read('*a'))
-					local updateversion = (AshSettings.MainSettings.getbetaupd and info.beta_upd) and info.beta_version or info.version
+					local updateversion = (info.beta_upd) and info.beta_version or info.version
 					f:close()
 					os.remove(json)
 					if updateversion ~= thisScript().version then
@@ -6589,7 +6777,7 @@ function checkUpdates(json_url, show_notify)
 							addNotify('Обновлений не обнаружено!', 5)
 						end
 					end
-					if AshSettings.MainSettings.getbetaupd and info.beta_upd then
+					if info.beta_upd then
 						updateinfo = {
 							file = info.beta_file,
 							version = updateversion,
@@ -6933,8 +7121,8 @@ function main()
 			return ASHelperMessage('Игрок находится в АФК!')
 		end
 		return sendchatarray(AshSettings.MainSettings.playcd, {
-			{'/me схватил человека за руку, и повел к выходу'},
-			{'/me открыв дверь рукой, вывел человека на улицу'},
+			{'/me {gender:схватил|свхатила} человека за руку, и {gender:повёл|повела} к выходу'},
+			{'/me открыв дверь рукой, {gender:вывел|вывела} человека на улицу'},
 			{'/expel %s %s',id,reason},
 		})
 	end)
@@ -6955,6 +7143,7 @@ function main()
 	end)
 
 	while true do
+
 		if getCharPlayerIsTargeting() then
 			if AshSettings.MainSettings.fmtype == 0 then
 				if AshSettings.MainSettings.createmarker then
@@ -6989,8 +7178,8 @@ function main()
 						if #reason > 0 then
 							if not sampIsPlayerPaused(id) then
 								sendchatarray(AshSettings.MainSettings.playcd, {
-									{'/me схватил человека за руку, и повел к выходу'},
-									{'/me открыв дверь рукой, вывел человека на улицу'},
+									{'/me {gender:схватил|схватила} человека за руку, и {gender:повёл|повела} к выходу'},
+									{'/me открыв дверь рукой, {gender:вывел|вывела} человека на улицу'},
 									{'/expel %s %s',id,reason},
 								})
 							else
@@ -7130,7 +7319,7 @@ function main()
 					end
 				end
 			else
-				renderFontDrawText(ch.font, "{ff6633}[autoschool]:{ffffff} Использование чекера не подтверждено. Подтвердить можно в:\n{ff6633}/ash - Дополнительно - Чекер", cfgch.posX, cfgch.posY, 0xFFFFFFFF)
+				renderFontDrawText(ch.font, "{ff6633}[autoschool]:{ffffff} Использование чекера не подтверждено. Подтвердить можно в:\n{ff6633}/ash - Настройки - Чекер сотрудников", cfgch.posX, cfgch.posY, 0xFFFFFFFF)
 			end
 		end
 
@@ -7368,6 +7557,7 @@ changelog = {
 				'Убрана вся система подкачки правил и проверки устава {HINT:Кто бы мог подумать что у аризоны будет столько серверов кек}',
 				'Исправлен чекер сотрудников',
 				'Убраны все темы, кроме трёх (оранжевая, фиолетовая, Monet)',
+				'Добавлена автопочинка (выкл. по умолчанию) и автосортировка знаков',
 			},
 			patches = {
 				active = false,
