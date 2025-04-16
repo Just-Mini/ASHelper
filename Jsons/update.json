@@ -4,6 +4,6 @@
     "change_log":"Убрана зависимость от lfs\nУбрана зависимость от PNG файлов, теперь они находятся закодированными\nИзменена система подгрузки правил сервера\nУбраны некоторые ненужные функции\nОбновлены все правила серверов на актуальные",
     "beta_upd":true,
     "beta_file":"https://raw.githubusercontent.com/Just-Mini/ASHelper/main/AS%20Helper%20beta.lua",
-    "beta_version":"3.4.4 beta",
-    "beta_changelog":"Автопочинка и автосортировка знаков\nМелкие фиксы"
+    "beta_version":"3.4.5 beta",
+    "beta_changelog":"Автооткрытие дверей\nУбраны уведомления\nУбрана зависимость от MoonMonet\nФиксы"
 }

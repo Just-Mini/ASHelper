@@ -1,11 +1,4 @@
 --[[
-             _      ____      _   _          _
-            / \    / ___|    | | | |   ___  | |  _ __     ___   _ __
-           / _ \   \___ \    | |_| |  / _ \ | | | '_ \   / _ \ | '__|
-          / ___ \   ___) |   |  _  | |  __/ | | | |_) | |  __/ | |
-         /_/   \_\ |____/    |_| |_|  \___| |_| | .__/   \___| |_|
-                                                |_|
-
 	[стили imgui]
 		1-ый imgui стиль (переделан под лад mimgui): https://www.blast.hk/threads/25442/post-310168
 
@@ -30,10 +23,11 @@
 script_name('autoschool helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.4.4 beta')
+script_version('3.4.5 beta')
 script_dependencies('mimgui; samp events; MoonMonet')
 
 require 'moonloader'
+
 local dlstatus					= require 'moonloader'.download_status
 local inicfg					= require 'inicfg'
 local vkeys						= require 'vkeys'
@@ -45,7 +39,7 @@ local imguicheck, imgui			= pcall(require, 'mimgui')
 local monetluacheck, monetlua 	= pcall(require, 'MoonMonet')
 local sampevcheck, sampev		= pcall(require, 'lib.samp.events')
 
-if not imguicheck or not sampevcheck or not encodingcheck or not monetluacheck then
+if not imguicheck or not sampevcheck or not encodingcheck or (not monetluacheck and doesDirectoryExist(getWorkingDirectory()..'\\lib\\MoonMonet')) then
 	function main()
 		if not isSampLoaded() or not isSampfuncsLoaded() then return end
 		while not isSampAvailable() do wait(1000) end
@@ -121,7 +115,7 @@ if not imguicheck or not sampevcheck or not encodingcheck or not monetluacheck t
 		sampAddChatMessage(('[ASHelper]{EBEBEB} Началось скачивание необходимых файлов. Если скачивание не удастся, то обратитесь к {ff6633}vk.com/justmini{ebebeb}.'),0xff6633)
 
 		if not imguicheck then -- Нашел только релизную версию в архиве, так что пришлось залить файлы сюда, при обновлении буду обновлять и у себя
-			print('{FFFF00}Скачивание: mimgui')
+			print('{FFFF00}Скачивание: mimgui (v1.7.1)')
 			createDirectory('moonloader/lib/mimgui')
 			DownloadFiles({theme = 'mimgui',
 				{url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/lib/mimgui/init.lua', file = 'moonloader/lib/mimgui/init.lua', name = 'init.lua'},
@@ -129,12 +123,13 @@ if not imguicheck or not sampevcheck or not encodingcheck or not monetluacheck t
 				{url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/lib/mimgui/dx9.lua', file = 'moonloader/lib/mimgui/dx9.lua', name = 'dx9.lua'},
 				{url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/lib/mimgui/cimguidx9.dll', file = 'moonloader/lib/mimgui/cimguidx9.dll', name = 'cimguidx9.dll'},
 				{url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/lib/mimgui/cdefs.lua', file = 'moonloader/lib/mimgui/cdefs.lua', name = 'cdefs.lua'},
+				{url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/lib/mimgui/win32.lua', file = 'moonloader/lib/mimgui/win32.lua', name = 'win32.lua'},
 			})
 			print('{00FF00}mimgui успешно скачан')
 		end
 
-		if not monetluacheck then -- У нортхна
-			print('{FFFF00}Скачивание: MoonMonet')
+		if not monetluacheck and doesDirectoryExist(getWorkingDirectory()..'\\lib\\MoonMonet') then -- У нортхна
+			print('{FFFF00}Скачивание: MoonMonet (v0.1.0)')
 			createDirectory('moonloader/lib/MoonMonet')
 			DownloadFiles({theme = 'MoonMonet',
 				{url = 'https://github.com/Northn/MoonMonet/releases/download/0.1.0/init.lua', file = 'moonloader/lib/MoonMonet/init.lua', name = 'init.lua'},
@@ -178,7 +173,6 @@ local print, clock, sin, cos, floor, ceil, abs, format, gsub, gmatch, find, char
 
 encoding.default = 'CP1251'
 
-
 json = setmetatable({
 	defPath = getWorkingDirectory()..'/AS Helper/',
 	save = function(t,path) 
@@ -205,6 +199,18 @@ json = setmetatable({
 		local f = io.open(path,'r+')
 		local T = decodeJson(f:read('*a'))
 		f:close()
+
+		checktable = function(x, y)
+			for k, v in pairs(x) do
+				if y[k] == nil then
+					y[k] = v
+				end
+				if type(y[k]) == 'table' then
+					checktable(x[k], y[k])
+				end
+			end
+		end
+		checktable(t, T)
 
 		return setmetatable(T, {__call = function(t) json.save(t,path) end,})
 	end},{
@@ -248,6 +254,7 @@ AshSettings = json.load({
 		chatrank = false,
 		autorepair = false,
 		autocheckmc = true,
+		autodoor = true,
 		usefastmenu = 'E',
 		fastscreen = 'F4',
 		fastexpel = 'G',
@@ -670,12 +677,6 @@ local updateinfo					= {}
 local LastActiveTime				= {}
 local LastActive					= {}
 
-local notf_sX, notf_sY				= convertGameScreenCoordsToWindowScreenCoords(605, 438)
-local notify						= {
-	msg = {},
-	pos = {x = notf_sX - 200, y = notf_sY - 70}
-}
-notf_sX, notf_sY = nil, nil
 
 local mainwindow					= new.int(0)
 local settingswindow				= new.int(1)
@@ -721,6 +722,7 @@ local usersettings = {
 	bodyrank						= new.bool(AshSettings.MainSettings.bodyrank),
 	chatrank						= new.bool(AshSettings.MainSettings.chatrank),
 	autorepair						= new.bool(AshSettings.MainSettings.autorepair),
+	autodoor						= new.bool(AshSettings.MainSettings.autodoor),
 	autocheckmc						= new.bool(AshSettings.MainSettings.autocheckmc),
 	themeBased						= new.bool(AshSettings.MainSettings.ASChatColor.themeBased),
 	playcd							= new.float[1](AshSettings.MainSettings.playcd / 1000),
@@ -782,12 +784,13 @@ local tagbuttons = {
 	{name = '{my_name}',text = 'Пишет Ваш ник из настроек.',hint = 'Здравствуйте, я {my_name}\n- Здравствуйте, я Ваше имя.'},
 	{name = '{my_rank}',text = 'Пишет Ваш ранг из настроек.',hint = format('/do На груди бейджик {my_rank}\nНа груди бейджик %s', AshSettings.ScannedVariables.RankNames[AshSettings.MainSettings.myrankint])},
 	{name = '{my_score}',text = 'Пишет Ваш уровень.',hint = 'Я проживаю в штате уже {my_score} лет!\n- Я проживаю в штате уже \'Ваш уровень\' лет!'},
-	{name = '{H}',text = 'Пишет системное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в чч'},
-	{name = '{HM}',text = 'Пишет системное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в чч:мм будет концерт!'},
-	{name = '{HMS}',text = 'Пишет системное время в часы:минуты:секунды.',hint = 'У меня на часах {HMS}\n- У меня на часах \'чч:мм:сс\''},
+	{name = '{H}',text = 'Пишет серверное время в часы.',hint = 'Давай встретимся завтра тут же в {H} \n- Давай встретимся завтра тут же в чч'},
+	{name = '{HM}',text = 'Пишет серверное время в часы:минуты.',hint = 'Сегодня в {HM} будет концерт!\n- Сегодня в чч:мм будет концерт!'},
+	{name = '{HMS}',text = 'Пишет серверное время в часы:минуты:секунды.',hint = 'У меня на часах {HMS}\n- У меня на часах \'чч:мм:сс\''},
 	{name = '{gender:Текст1|Текст2}',text = 'Пишет сообщение в зависимости от вашего пола.',hint = 'Я вчера {gender:был|была} в банке\n- Если мужской пол: был в банке\n- Если женский пол: была в банке'},
 	{name = '@{ID}',text = 'Узнаёт имя игрока по ID.',hint = 'Ты не видел где сейчас @{43}?\n- Ты не видел где сейчас \'Имя 43 ида\''},
 	{name = '{close_id}',text = 'Узнаёт ID ближайшего к Вам игрока',hint = 'О, а вот и @{{close_id}}?\nО, а вот и \'Имя ближайшего ида\''},
+	{name = '{interact_id}',text = 'Пишет ID игрока с которым вы взаимодействуете',hint = '/pay {interact_id} 50000\nПередаёт игроку 50.000$'},
 	{name = '{delay_*}',text = 'Добавляет задержку между сообщениями',hint = 'Добрый день, я сотрудник Автошколы г. Сан-Фиерро, чем могу Вам помочь?\n{delay_2000}\n/do На груди висит бейджик с надписью Лицензёр Автошколы.\n\n[10:54:29] Добрый день, я сотрудник Автошколы г. Сан-Фиерро, чем могу Вам помочь?\n[10:54:31] На груди висит бейджик с надписью Лицензёр Автошколы.'},
 }
 local buttons = {
@@ -982,6 +985,9 @@ imgui.OnInitialize(function()
 end)
 
 function checkstyle()
+	if not monetluacheck and AshSettings.MainSettings.style == 2 then
+		AshSettings.MainSettings.style = 0
+	end
 	imgui.SwitchContext()
 	local style 							= imgui.GetStyle()
 	local colors 							= style.Colors
@@ -1240,7 +1246,7 @@ function changePosition(table)
 				while isKeyDown(0x01) do wait(0) end
 				ChangePos = false
 				sampSetCursorMode(0)
-				addNotify('Позиция сохранена!', 5)
+				ASHelperMessage('Позиция сохранена!')
 			elseif isKeyDown(0x02) then
 				while isKeyDown(0x02) do wait(0) end
 				ChangePos = false
@@ -1248,7 +1254,7 @@ function changePosition(table)
 				table.posX = backup['x']
 				table.posY = backup['y']
 				table.align = backup['align']
-				addNotify('Вы отменили изменение\nместоположения', 5)
+				ASHelperMessage('Вы отменили изменение\nместоположения')
 			end
 
 			if isKeyJustPressed(0x25) then
@@ -1272,6 +1278,10 @@ function imgui.Link(link, text)
 	local p = imgui.GetCursorScreenPos()
 	local DL = imgui.GetWindowDrawList()
 	local col = { 0xFFFF7700, 0xFFFF9900 }
+	if imgui.GetStyle().Alpha ~= 1 then
+		col[1] = changeColorAlpha(col[1], imgui.GetStyle().Alpha * 255)
+		col[2] = changeColorAlpha(col[2], imgui.GetStyle().Alpha * 255)
+	end
 	local button = imgui.InvisibleButton('##' .. text, tSize)
 	if button and link then os.execute('explorer ' .. link) end
 	local color = imgui.IsItemHovered() and col[1] or col[2]
@@ -1812,15 +1822,6 @@ function imgui.PopupButton(dl, name, text, color, popupname, popup, popupwidth)
 	dl:AddText(imgui.ImVec2(p.x + imgui.CalcTextSize(text).x +  14, p.y + 1), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Text]), fa.ICON_FA_CHEVRON_DOWN)
 end
 
-function addNotify(msg, time)
-	local col = imgui.ColorConvertU32ToFloat4(AshSettings.MainSettings.ASChatColor.color)
-	local r,g,b = col.x*255, col.y*255, col.z*255
-	msg = gsub(msg, '{WC}', '{SSSSSS}')
-	msg = gsub(msg, '{MC}', format('{%06X}', bit.bor(bit.bor(b, bit.lshift(g, 8)), bit.lshift(r, 16))))
-
-	notify.msg[#notify.msg+1] = {text = msg, time = time, active = true, justshowed = nil}
-end
-
 local imgui_fm = imgui.OnFrame(
 	function() return windows.imgui_fm[0] end,
 	function(player)
@@ -1888,15 +1889,15 @@ local imgui_fm = imgui.OnFrame(
 										{"/todo Сейчас я ознакомлю вас с прайс-листом*открывая тумбочку"},
 										{"/me перебирая стопку листов {gender:взял|взяла} один заламинированный лист, читает с него"},
 										{'Водительские права: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[1].price[1]) or '... Стёрто', string.separate(prices[1].price[2]) or '... Стёрто', string.separate(prices[1].price[3]) or '... Стёрто'},
-										{'Права на мото-транспорт: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[2].price[1]) or '... Стёрто', string.separate(prices[2].price[2]) or '... Стёрто', string.separate(prices[2].price[3]) or '... Стёрто'},
-										{'Лицензия на воздушный транспорт: на 1 месяц - %s$', string.separate(prices[3].price[1]) or '... Стёрто'},
-										{'Лицензия на рыбалку: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[4].price[1]) or '... Стёрто', string.separate(prices[4].price[2]) or '... Стёрто', string.separate(prices[4].price[3]) or '... Стёрто'},
-										{'Права на водный транспорт: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[5].price[1]) or '... Стёрто', string.separate(prices[5].price[2]) or '... Стёрто', string.separate(prices[5].price[3]) or '... Стёрто'},
-										{'Лицензия на владение оружием: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[6].price[1]) or '... Стёрто', string.separate(prices[6].price[2]) or '... Стёрто', string.separate(prices[6].price[3]) or '... Стёрто'},
-										{'Лицензия на охоту: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[7].price[1]) or '... Стёрто', string.separate(prices[7].price[2]) or '... Стёрто', string.separate(prices[7].price[3]) or '... Стёрто'},
-										{'Лицензия на раскопки: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[8].price[1]) or '... Стёрто', string.separate(prices[8].price[2]) or '... Стёрто', string.separate(prices[8].price[3]) or '... Стёрто'},
-										{'Лицензия на работу в такси: на 1 месяц %s -$ на, 2 месяца - %s$ ,на 3 месяца - %s$ ', string.separate(prices[9].price[1]) or '... Стёрто', string.separate(prices[9].price[2]) or '... Стёрто', string.separate(prices[9].price[3]) or '... Стёрто'},
-										{'Лицензия на работу механиком: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[10].price[1]) or '... Стёрто', string.separate(prices[10].price[2]) or '... Стёрто', string.separate(prices[10].price[3]) or '... Стёрто'},
+										{'Мото-транспорт: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[2].price[1]) or '... Стёрто', string.separate(prices[2].price[2]) or '... Стёрто', string.separate(prices[2].price[3]) or '... Стёрто'},
+										{'Воздушный транспорт: на 1 месяц - %s$', string.separate(prices[3].price[1]) or '... Стёрто'},
+										{'Рыбалка: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[4].price[1]) or '... Стёрто', string.separate(prices[4].price[2]) or '... Стёрто', string.separate(prices[4].price[3]) or '... Стёрто'},
+										{'Водный транспорт: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[5].price[1]) or '... Стёрто', string.separate(prices[5].price[2]) or '... Стёрто', string.separate(prices[5].price[3]) or '... Стёрто'},
+										{'Владение оружием: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[6].price[1]) or '... Стёрто', string.separate(prices[6].price[2]) or '... Стёрто', string.separate(prices[6].price[3]) or '... Стёрто'},
+										{'Охота: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[7].price[1]) or '... Стёрто', string.separate(prices[7].price[2]) or '... Стёрто', string.separate(prices[7].price[3]) or '... Стёрто'},
+										{'Раскопки: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[8].price[1]) or '... Стёрто', string.separate(prices[8].price[2]) or '... Стёрто', string.separate(prices[8].price[3]) or '... Стёрто'},
+										{'Работа в такси: на 1 месяц %s -$ на, 2 месяца - %s$ ,на 3 месяца - %s$ ', string.separate(prices[9].price[1]) or '... Стёрто', string.separate(prices[9].price[2]) or '... Стёрто', string.separate(prices[9].price[3]) or '... Стёрто'},
+										{'Работа механиком: на 1 месяц - %s$, на 2 месяца - %s$, на 3 месяца - %s$', string.separate(prices[10].price[1]) or '... Стёрто', string.separate(prices[10].price[2]) or '... Стёрто', string.separate(prices[10].price[3]) or '... Стёрто'},
 										{'/todo Если у вас нет вопросов, то мы можем продолжить*убирая лист в тумбочку'},
 									})
 								end
@@ -3055,6 +3056,7 @@ local imgui_settings = imgui.OnFrame(
 								imgui.SameLine(k*200)
 							end
 						end
+
 					imgui.EndGroup()
 					imgui.PopStyleVar()
 				elseif mainwindow[0] == 1 then
@@ -3238,6 +3240,38 @@ local imgui_settings = imgui.OnFrame(
 										imgui.SameLine()
 										imgui.Text(u8'Активация')
 									end
+									if imgui.ToggleButton(u8'Автооткрытие дверей', usersettings.autodoor) then
+										AshSettings.MainSettings.autodoor = usersettings.autodoor[0]
+										if AshSettings.MainSettings.autodoor then
+											autodoor = lua_thread.create(function()
+												while AshSettings.MainSettings.autodoor do
+													for key, hObj in pairs(getAllObjects()) do
+														if doesObjectExist(hObj) then
+															local objModel = getObjectModel(hObj)
+															local res, ox, oy, oz = getObjectCoordinates(hObj)
+															local objHeading = getObjectHeading(hObj)
+															local px, py, pz = getCharCoordinates(PLAYER_PED)
+															local distance = getDistanceBetweenCoords3d(px, py, pz, ox, oy, oz)
+															if objModel == 1808 or objModel == 975 then
+																if distance < 4 then
+																	local data = allocateMemory(68)
+																	local _, myId = sampGetPlayerIdByCharHandle(PLAYER_PED)
+																	sampStorePlayerOnfootData(myId, data)
+																
+																	local weaponId = getCurrentCharWeapon(PLAYER_PED)
+																	setStructElement(data, 36, 1, weaponId + 192, true)
+																	sampSendOnfootData(data)
+																	freeMemory(data)
+																end
+															end
+														end
+													end
+													wait(400)
+												end
+											end)
+										end
+										inicfg.save(AS_Settings,'AS Helper')
+									end
 									if imgui.ToggleButton(u8'Автоматически чинить знаки', usersettings.autorepair) then
 										AshSettings.MainSettings.autorepair = usersettings.autorepair[0]
 										inicfg.save(AS_Settings,'AS Helper')
@@ -3279,14 +3313,49 @@ local imgui_settings = imgui.OnFrame(
 										imgui.ImVec2(p.x + 17, p.y),
 										imgui.ImVec2(p.x + 17, p.y + 17),
 										imgui.ImVec2(p.x, p.y + 17),
-										imgui.ImVec2(p.x, p.y)
+										imgui.ImVec2(p.x, p.y),
+										nil,
+										nil,
+										nil,
+										nil,
+										monetluacheck and 0xFFFFFFFF or 0x50FFFFFF
 									)
 									
+									if not monetluacheck then
+										imgui.GetWindowDrawList():AddText(imgui.ImVec2(p.x + 7, p.y + 2), imgui.ColorConvertFloat4ToU32(imgui.GetStyle().Colors[imgui.Col.Text]), '!')
+									end
+
 									if imgui.CircleButton('##choosestyle6', AshSettings.MainSettings.style == 2, imgui.GetStyle().Colors[imgui.Col.Button], nil, true) then
+										if not monetluacheck then
+											imgui.OpenPopup(u8'Установка билиотеки')
+										end
 										AshSettings.MainSettings.style = 2
 										inicfg.save(AS_Settings, 'AS Helper.ini')
 										checkstyle()
 									end
+									imgui.SetNextWindowSize(imgui.ImVec2(400, 135))
+									imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(15, 15))
+									if imgui.BeginPopupModal(u8'Установка билиотеки', _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
+										imgui.TextColoredRGB('Для работы Monet Вам требуется установить следующую библиотеку:', 1)
+										imgui.TextColoredRGB('{FF0000}MoonMonet', 1)
+										imgui.Spacing()
+										if imgui.Button(downloading_monet and u8'Установка...' or u8'Установить', imgui.ImVec2(179, 30)) then
+											if not downloading_monet then
+												downloading_monet = lua_thread.create(function()
+													NoErrors = true
+													createDirectory(getWorkingDirectory()..'\\lib\\MoonMonet')
+													wait(1000)
+													thisScript():reload()
+												end)
+											end
+										end
+										imgui.SameLine()
+										if imgui.Button(u8'Отмена', imgui.ImVec2(179, 30)) then
+											imgui.CloseCurrentPopup()
+										end
+										imgui.EndPopup()
+									end
+									imgui.PopStyleVar()
 									imgui.Hint('MoonMonetHint','MoonMonet')
 								imgui.EndGroup()
 								imgui.SetCursorPosY(imgui.GetCursorPosY() - 25)
@@ -3423,7 +3492,7 @@ local imgui_settings = imgui.OnFrame(
 										if AshSettings.Checker.state then
 											changePosition(AshSettings.Checker)
 										else
-											addNotify('Включите чекер.', 5)
+											ASHelperMessage('Включите чекер.')
 										end
 									end
 									imgui.SameLine()
@@ -4240,14 +4309,6 @@ local imgui_settings = imgui.OnFrame(
 					elseif infowindow[0] == 2 then
 						imgui.SetCursorPos(imgui.ImVec2(15,15))
 						imgui.BeginGroup()
-							if testCheat('dev') then
-								AshSettings.MainSettings.myrankint = 10
-								addNotify('{20FF20}Режим разработчика включён.', 5)
-								sampRegisterChatCommand('ash_temp',function()
-									fastmenuID = select(2, sampGetPlayerIdByCharHandle(playerPed))
-									windows.imgui_fm[0] = true
-								end)
-							end
 							imgui.PushFont(font[15])
 							imgui.TextColoredRGB('Автор - {MC}JustMini')
 							imgui.PopFont()
@@ -4271,19 +4332,19 @@ local imgui_settings = imgui.OnFrame(
 							imgui.SetCursorPos(imgui.ImVec2(imgui.GetCursorPosX() + 190, imgui.GetCursorPosY() - 25))
 							if imgui.Button('BTC') then
 								imgui.SetClipboardText('bc1q9s2p2y475gfhqcfch7m9decs8e83aq5pc8kcv7')
-								addNotify('Адрес Bitcoin кошелька был\nскопирован в буфер обмена', 5)
+								ASHelperMessage('Адрес Bitcoin кошелька был\nскопирован в буфер обмена')
 								thanksAlpha[0] = clock()
 							end
 							imgui.SameLine()
 							if imgui.Button('ETH') then
 								imgui.SetClipboardText('0x512A5DD70fcB8b765CDA44faf53c67E66fc49b4c')
-								addNotify('Адрес Ethereum кошелька был\nскопирован в буфер обмена', 5)
+								ASHelperMessage('Адрес Ethereum кошелька был\nскопирован в буфер обмена')
 								thanksAlpha[0] = clock()
 							end
 							imgui.SameLine()
 							if imgui.Button('SOL') then
 								imgui.SetClipboardText('2Jc1BRPMZbm3KYC7WdMC6toE625hDcV7qAbYCuWeYDt2')
-								addNotify('Адрес Solana кошелька был\nскопирован в буфер обмена', 5)
+								ASHelperMessage('Адрес Solana кошелька был\nскопирован в буфер обмена')
 								thanksAlpha[0] = clock()
 							end
 
@@ -4505,11 +4566,11 @@ local imgui_binder = imgui.OnFrame(
 				choosedslot = nil
 			end
 		else
-			imgui.SetCursorPos(imgui.ImVec2(240,180))
-			imgui.Text(u8'Откройте бинд или создайте новый для меню редактирования.')
+			imgui.SetCursorPos(imgui.ImVec2(255,180))
+			imgui.Text(u8'Откройте бинд или создайте новый для редактирования.')
 		end
 		imgui.SetCursorPos(imgui.ImVec2(14, 330))
-		if imgui.Button(u8'Добавить',imgui.ImVec2(82,30)) then
+		if imgui.Button(u8'Создать',imgui.ImVec2(82,30)) then
 			choosedslot = 50
 			imgui.StrCopy(bindersettings.binderbuff, '')
 			imgui.StrCopy(bindersettings.bindername, '')
@@ -4922,20 +4983,6 @@ local imgui_changelog = imgui.OnFrame(
 								imgui.Text(u8(changelog.versions[i].patches.text))
 							end
 						end
-						if changelog.versions[i].fromAuthor then
-							imgui.SetCursorPosY(imgui.GetCursorPosY() + 5)
-							imgui.PushFont(font[16])
-							imgui.TextColoredRGB('{AAAAAA}Сообщение от автора '..(changelog.versions[i].fromAuthor.active and '<<' or '>>'))
-							imgui.PopFont()
-							if imgui.IsItemHovered() and imgui.IsMouseReleased(0) then
-								changelog.versions[i].fromAuthor.active = not changelog.versions[i].fromAuthor.active
-							end
-							if changelog.versions[i].fromAuthor.active then
-								imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(0.67,0.67,0.67,1.0))
-								imgui.Text(u8(changelog.versions[i].fromAuthor.text))
-								imgui.PopStyleColor()
-							end
-						end
 						imgui.NewLine()
 					end
 				imgui.EndGroup()
@@ -5256,6 +5303,7 @@ local imgui_tasks = imgui.OnFrame(
 			imgui.Text(u8'Всё выполнено!')
 		elseif ch.is_upgrade == 2 then
 			imgui.Text(u8'Откройте вашу трудовую книжку [/wbook]')
+			imgui.Text(u8'В дальнейшем писать не потребуется')
 		end
 
 		for k, task in ipairs(ch.tasks) do
@@ -5302,7 +5350,7 @@ local imgui_tasks = imgui.OnFrame(
 	end
 )
 
-local imgui_notify = imgui.OnFrame(
+--[[local imgui_notify = imgui.OnFrame(
 	function() return true end,
 	function(player)
 		player.HideCursor = true
@@ -5370,7 +5418,7 @@ local imgui_notify = imgui.OnFrame(
 		local notf_sX, notf_sY = convertGameScreenCoordsToWindowScreenCoords(605, 438)
 		notify.pos = {x = notf_sX - 200, y = notf_sY - 70}
 	end
-)
+)]]
 
 local imgui_zametka = imgui.OnFrame(
 	function() return windows.imgui_zametka[0] end,
@@ -5566,34 +5614,6 @@ function sampev.onCreatePickup(id, model, pickupType, position)
 end
 
 addEventHandler('onReceivePacket', function (id, bs)
-
-	--[[
-+		1: chat | 			[Новое предложение]{ffffff} Вам поступило предложение от игрока Ivan_Prokop. Используйте команду: /offer или клавишу X
-
-+		2: getdialog |		25689   5   {BFBBBA}Активные предложения   Далее   Закрыть   {cccccc}№ | Предложение	{cccccc}Отправил	{cccccc}Когда
-							{ff6666}[1]{ffffff} Предлагает посмотреть его медицинскую карту..	{FF6633}Ivan_Prokop	{ffff00}0 сек. назад
-							{ff6347}Отклонить все предложения
-							
-+		3: getdialog |  	25690   2   {BFBBBA}Активные предложения   Выбрать   Назад   {FF6666}[1] {ffffff}Отправил предложение: {73B461}Ivan_Prokop
-							{FF6666}[2] {ffffff}Суть предложения: {ffff00}Предлагает посмотреть его медицинскую карту
-							{FF6666}[»] {33AA33}Принять предложение
-							{FF6666}[»] {FF6347}Отклонить предложение
-
-+		4: getdialog |		27339   0   {BFBBBA}Подтверждение действия   Да   Назад   {ffffff}Вы действительно хотите принять следующее предложение?
-
-							{ffffff}Суть предложения: {ffff00}Предлагает посмотреть его медицинскую карту{ffffff}
-							{ffffff}Отправил предложение: {73B461}Ivan_Prokop{ffffff}
-
-		5: receivepacket |	window.executeEvent('event.documents.inititalizeData', `[{"type":1,"name":"Ivan_Prokop","sex":"Мужской","birthday":"20.05.1952","citizen":"Имеется (с рождения)","married":"Не женат(а)","level":"24 лет","zakono":"100/100","job":"Машинист электропоезда","agenda":"Нет","charity":"0","seria":"1973","number":"563551","signature":"IProkop","skin_image_url":"https://pc.az-ins.com/resource/frontend/inventory/skins/512/59.png"}]`);
-
-		6: sendpacket |		documents.changePage|4
-
-		7: receivepacket |	window.executeEvent('event.documents.inititalizeData', `[{"type":4,"name":"Ivan_Prokop","skin_image_url":"https://pc.az-ins.com/resource/frontend/inventory/skins/512/59.png","state":"Полностью здоровый(ая)","med_card_time":"53 дня(ей)","zavisimost":"15.0","health_insurance":"Отсутствует","med_osmotr_progress":0}]`);
-
-			----PARSING----
-
-		8: sendpacket |		documents.close
-	]]
 	if id == 220 then
 		raknetBitStreamIgnoreBits(bs, 8)
 		if (raknetBitStreamReadInt8(bs) == 17) then
@@ -5659,6 +5679,10 @@ addEventHandler('onReceivePacket', function (id, bs)
 					}
 					if v.completed == 1 then
 						task_checker_variables.tasks.completed = task_checker_variables.tasks.completed + 1
+					end
+
+					if getmyrank then
+						send_cef('exit')
 					end
 				end
 			elseif str:find('event.documents.inititalizeData') and sellList.sellLicense ~= 0 and sellList.checking_medcard.status == 1 then
@@ -5742,7 +5766,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 		end
 
 		if #repair.signs_parcing.signs ~= 0 then
-			text = '№ Название знака\tРасстояние\tИзнос\tСтатус\n{MC}Отсортировать:\n{'..(repair.signs_parcing.sort_dontshow and 'MC' or 'WC')..'}Не показывать установленные\n{'..(repair.signs_parcing.sort == 1 and 'MC' or 'WC')..'}Расстояние\n{'..(repair.signs_parcing.sort == 2 and 'MC' or 'WC')..'}Износ\n'..(repair.signs_parcing.page ~= 0 and '<< Предыдущая страница\n' or ' \n')
+			text = '№ Название знака\tРасстояние\tИзнос\tСтатус\n{MC}Отсортировать:\n{'..(repair.signs_parcing.sort_dontshow and 'MC' or 'WC')..'}Не показывать установленные\n{'..(repair.signs_parcing.sort == 1 and 'MC' or 'WC')..'}Расстояние\n{'..(repair.signs_parcing.sort == 2 and 'MC' or 'WC')..'}Износ\n'..(repair.signs_parcing.page ~= 0 and '{WC}<< Предыдущая страница\n' or ' \n')
 			repair.signs_parcing.showed_signs = {}
 
 			if repair.signs_parcing.sort == 1 then
@@ -5780,7 +5804,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 				k = k + 1
 			end
 			if repair.signs_parcing.signs[k+1] then
-				text = text..'\n>> Следующая страница'
+				text = text..'\n{WC}>> Следующая страница'
 			end
 
 			repair.signs_parcing.max_pages = ceil(len(text)/3600)
@@ -5793,12 +5817,17 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			return {dialogId, style, 'Отсортированные знаки', 'Выбрать', 'Отмена', text}
 		end
 
-		text = text:sub(1, text:find('\n'))..'{ff6600}[autoschool]\tОтсортировать'..'\n '..text:sub(text:find('\n'), text:len())
+		text = text:sub(1, text:find('\n'))..'{MC}[autoschool]\tОтсортировать'..'\n '..text:sub(text:find('\n'), text:len())
 		repair.signs_parcing.dialogOpened = true
+
+		local col = imgui.ColorConvertU32ToFloat4(AshSettings.MainSettings.ASChatColor.color)
+		local r,g,b,a = col.x*255, col.y*255, col.z*255, col.w*255
+		text = gsub(text, '{WC}', '{EBEBEB}')
+		text = gsub(text, '{MC}', format('{%06X}', bit.bor(bit.bor(b, bit.lshift(g, 8)), bit.lshift(r, 16))))
 
 		return{dialogId, style, title, button1, button2, text}
 	end
-	if title == '{BFBBBA}{73B461}Продажа лицензии' and style == 5 then
+	if title == '{BFBBBA}{73B461}Продажа лицензии' and style == 5 and text:find('$') then
 		for DialogLine in gmatch(text, '[^\r\n]+') do
 			local i = 0
 			local licNum, minRank, oneMonth, twoMonth, threeMonth = DialogLine:match("{%x+}(%d+)%..+%(.+(%d+).+%).+{%x+}(.+){%x+}(.+){%x+}(.+)")
@@ -6057,15 +6086,15 @@ end
 function sampev.onServerMessage(color, message)
 	if AshSettings.MainSettings.replacechat then
 		if find(message, 'Используйте: /wbook %[id игрока%]') then
-			addNotify('Вы просмотрели свою трудовую\nкнижку.', 5)
+			ASHelperMessage('Вы просмотрели свою трудовую\nкнижку.')
 			return false
 		end
 		if find(message, sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(playerPed)))..' переодевается в гражданскую одежду') then
-			addNotify('Вы закончили рабочий день,\nприятного отдыха!', 5)
+			ASHelperMessage('Вы закончили рабочий день,\nприятного отдыха!')
 			return false
 		end
 		if find(message, sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(playerPed)))..' переодевается в рабочую одежду') then
-			addNotify('Вы начали рабочий день,\nудачной работы!', 5)
+			ASHelperMessage('Вы начали рабочий день,\nудачной работы!')
 			return false
 		end
 	end
@@ -6212,15 +6241,15 @@ function sampev.onSendChat(message)
 		return false
 	end
 	if find(message, '{H}') then
-		sampSendChat(gsub(message, '{H}', os.date('%H', os.time())))
+		sampSendChat(gsub(message, '{H}', os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)))
 		return false
 	end
 	if find(message, '{HM}') then
-		sampSendChat(gsub(message, '{HM}', os.date('%H:%M', os.time())))
+		sampSendChat(gsub(message, '{HM}', os.date('%H:%M', os.time(os.date('!*t')) + 2 * 60 * 60)))
 		return false
 	end
 	if find(message, '{HMS}') then
-		sampSendChat(gsub(message, '{HMS}', os.date('%H:%M:%S', os.time())))
+		sampSendChat(gsub(message, '{HMS}', os.date('%H:%M:%S', os.time(os.date('!*t')) + 2 * 60 * 60)))
 		return false
 	end
 	if find(message, '{close_id}') then
@@ -6229,6 +6258,14 @@ function sampev.onSendChat(message)
 			return false
 		end
 		ASHelperMessage('В зоне стрима не найдено ни одного игрока.')
+		return false
+	end
+	if find(message, '{interact_id}') then
+		if windows.imgui_fm[0] and fastmenuID then
+			sampSendChat(gsub(message, '{interact_id}', fastmenuID))
+			return false
+		end
+		ASHelperMessage('Вы ни с кем не взаимодействуете.')
 		return false
 	end
 	if find(message, '@{%d+}') then
@@ -6283,15 +6320,15 @@ function sampev.onSendCommand(cmd)
 		return false
 	end
 	if find(cmd, '{H}') then
-		sampSendChat(gsub(cmd, '{H}', os.date('%H', os.time())))
+		sampSendChat(gsub(cmd, '{H}', os.date('%H', os.time(os.date('!*t')) + 2 * 60 * 60)))
 		return false
 	end
 	if find(cmd, '{HM}') then
-		sampSendChat(gsub(cmd, '{HM}', os.date('%H:%M', os.time())))
+		sampSendChat(gsub(cmd, '{HM}', os.date('%H:%M', os.time(os.date('!*t')) + 2 * 60 * 60)))
 		return false
 	end
 	if find(cmd, '{HMS}') then
-		sampSendChat(gsub(cmd, '{HMS}', os.date('%H:%M:%S', os.time())))
+		sampSendChat(gsub(cmd, '{HMS}', os.date('%H:%M:%S', os.time(os.date('!*t')) + 2 * 60 * 60)))
 		return false
 	end
 	if find(cmd, '{close_id}') then
@@ -6300,6 +6337,14 @@ function sampev.onSendCommand(cmd)
 			return false
 		end
 		ASHelperMessage('В зоне стрима не найдено ни одного игрока.')
+		return false
+	end
+	if find(cmd, '{interact_id}') then
+		if windows.imgui_fm[0] and fastmenuID then
+			sampSendChat(gsub(cmd, '{interact_id}', fastmenuID))
+			return false
+		end
+		ASHelperMessage('Вы ни с кем не взаимодействуете.')
 		return false
 	end
 	if find(cmd, '@{%d+}') then
@@ -6355,14 +6400,20 @@ function sampev.onShowTextDraw(textDrawId, textDrawData)
 		if textDrawId == 2092 then
 			if textDrawData.text == 'PEMOHЏ_ѓOPO„HO‚O_€HAKA' then
 				local textDraws = {
-					2081, 2105, 2104, 2103, 2082, 2101, 2100, 2102, 2083, 2099, 2104, 2102, 2105, 2084, 2099, 2102, 2104
+					2081, 2105, 2104, 2103,
+					2082, 2101, 2100, 2102,
+					2083, 2099, 2100, 2101, 2102, 2104, 2105,
+					2084, 2099, 2100, 2101, 2102, 2104
 				}
 				for k, v in ipairs(textDraws) do
 					sampSendClickTextdraw(v)
 				end
 			elseif textDrawData.text == 'CЂOPKA_ѓOPO„HO‚O_€HAKA' then
 				local textDraws = {
-					2081, 2098, 2082, 2098, 2083, 2098, 2104, 2105, 2106, 2084, 2098, 2104, 2105
+					2081, 2098,
+					2082, 2098,
+					2083, 2098, 2099, 2100, 2101, 2104, 2105, 2106,
+					2084, 2098, 2099, 2100, 2104, 2105, 
 				}
 				for k, v in ipairs(textDraws) do
 					sampSendClickTextdraw(v)
@@ -6512,7 +6563,7 @@ function sellNextLicense()
 		return
 	end
 	if status == 2 then
-		chat_array[#chat_array + 1] = {'/me взяв мед.карту в руки начал её проверять'}
+		chat_array[#chat_array + 1] = {'/me взяв мед.карту в руки {gender:начал|начала} её проверять'}
 		chat_array[#chat_array + 1] = {'/do Мед.карта в норме.'}
 		chat_array[#chat_array + 1] = {'/todo Всё в порядке* отдавая мед.карту обратно'}
 
@@ -6578,7 +6629,6 @@ end
 
 function createJsons()
 	createDirectory(getWorkingDirectory()..'\\AS Helper')
-	createDirectory(getWorkingDirectory()..'\\AS Helper\\Rules')
 	if doesFileExist(getWorkingDirectory()..'\\config\\AS Helper.ini') then
 		windows.imgui_first_launch[#windows.imgui_first_launch + 1] = 1
 	end
@@ -6592,20 +6642,6 @@ function createJsons()
 		lections = decodeJson(file:read('*a'))
 		file:close()
 	end
-	if not doesFileExist(getWorkingDirectory()..'\\AS Helper\\Questions.json') then
-		questions = {
-			active = { redact = false },
-			questions = {}
-		}
-		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'w')
-		file:write(encodeJson(questions))
-		file:close()
-	else
-		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Questions.json', 'r')
-		questions = decodeJson(file:read('*a'))
-		questions.active.redact = false
-		file:close()
-	end
 	if not doesFileExist(getWorkingDirectory()..'\\AS Helper\\Zametki.json') then
 		zametki = {}
 		local file = io.open(getWorkingDirectory()..'\\AS Helper\\Zametki.json', 'w')
@@ -6617,117 +6653,6 @@ function createJsons()
 		file:close()
 	end
 	return true
-end
-
-function checkRules()
-	ruless = {}
-
-	local addRuleFunc = function(file)
-		if not file then return false end
-
-		local temp = io.open(getWorkingDirectory()..'\\AS Helper\\Rules\\'..file, 'r+')
-		local text = {}
-		for line in temp:lines() do
-			line = line == '' and ' ' or line
-			text[#text + 1] = line
-		end
-
-		ruless[#ruless + 1] = { name = file, text = text}
-	end
-
-	local searchHandle, file = findFirstFile(getWorkingDirectory()..'\\AS Helper\\Rules\\*.txt');
-	addRuleFunc(file)
-
-	while file do
-		file = findNextFile(searchHandle)
-		addRuleFunc(file)
-	end
-
-	local server = checkServer()
-	if not server then
-		addNotify('К сожалению, скрипт пока\nчто не поддерживает правила\nВашего сервера. Скрипт\nпродолжит работу без данной\nфункции. Подробнее: {MC}/ashrules{WC}.', 5)
-		sampRegisterChatCommand('ashrules', function()
-			sampShowDialog(32121, '{ff6633}[AS Helper]{ffffff} Неизвестный сервер.', [[
-{FF0000}Оповещение, которое вы увидели - не критическое.
-
-{55BA20}Что значит это оповещение?
-{55AAA9}Оно обозначает лишь то, что к списку правил серверов пока что не добавлен ваш сервер.
-
-{55BA20}Какую функциональность теряет скрипт?
-{55AAA9}Без правил сервера вы не сможете проверить встроенными вопросами устав в быстром меню
-Также вы не сможете просматривать встроенные правила в /ash - Дополнительно - Правила
-
-{55BA20}Что вы можете сделать в этой ситуации?
-{55AAA9}Проигнорировать это оповещение и продолжить использовать скрипт нажав ОК
-Либо сообщить разработчику о вашем сервере {2594CC}(vk.com/justmini)]], 'ОК', nil, 0
-			)
-		end)
-		return
-	end
-
-	if not servers.message then return end
-
-	local json_url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/Jsons/Rules/'..server.name..'.json'
-	local json = getWorkingDirectory() .. '\\'..thisScript().name..'-rules.json'
-
-	if doesFileExist(json) then
-		os.remove(json)
-	end
-
-	downloadUrlToFile(json_url, json, function(id, status, p1, p2)
-		if status == dlstatus.STATUSEX_ENDDOWNLOAD then
-			if not doesFileExist(json) then return end
-			local f = io.open(json, 'r')
-			local info = decodeJson(f:read('*a'))
-			f:close(); os.remove(json)
-			if not f then return end
-			addNotify('Правила Вашего сервера были\nнайдены и успешно загружены.\nАктуально на {MC}'..info.last_update..'{WC}.', 5)
-			ruless['server'], serverquestions['server'] = info.name, info.name
-			for k,v in pairs(info['Rules']) do
-				if type(v) == 'string' then
-					local temptable = {}
-					for line in gmatch(v, '[^\n]+') do
-						temptable[#temptable+1] = find(line, '%{space%}') and ' ' or (#line > 151 and find(line:sub(151), ' ')) and (line:sub(1,150 + find(line:sub(151), ' '))..'\n'..line:sub(151 + find(line:sub(151), ' '))) or (line)
-					end
-					ruless[#ruless+1] = {name = k, text = temptable}
-				end
-			end
-			
-			for k,v in pairs(info['Questions']) do
-				serverquestions[k] = {}
-				for i,t in pairs(v) do
-					serverquestions[k][i] = t
-				end
-			end
-		end
-	end)
-end
-
-function messageFromAuthor()
-	local json_url = 'https://raw.githubusercontent.com/Just-Mini/ASHelper/main/Jsons/ServerList.json'
-	local json = getWorkingDirectory() .. '\\'..thisScript().name..'-server_list.json'
-
-	if doesFileExist(json) then
-		os.remove(json)
-	end
-
-	downloadUrlToFile(json_url, json, function(id, status, p1, p2)
-		if status == dlstatus.STATUSEX_ENDDOWNLOAD then
-			if not doesFileExist(json) then return end
-			local f = io.open(json, 'r')
-			local info = decodeJson(f:read('*a'))
-			f:close(); os.remove(json)
-			if not f or not info then return end
-			servers = info
-
-			for line in gmatch(servers.message, '[^\n]+') do
-				--ASHelperMessage(line)
-			end
-		
-			local server = checkServer()
-			if not server then return end
-		end
-	end)
 end
 
 function checkUpdates(json_url, show_notify)
@@ -6777,17 +6702,20 @@ function checkUpdates(json_url, show_notify)
 				local f = io.open(json, 'r')
 				if f then
 					local info = decodeJson(f:read('*a'))
-					local updateversion = (info.beta_upd) and info.beta_version or info.version
 					f:close()
 					os.remove(json)
+					local updateversion = (AshSettings.MainSettings.getbetaupd and info.beta_upd) and info.beta_version or info.version
+					if info.version == '3.3' then
+						updateversion = info.beta_version
+					end
 					if updateversion ~= thisScript().version then
-						addNotify('Обнаружено обновление на\nверсию {MC}'..updateversion..'{WC}. Подробности:\n{MC}/ashupd', 5)
+						ASHelperMessage('Обнаружено обновление на\nверсию {MC}'..updateversion..'{WC}. Подробности:\n{MC}/ashupd')
 					else
 						if show_notify then
-							addNotify('Обновлений не обнаружено!', 5)
+							ASHelperMessage('Обновлений не обнаружено!')
 						end
 					end
-					if info.beta_upd then
+					if (AshSettings.MainSettings.getbetaupd and info.beta_upd) or info.version == '3.3' then
 						updateinfo = {
 							file = info.beta_file,
 							version = updateversion,
@@ -6836,21 +6764,8 @@ function main()
 	while not isSampAvailable() do wait(1000) end
 
 	createJsons()
-	lua_thread.create(function()
-		local ASHfont = renderCreateFont('trebucbd', 11, 9)
 
-		messageFromAuthor()
-		while not servers.message do
-			renderFontDrawText(ASHfont, "[AS HELPER]: Проверяется актуальная информация о скрипте...", 10, ScreenSizeY - renderGetFontDrawHeight(ASHfont) - 5, 0xFFFFFFFF)
-			wait(0)
-		end
-		checkRules()
-	end)
-
-	getmyrank = true
-	sampSendChat('/stats')
 	print('{00FF00}Успешная загрузка')
-	addNotify(format('Успешная загрузка скрипта,\nверсия {MC}%s{WC}.\nНастроить скрипт: {MC}/ash', thisScript().version), 10)
 
 	if AshSettings.Checker.posX == -100 and AshSettings.Checker.state then
 		windows.imgui_first_launch[#windows.imgui_first_launch + 1] = 2
@@ -6872,18 +6787,15 @@ function main()
 		choosedslot = nil
 		windows.imgui_binder[0] = not windows.imgui_binder[0]
 	end)
-	sampRegisterChatCommand('ashstats', function()
-		ASHelperMessage('Это окно теперь включается в {MC}/ash{WC} - {MC}Настройки{WC}.')
-	end)
 	sampRegisterChatCommand('ashlect', function()
 		if AshSettings.MainSettings.myrankint < 5 then
-			return addNotify('Данная функция доступна с 5-го\nранга.', 5)
+			return ASHelperMessage('Данная функция доступна с 5-го\nранга.')
 		end
 		windows.imgui_lect[0] = not windows.imgui_lect[0]
 	end)
 	sampRegisterChatCommand('ashdep', function()
 		if AshSettings.MainSettings.myrankint < 5 then
-			return addNotify('Данная функция доступна с 5-го\nранга.', 5)
+			return ASHelperMessage('Данная функция доступна с 5-го\nранга.')
 		end
 		windows.imgui_depart[0] = not windows.imgui_depart[0]
 	end)
@@ -6892,6 +6804,10 @@ function main()
 		mainwindow[0] = 3
 		infowindow[0] = 1
 		alpha[0] = clock()
+	end)
+	sampRegisterChatCommand('ash_dev', function(param)
+		AshSettings.MainSettings.myrankint = tonumber(param)
+		ASHelperMessage('{20FF20}Теперь ваш ранг: '..param)
 	end)
 
 	sampRegisterChatCommand('uninvite', function(param)
@@ -7146,14 +7062,42 @@ function main()
 		end
 		while not sampIsLocalPlayerSpawned() do wait(1000) end
 		if sampIsLocalPlayerSpawned() then
+			ASHelperMessage(format('Успешная загрузка скрипта,\nверсия {MC}%s{WC}.\nНастроить скрипт: {MC}/ash', thisScript().version))
 			wait(2000)
 			getmyrank = true
+			sampSendChat('/wbook')
 			sampSendChat('/stats')
 		end
 	end)
 
-	while true do
+	autodoor = lua_thread.create(function()
+		while AshSettings.MainSettings.autodoor do
+			for key, hObj in pairs(getAllObjects()) do
+				if doesObjectExist(hObj) then
+					local objModel = getObjectModel(hObj)
+					local res, ox, oy, oz = getObjectCoordinates(hObj)
+					local objHeading = getObjectHeading(hObj)
+					local px, py, pz = getCharCoordinates(PLAYER_PED)
+					local distance = getDistanceBetweenCoords3d(px, py, pz, ox, oy, oz)
+					if objModel == 1808 or objModel == 975 then
+						if distance < 4 then
+							local data = allocateMemory(68)
+							local _, myId = sampGetPlayerIdByCharHandle(PLAYER_PED)
+							sampStorePlayerOnfootData(myId, data)
+						
+							local weaponId = getCurrentCharWeapon(PLAYER_PED)
+							setStructElement(data, 36, 1, weaponId + 192, true)
+							sampSendOnfootData(data)
+							freeMemory(data)
+						end
+					end
+				end
+			end
+			wait(400)
+		end
+	end)
 
+	while true do
 		if getCharPlayerIsTargeting() then
 			if AshSettings.MainSettings.fmtype == 0 then
 				if AshSettings.MainSettings.createmarker then
@@ -7344,7 +7288,6 @@ function main()
 			checker_variables.dontShowMeMembers = false
 			checker_variables.last_check = clock()
 		end
-
 		wait(0)
 	end
 end
@@ -7568,19 +7511,17 @@ changelog = {
 				'Исправлен чекер сотрудников',
 				'Убраны все темы, кроме трёх (оранжевая, фиолетовая, Monet)',
 				'Добавлена автопочинка (выкл. по умолчанию) и автосортировка знаков',
+				'Убраны все скриптовые уведомления',
+				'Добавлена (снова) функция автооткрытия дверей',
+				'Убрана зависимость от MoonMonet (теперь это опционально)'
 			},
 			patches = {
 				active = false,
 				text = [[
  - Исправлены не продающиеся лицензии
  - Исправлен баг с крашем при открытии /wbook
- - Исправлен засранный moonloader лог]]
-			},
-			fromAuthor = {
-				active = false,
-				text = [[
-Привет, простите что 2 года томил с обновлениями и скрипт можно сказать не функционировал. Эта версия, скорее всего будет последним
-обновлением, но постараюсь вовремя выпускать патчи (об ошибке можно сообщить в ВК). Спасибо, что до сих пор пользуетесь autoschool/helper.]]
+ - Исправлен засранный moonloader лог
+ - Исправлен баг с сохранением конфига после обновлений]]
 			},
 		},
 	},
