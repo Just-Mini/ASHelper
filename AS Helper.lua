@@ -24,7 +24,7 @@
 script_name('autoschool helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.4')
+script_version('3.4.1')
 script_dependencies('mimgui; samp events; MoonMonet')
 
 require 'moonloader'
@@ -2885,7 +2885,7 @@ local imgui_fm = imgui.OnFrame(
 										})
 									else
 										sendchatarray(AshSettings.MainSettings.playcd, {
-											{'Отлично, я думаю Вы нам подходите! Я сообщу руководству и вам дадут ключ от шкафчика.'},
+											{'Отлично, я думаю Вы нам подходите! Я сообщу руководству и вам предоставят ключ от шкафчика.'},
 											{'/r %s успешно прошёл собеседование! Прошу подойти ко мне, чтобы принять его.', gsub(sampGetPlayerNickname(fastmenuID), '_', ' ')},
 											{'/rb %s id', fastmenuID},
 										})
@@ -2909,6 +2909,7 @@ local imgui_fm = imgui.OnFrame(
 											},
 											mc = {
 												['Не полностью здоровый'] = 'В мед. карте сказано, что Вы не полностью здоровый.',
+												['Нету мед. карты'] = 'Я не вижу мед. карты в предоставленных документах.',
 												['зависимости'] = 'В мед. карте стоит пометка, что вы наркозависимый.'
 											},
 											licenses = {
@@ -6390,7 +6391,7 @@ addEventHandler('onReceivePacket', function (id, bs)
 								Interview.Checking.pass.state = 2
 								Interview.Checking.pass.reason = 'Слишком маленькая законопослушность'
 								send_cef('documents.changePage|2')
-							elseif personInfo.charity ~= 'Отсутсвует' then
+							elseif personInfo.charity ~= 'Нет' then
 								Interview.Checking.pass.state = 2
 								Interview.Checking.pass.reason = 'Работает в другой организации'
 								send_cef('documents.changePage|2')
@@ -6427,6 +6428,9 @@ addEventHandler('onReceivePacket', function (id, bs)
 							if state ~= 'Полностью здоровый(ая)' and AshSettings.Interview.mc.healthStatus then
 								Interview.Checking.mc.state = 2
 								Interview.Checking.mc.reason = 'Не полностью здоровый'
+								if state == nil then
+									Interview.Checking.mc.reason = 'Нету мед. карты'
+								end
 							elseif tonumber(addiction) > AshSettings.Interview.mc.maxAddiction then
 								Interview.Checking.mc.state = 2
 								Interview.Checking.mc.reason = 'Больше '..AshSettings.Interview.mc.maxAddiction..' зависимости'
@@ -6666,7 +6670,7 @@ function sampev.onShowDialog(dialogId, style, title, button1, button2, text)
 			print('{FF0000}Игрок не работает в автошколе. Скрипт был выгружен.')
 			ASHelperMessage('Вы не работаете в автошколе, скрипт выгружен! Если это ошибка, то обратитесь к {MC}vk.com/justmini{WC}.')
 			NoErrors = true
-			thisScript():unload()
+			if not dev_mode then thisScript():unload() end
 		end
 		sampSendDialogResponse(235, 0, 0, nil)
 		getmyrank = false
@@ -7554,6 +7558,20 @@ function main()
 		windows.imgui_first_launch[#windows.imgui_first_launch + 1] = 3
 	end
 
+	if sampGetPlayerNickname(select(2,sampGetPlayerIdByCharHandle(playerPed))) == 'Carolos_McCandy' then
+		AshSettings.MainSettings.myrankint = 10
+		sampRegisterChatCommand('debug_menu', function()
+			ASHelperMessage('Режим отладки: открыто меню взаимодействия.')
+			fastmenuID = select(2,sampGetPlayerIdByCharHandle(playerPed))
+			windows.imgui_fm[0] = not windows.imgui_fm[0]
+		end)
+		sampRegisterChatCommand('debug_rank', function(param)
+			ASHelperMessage('Режим отладки: установленный ранг: {MC}'..param..'{WC}.')
+			AshSettings.MainSettings.myrankint = tonumber(param)
+		end)
+		ASHelperMessage('Режим отладки: {33FF33}ВКЛ{WC}. {MC}/debug_menu{WC} - меню взаимодействия с собой. {MC}/debug_rank{WC} - установить ранг.')
+		dev_mode = true
+	end
 	sampRegisterChatCommand('ash', function()
 		windows.imgui_settings[0] = not windows.imgui_settings[0]
 		alpha[0] = clock()
@@ -8292,6 +8310,11 @@ changelog = {
 				'Добавлена (снова) функция автооткрытия дверей',
 				'Убрана зависимость от MoonMonet (теперь это опционально)',
 				'Изменено окно собеседований'
+			},
+			patches = {
+				active = false,
+				text = [[
+ - Доработано меню собеседования]]
 			},
 		},
 	},

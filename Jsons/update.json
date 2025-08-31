@@ -1,7 +1,7 @@
 {
     "file":"https://raw.githubusercontent.com/Just-Mini/ASHelper/main/AS%20Helper.lua",
-    "version":"3.4",
-    "change_log":"Изменено окно и система продажи лицензий\nИзменено окно собеседований\nОкно статистики было заменено чекером заданий\nИзменена система сохранения настроек\nУбрана система подкачки правил и устава\nУбраны все темы, кроме трех\nДобавлена автопочинка и автосортировка знаков\nУбраны уведомления\nДобавлена функция автооткрытия дверей\nУбрана зависимость от MoonMonet",
+    "version":"3.4.1",
+    "change_log":"Доработано меню собеседований (патч)",
     "beta_upd":false,
     "beta_file":"https://raw.githubusercontent.com/Just-Mini/ASHelper/main/AS%20Helper%20beta.lua",
     "beta_version":"3.4.5 beta",
