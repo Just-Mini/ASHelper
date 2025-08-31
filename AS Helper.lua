@@ -24,7 +24,7 @@
 script_name('autoschool helper')
 script_description('Удобный помощник для Автошколы.')
 script_author('JustMini')
-script_version('3.4.1')
+script_version('3.4.2')
 script_dependencies('mimgui; samp events; MoonMonet')
 
 require 'moonloader'
@@ -6382,7 +6382,7 @@ addEventHandler('onReceivePacket', function (id, bs)
 
 					if personInfo.type == 1 and personInfo.name == sampGetPlayerNickname(fastmenuID) then
 						if AshSettings.Interview.pass.state then
-							local lvl, law = select(1, personInfo.level:gsub(' лет', '')), select(1, personInfo.zakono:gsub('/.+', ''))
+							local lvl, law = select(1, personInfo.level:match('%d+')), select(1, personInfo.zakono:gsub('/.+', ''))
 							if tonumber(lvl) < AshSettings.Interview.pass.minLvl then
 								Interview.Checking.pass.state = 2
 								Interview.Checking.pass.reason = 'Слишком маленький уровень'
